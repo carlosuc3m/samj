@@ -1,6 +1,7 @@
 package io.bioimage.samj;
 
 import java.lang.AutoCloseable;
+import java.util.List;
 import java.io.IOException;
 
 import org.apposed.appose.Environment;
@@ -61,8 +62,13 @@ public class SamJ implements AutoCloseable {
 		return sam;
 	}
 	
-	public <T extends RealType<T> & NativeType<T>> 
-	RandomAccessibleInterval<T> addImage(RandomAccessibleInterval<T> rai) 
+	public <T extends RealType<T> & NativeType<T>>
+	void updateImage(RandomAccessibleInterval<T> rai) throws IOException, RuntimeException, InterruptedException {
+		addImage(rai);
+	}
+	
+	private <T extends RealType<T> & NativeType<T>>
+	void addImage(RandomAccessibleInterval<T> rai) 
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";
 		sendImgLib2AsNp(rai);
@@ -84,15 +90,13 @@ public class SamJ implements AutoCloseable {
 			}
 			throw e;
 		}
-		
-		return shma.getSharedRAI();
 	}
 	
-	public <T extends RealType<T> & NativeType<T>> 
-	RandomAccessibleInterval<T> processBox(int[] boundingBox) 
+	public List<Number> processBox(int[] boundingBox) 
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";
 		processWithSAM();
+		List<Number> results = null;
 		try {
 			Task task = python.task(script);
 			task.waitFor();
@@ -102,6 +106,11 @@ public class SamJ implements AutoCloseable {
 				throw new RuntimeException();
 			else if (task.status == TaskStatus.CRASHED)
 				throw new RuntimeException();
+			else if (task.status != TaskStatus.COMPLETE)
+				throw new RuntimeException();
+			else if (task.outputs.get("contours") == null)
+				throw new RuntimeException();
+			results = (List<Number>) task.outputs.get("contours");
 		} catch (IOException | InterruptedException | RuntimeException e) {
 			try {
 				this.shma.close();
@@ -111,7 +120,7 @@ public class SamJ implements AutoCloseable {
 			throw e;
 		}
 		
-		return shma.getSharedRAI();
+		return results;
 	}
 
 
@@ -154,6 +163,9 @@ public class SamJ implements AutoCloseable {
 				+ "    box=input_box[None, :]," + System.lineSeparator()
 				+ "    multimask_output=False," + System.lineSeparator()
 				+ ")" + System.lineSeparator();
+		code = ""
+				+ "contours = find_contours(mask[0])" + System.lineSeparator()
+				+ "task.output['contours'] = contours"+ System.lineSeparator();
 		this.script = code;
 	}
 }

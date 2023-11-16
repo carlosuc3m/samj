@@ -27,7 +27,21 @@ public class SamJ implements AutoCloseable {
 	public static final String IMPORTS = ""
 			+ "import numpy as np" + System.lineSeparator()
 			+ "from multiprocessing import shared_memory" + System.lineSeparator()
-			+ "from segment_anything import SamPredictor, sam_model_registry" + System.lineSeparator();
+			+ "from segment_anything import SamPredictor, sam_model_registry" + System.lineSeparator()
+			+ "" + System.lineSeparator()
+			+ "sam = sam_model_registry[\"" + InstallSAM.SAM_MODEL_TYPE 
+			+ "\"](checkpoint='" + InstallSAM.getWeightsFName() + "')" + System.lineSeparator()
+			+ "predictor = SamPredictor(sam)" + System.lineSeparator();
+	
+	private static final String  FIND_CONTOURS = ""
+			+"def find_contours(mask):" + System.lineSeparator()
+			+ "    # Ensure mask is binary" + System.lineSeparator()
+			+ "    mask = np.where(mask > 0, 1, 0)" + System.lineSeparator()
+			+ "    # Find edges: shift the mask in each direction and find where it differs from the original" + System.lineSeparator()
+			+ "    edges = np.zeros_like(mask)" + System.lineSeparator()
+			+ "    edges[:-1, :] |= (mask[1:, :] != mask[:-1, :])  # vertical edges" + System.lineSeparator()
+			+ "    edges[:, :-1] |= (mask[:, 1:] != mask[:, :-1])  # horizontal edges" + System.lineSeparator()
+			+ "    return edges" + System.lineSeparator();
 	
 	private SamJ(String envPath) throws IOException {
 		this.env = new Environment() {
@@ -36,19 +50,49 @@ public class SamJ implements AutoCloseable {
 			};
 		python = env.python();
     	python.debug(line -> System.err.println(line));
-    	python.task(IMPORTS);
+    	python.task(IMPORTS + FIND_CONTOURS);
 	}
 	
 	
-	public static SamJ initializeSam(String envPath) throws IOException {
-		return new SamJ(envPath);
+	public static <T extends RealType<T> & NativeType<T>> SamJ 
+	initializeSam(String envPath, RandomAccessibleInterval<T> image) throws IOException, RuntimeException, InterruptedException {
+		SamJ sam = new SamJ(envPath);
+		sam.addImage(image);
+		return sam;
 	}
 	
 	public <T extends RealType<T> & NativeType<T>> 
-	RandomAccessibleInterval<T> processBox(RandomAccessibleInterval<T> boundingBox) 
+	RandomAccessibleInterval<T> addImage(RandomAccessibleInterval<T> rai) 
 			throws IOException, RuntimeException, InterruptedException{
-		sendImgLib2AsNp(boundingBox);
-		processWithSAM((int) boundingBox.dimensionsAsLongArray()[2]);
+		this.script = "";
+		sendImgLib2AsNp(rai);
+		this.script = "predictor.set_image(box)";
+		try {
+			Task task = python.task(script);
+			task.waitFor();
+			if (task.status == TaskStatus.CANCELED)
+				throw new RuntimeException();
+			else if (task.status == TaskStatus.FAILED)
+				throw new RuntimeException();
+			else if (task.status == TaskStatus.CRASHED)
+				throw new RuntimeException();
+		} catch (IOException | InterruptedException | RuntimeException e) {
+			try {
+				this.shma.close();
+			} catch (IOException e1) {
+				throw new IOException(e.toString() + System.lineSeparator() + e1.toString());
+			}
+			throw e;
+		}
+		
+		return shma.getSharedRAI();
+	}
+	
+	public <T extends RealType<T> & NativeType<T>> 
+	RandomAccessibleInterval<T> processBox(int[] boundingBox) 
+			throws IOException, RuntimeException, InterruptedException{
+		this.script = "";
+		processWithSAM();
 		try {
 			Task task = python.task(script);
 			task.waitFor();
@@ -95,19 +139,21 @@ public class SamJ implements AutoCloseable {
 			code += ll + ", ";
 		code = code.substring(0, code.length() - 2);
 		code += "])" + System.lineSeparator();
-		this.script += code;
-	}
-	
-	private void processWithSAM(int nChannels) {
-		String code = "";
-		if (nChannels == 1) {
-			code += "box = processWithSAM()" + System.lineSeparator();
-		} else {
-			code += "box[:, :, 0] = processWithSAM()" + System.lineSeparator();
-			code += "box = box[:, :, 0] * np.ones((1, 1, box.shape[2]))" + System.lineSeparator();
-		}
 		code += "box_shm.unlink()" + System.lineSeparator();
 		code += "box_shm.close()" + System.lineSeparator();
 		this.script += code;
+	}
+	
+	private void processWithSAM() {
+		
+		String code = "" + System.lineSeparator()
+				+ "input_box = np.array(input_box)" + System.lineSeparator()
+				+ "masks, _, _ = predictor.predict(" + System.lineSeparator()
+				+ "    point_coords=None," + System.lineSeparator()
+				+ "    point_labels=None," + System.lineSeparator()
+				+ "    box=input_box[None, :]," + System.lineSeparator()
+				+ "    multimask_output=False," + System.lineSeparator()
+				+ ")" + System.lineSeparator();
+		this.script = code;
 	}
 }

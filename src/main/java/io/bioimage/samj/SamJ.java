@@ -1,6 +1,7 @@
 package io.bioimage.samj;
 
 import java.lang.AutoCloseable;
+import java.util.HashMap;
 import java.util.List;
 import java.io.IOException;
 
@@ -52,7 +53,8 @@ public class SamJ implements AutoCloseable {
 			+ "    edges = np.zeros_like(mask)" + System.lineSeparator()
 			+ "    edges[:-1, :] |= (mask[1:, :] != mask[:-1, :])  # vertical edges" + System.lineSeparator()
 			+ "    edges[:, :-1] |= (mask[:, 1:] != mask[:, :-1])  # horizontal edges" + System.lineSeparator()
-			+ "    return edges" + System.lineSeparator();
+			+ "    return edges" + System.lineSeparator()
+			+ "globals()['find_contours'] = find_contours" + System.lineSeparator();
 	
 	private SamJ(String envPath) throws IOException, RuntimeException, InterruptedException {
 		this.env = new Environment() {
@@ -116,8 +118,10 @@ public class SamJ implements AutoCloseable {
 		this.script = "";
 		processWithSAM();
 		List<Number> results = null;
+		HashMap<String, Object> inputs = new HashMap<String, Object>();
+		inputs.put("input_box", boundingBox);
 		try {
-			Task task = python.task(script);
+			Task task = python.task(script, inputs);
 			task.waitFor();
 			if (task.status == TaskStatus.CANCELED)
 				throw new RuntimeException();
@@ -176,22 +180,22 @@ public class SamJ implements AutoCloseable {
 		
 		String code = "" + System.lineSeparator()
 				+ "input_box = np.array(input_box)" + System.lineSeparator()
-				+ "masks, _, _ = predictor.predict(" + System.lineSeparator()
+				+ "mask, _, _ = predictor.predict(" + System.lineSeparator()
 				+ "    point_coords=None," + System.lineSeparator()
 				+ "    point_labels=None," + System.lineSeparator()
 				+ "    box=input_box[None, :]," + System.lineSeparator()
 				+ "    multimask_output=False," + System.lineSeparator()
-				+ ")" + System.lineSeparator();
-		code = ""
+				+ ")" + System.lineSeparator()
 				+ "contours = find_contours(mask[0])" + System.lineSeparator()
-				+ "task.output['contours'] = contours"+ System.lineSeparator();
+				+ "task.outputs['contours'] = contours"+ System.lineSeparator();
 		this.script = code;
 	}
 	
 	public static void main(String[] args) throws IOException, RuntimeException, InterruptedException {
 		RandomAccessibleInterval<UnsignedByteType> img = ArrayImgs.unsignedBytes(new long[] {512, 512, 3});
 		String envPath = "/home/carlos/micromamba/envs/sam";
-		SamJ sam = initializeSam(envPath, img);
-		sam.close();
+		try (SamJ sam = initializeSam(envPath, img)) {
+			sam.processBox(new int[] {0, 5, 10, 26});
+		}
 	}
 }

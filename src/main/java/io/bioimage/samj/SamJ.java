@@ -3,6 +3,8 @@ package io.bioimage.samj;
 import java.lang.AutoCloseable;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.awt.Polygon;
 import java.io.IOException;
 
 import org.apposed.appose.Environment;
@@ -45,17 +47,6 @@ public class SamJ implements AutoCloseable {
 			+ "globals()['np'] = np" + System.lineSeparator()
 			+ "globals()['predictor'] = predictor" + System.lineSeparator();
 	
-	private static final String  FIND_CONTOURS = ""
-			+"def find_contours(mask):" + System.lineSeparator()
-			+ "    # Ensure mask is binary" + System.lineSeparator()
-			+ "    mask = np.where(mask > 0, 1, 0)" + System.lineSeparator()
-			+ "    # Find edges: shift the mask in each direction and find where it differs from the original" + System.lineSeparator()
-			+ "    edges = np.zeros_like(mask)" + System.lineSeparator()
-			+ "    edges[:-1, :] |= (mask[1:, :] != mask[:-1, :])  # vertical edges" + System.lineSeparator()
-			+ "    edges[:, :-1] |= (mask[:, 1:] != mask[:, :-1])  # horizontal edges" + System.lineSeparator()
-			+ "    return edges" + System.lineSeparator()
-			+ "globals()['find_contours'] = find_contours" + System.lineSeparator();
-	
 	private SamJ(String envPath) throws IOException, RuntimeException, InterruptedException {
 		this.env = new Environment() {
 			@Override public String base() { return envPath; }
@@ -63,7 +54,7 @@ public class SamJ implements AutoCloseable {
 			};
 		python = env.python();
     	python.debug(line -> System.err.println(line));
-    	Task task = python.task(IMPORTS + FIND_CONTOURS);
+    	Task task = python.task(IMPORTS + PythonMethods.TRACE_EDGES);
 		task.waitFor();
 		if (task.status == TaskStatus.CANCELED)
 			throw new RuntimeException();
@@ -113,11 +104,11 @@ public class SamJ implements AutoCloseable {
 		}
 	}
 	
-	public List<Number> processBox(int[] boundingBox) 
+	public Polygon processBox(int[] boundingBox) 
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";
 		processWithSAM();
-		List<Number> results = null;
+		Map<String, Object> results = null;
 		HashMap<String, Object> inputs = new HashMap<String, Object>();
 		inputs.put("input_box", boundingBox);
 		try {
@@ -133,7 +124,7 @@ public class SamJ implements AutoCloseable {
 				throw new RuntimeException();
 			else if (task.outputs.get("contours") == null)
 				throw new RuntimeException();
-			results = (List<Number>) task.outputs.get("contours");
+			results = task.outputs;
 		} catch (IOException | InterruptedException | RuntimeException e) {
 			try {
 				this.shma.close();
@@ -142,8 +133,11 @@ public class SamJ implements AutoCloseable {
 			}
 			throw e;
 		}
-		
-		return results;
+		int[] contours_x = 
+				((List<Number>) results.get("contours_x")).stream().mapToInt(j -> j.intValue()).toArray();
+		int[] contours_y = 
+				((List<Number>) results.get("contours_y")).stream().mapToInt(j -> j.intValue()).toArray();
+		return new Polygon(contours_x, contours_y, contours_x.length);
 	}
 
 
@@ -179,6 +173,7 @@ public class SamJ implements AutoCloseable {
 	private void processWithSAM() {
 		
 		String code = "" + System.lineSeparator()
+				+ "task.update('start predict')" + System.lineSeparator()
 				+ "input_box = np.array(input_box)" + System.lineSeparator()
 				+ "mask, _, _ = predictor.predict(" + System.lineSeparator()
 				+ "    point_coords=None," + System.lineSeparator()
@@ -186,13 +181,21 @@ public class SamJ implements AutoCloseable {
 				+ "    box=input_box[None, :]," + System.lineSeparator()
 				+ "    multimask_output=False," + System.lineSeparator()
 				+ ")" + System.lineSeparator()
-				+ "contours = find_contours(mask[0])" + System.lineSeparator()
-				+ "task.outputs['contours'] = contours"+ System.lineSeparator();
+				+ "task.update('end predict')" + System.lineSeparator()
+				+ "task.update(str(mask[0].shape))" + System.lineSeparator()
+				+ "non_zero = np.where(mask[0] != 0)" + System.lineSeparator()
+				+ "task.update(str(non_zero[1][0]))" + System.lineSeparator()
+				+ "task.update(str(non_zero[0][0]))" + System.lineSeparator()
+				+ "contours, _ = trace_edge(mask[0], non_zero[1][0], non_zero[0][0])" + System.lineSeparator()
+				+ "task.update(contours)" + System.lineSeparator()
+				+ "contours = np.array(contours)" + System.lineSeparator()
+				+ "task.outputs['contours_x'] = contours[:, 0].tolist()" + System.lineSeparator()
+				+ "task.outputs['contours_y'] = contours[:, 1].tolist()" + System.lineSeparator();
 		this.script = code;
 	}
 	
 	public static void main(String[] args) throws IOException, RuntimeException, InterruptedException {
-		RandomAccessibleInterval<UnsignedByteType> img = ArrayImgs.unsignedBytes(new long[] {512, 512, 3});
+		RandomAccessibleInterval<UnsignedByteType> img = ArrayImgs.unsignedBytes(new long[] {50, 50, 3});
 		String envPath = "/home/carlos/micromamba/envs/sam";
 		try (SamJ sam = initializeSam(envPath, img)) {
 			sam.processBox(new int[] {0, 5, 10, 26});

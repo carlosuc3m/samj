@@ -21,7 +21,7 @@ public class PythonMethods {
 			+ "    # Add a point to the contour\n"
 			+ "    points.append((x, y))\n"
 			+ "\n"
-			+ "def trace_edge(mask, start_x, start_y, four_connected=True):\n"
+			+ "def trace_edge(mask, start_x, start_y, four_connected):\n"
 			+ "    start_direction = 3\n"
 			+ "    start_y += 1\n"
 			+ "\n"
@@ -30,6 +30,7 @@ public class PythonMethods {
 			+ "    points = []\n"
 			+ "\n"
 			+ "    while True:\n"
+			+ "        new_direction = None\n"
 			+ "        if four_connected:\n"
 			+ "            for i in range((direction - 1), (direction + 2) + 1):\n"
 			+ "                if (inside(mask, x, y, i % 4)):\n"
@@ -41,7 +42,8 @@ public class PythonMethods {
 			+ "                if inside(mask, x, y, new_direction):\n"
 			+ "                    break\n"
 			+ "                new_direction -= 1\n"
-			+ "\n"
+			+ "        if new_direction is None:\n"
+			+ "            break\n"
 			+ "        if new_direction != direction:\n"
 			+ "            add_point(points, x, y)\n"
 			+ "\n"
@@ -55,7 +57,6 @@ public class PythonMethods {
 			+ "            if not points or points[0] != (x, y):\n"
 			+ "                add_point(points, x, y)\n"
 			+ "            break\n"
-			+ "\n"
 			+ "    return points, direction <= 0" + System.lineSeparator()
 			+ "globals()['inside'] = inside" + System.lineSeparator()
 			+ "globals()['add_point'] = add_point" +  System.lineSeparator()

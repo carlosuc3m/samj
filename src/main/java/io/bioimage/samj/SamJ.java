@@ -122,7 +122,9 @@ public class SamJ implements AutoCloseable {
 				throw new RuntimeException();
 			else if (task.status != TaskStatus.COMPLETE)
 				throw new RuntimeException();
-			else if (task.outputs.get("contours") == null)
+			else if (task.outputs.get("contours_x") == null)
+				throw new RuntimeException();
+			else if (task.outputs.get("contours_y") == null)
 				throw new RuntimeException();
 			results = task.outputs;
 		} catch (IOException | InterruptedException | RuntimeException e) {

@@ -55,6 +55,15 @@
 			</roles>
 		</developer>
 	</developers>
+	<contributors>
+		<contributor>
+			<name>null</name>
+			<url>null</url>
+			<properties><id>null</id></properties>
+		</contributor>
+		<contributor>
+		</contributor>
+	</contributors>
 	<mailingLists>
 		<mailingList>
 			<name>Image.sc Forum</name>

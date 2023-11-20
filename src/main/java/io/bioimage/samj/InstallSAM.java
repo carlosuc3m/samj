@@ -9,6 +9,7 @@ public class InstallSAM {
 	final public static long SAM_BYTE_SIZE = 375042383;
 	
 	public static String getWeightsFName() {
-		return Paths.get("models", "sam", SAM_WEIGHTS_NAME).toString();
+		//return Paths.get("models", "sam", SAM_WEIGHTS_NAME).toString();
+		return "/home/carlos/Downloads/" + SAM_WEIGHTS_NAME;
 	}
 }

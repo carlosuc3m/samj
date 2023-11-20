@@ -12,8 +12,11 @@ import org.apposed.appose.Service.TaskStatus;
 import io.bioimage.modelrunner.tensor.shm.SharedMemoryArray;
 import io.bioimage.modelrunner.utils.CommonUtils;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedIntType;
 
 public class SamJ implements AutoCloseable {
 		
@@ -26,13 +29,20 @@ public class SamJ implements AutoCloseable {
 	private SharedMemoryArray shma;
 	
 	public static final String IMPORTS = ""
+			+ "task.update('start')" + System.lineSeparator()
 			+ "import numpy as np" + System.lineSeparator()
 			+ "from multiprocessing import shared_memory" + System.lineSeparator()
+			+ "task.update('import sam')" + System.lineSeparator()
 			+ "from segment_anything import SamPredictor, sam_model_registry" + System.lineSeparator()
+			+ "task.update('imported')" + System.lineSeparator()
 			+ "" + System.lineSeparator()
 			+ "sam = sam_model_registry[\"" + InstallSAM.SAM_MODEL_TYPE 
 			+ "\"](checkpoint='" + InstallSAM.getWeightsFName() + "')" + System.lineSeparator()
-			+ "predictor = SamPredictor(sam)" + System.lineSeparator();
+			+ "predictor = SamPredictor(sam)" + System.lineSeparator()
+			+ "task.update('created predictor')" + System.lineSeparator()
+			+ "globals()['shared_memory'] = shared_memory" + System.lineSeparator()
+			+ "globals()['np'] = np" + System.lineSeparator()
+			+ "globals()['predictor'] = predictor" + System.lineSeparator();
 	
 	private static final String  FIND_CONTOURS = ""
 			+"def find_contours(mask):" + System.lineSeparator()
@@ -44,14 +54,21 @@ public class SamJ implements AutoCloseable {
 			+ "    edges[:, :-1] |= (mask[:, 1:] != mask[:, :-1])  # horizontal edges" + System.lineSeparator()
 			+ "    return edges" + System.lineSeparator();
 	
-	private SamJ(String envPath) throws IOException {
+	private SamJ(String envPath) throws IOException, RuntimeException, InterruptedException {
 		this.env = new Environment() {
 			@Override public String base() { return envPath; }
 			@Override public boolean useSystemPath() { return false; }
 			};
 		python = env.python();
     	python.debug(line -> System.err.println(line));
-    	python.task(IMPORTS + FIND_CONTOURS);
+    	Task task = python.task(IMPORTS + FIND_CONTOURS);
+		task.waitFor();
+		if (task.status == TaskStatus.CANCELED)
+			throw new RuntimeException();
+		else if (task.status == TaskStatus.FAILED)
+			throw new RuntimeException();
+		else if (task.status == TaskStatus.CRASHED)
+			throw new RuntimeException();
 	}
 	
 	
@@ -72,7 +89,9 @@ public class SamJ implements AutoCloseable {
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";
 		sendImgLib2AsNp(rai);
-		this.script = "predictor.set_image(box)";
+		this.script += ""
+				+ "task.update('starting encoding')" + System.lineSeparator()
+				+ "predictor.set_image(box)";
 		try {
 			Task task = python.task(script);
 			task.waitFor();
@@ -149,7 +168,7 @@ public class SamJ implements AutoCloseable {
 		code = code.substring(0, code.length() - 2);
 		code += "])" + System.lineSeparator();
 		code += "box_shm.unlink()" + System.lineSeparator();
-		code += "box_shm.close()" + System.lineSeparator();
+		//code += "box_shm.close()" + System.lineSeparator();
 		this.script += code;
 	}
 	
@@ -167,5 +186,12 @@ public class SamJ implements AutoCloseable {
 				+ "contours = find_contours(mask[0])" + System.lineSeparator()
 				+ "task.output['contours'] = contours"+ System.lineSeparator();
 		this.script = code;
+	}
+	
+	public static void main(String[] args) throws IOException, RuntimeException, InterruptedException {
+		RandomAccessibleInterval<UnsignedByteType> img = ArrayImgs.unsignedBytes(new long[] {512, 512, 3});
+		String envPath = "/home/carlos/micromamba/envs/sam";
+		SamJ sam = initializeSam(envPath, img);
+		sam.close();
 	}
 }

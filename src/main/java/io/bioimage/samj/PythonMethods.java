@@ -21,7 +21,7 @@ public class PythonMethods {
 			+ "    # Add a point to the contour\n"
 			+ "    points.append((x, y))\n"
 			+ "\n"
-			+ "def trace_edge(mask, start_x, start_y, four_connected):\n"
+			+ "def trace_edge(mask, start_x, start_y, four_connected=True):\n"
 			+ "    start_direction = 3\n"
 			+ "    start_y += 1\n"
 			+ "\n"

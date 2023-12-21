@@ -43,6 +43,7 @@ public class EfficientSamJ implements AutoCloseable {
 			+ "task.update('created predictor')" + System.lineSeparator()
 			+ "globals()['shared_memory'] = shared_memory" + System.lineSeparator()
 			+ "globals()['np'] = np" + System.lineSeparator()
+			+ "globals()['torch'] = torch" + System.lineSeparator()
 			+ "globals()['predictor'] = predictor" + System.lineSeparator();
 	
 	private EfficientSamJ(String envPath) throws IOException, RuntimeException, InterruptedException {
@@ -82,7 +83,7 @@ public class EfficientSamJ implements AutoCloseable {
 		sendImgLib2AsNp(rai);
 		this.script += ""
 				+ "task.update('starting encoding')" + System.lineSeparator()
-				+ "predictor.vits.get_image_embeddings(box[None, :])";
+				+ "aa = predictor.get_image_embeddings(box[None, :])";
 		try {
 			Task task = python.task(script);
 			task.waitFor();
@@ -179,9 +180,10 @@ public class EfficientSamJ implements AutoCloseable {
 	private void processWithSAM() {
 		String code = "" + System.lineSeparator()
 				+ "task.update('start predict')" + System.lineSeparator()
-				+ "input_box = torch.from_numpy(np.array(input_box)).unsqueeze(0).unsqueeze(0)" + System.lineSeparator()
+				+ "input_box = torch.from_numpy(np.array(input_box).reshape(2, 2)).unsqueeze(0).unsqueeze(0)" + System.lineSeparator()
+				+ "print(input_box.shape)" + System.lineSeparator()
 				+ "input_label = torch.tensor([[[1, 1]]])" + System.lineSeparator()
-				+ "mask, _ = predictor.predict_masks(self.encoded_images" + System.lineSeparator()
+				+ "mask, _ = predictor.predict_masks(predictor.encoded_images," + System.lineSeparator()
 				+ "    input_box," + System.lineSeparator()
 				+ "    input_label," + System.lineSeparator()
 				+ "    multimask_output=False," + System.lineSeparator()
@@ -191,11 +193,15 @@ public class EfficientSamJ implements AutoCloseable {
 				+ "    output_w=input_w," + System.lineSeparator()
 				+ ")" + System.lineSeparator()
 				+ "task.update('end predict')" + System.lineSeparator()
-				+ "task.update(str(mask[0].shape))" + System.lineSeparator()
-				+ "non_zero = np.where(mask[0] != 0)" + System.lineSeparator()
+				+ "task.update(str(mask.shape))" + System.lineSeparator()
+				+ "mask = torch.ge(mask.detach().squeeze().T, 0).cpu().numpy()" + System.lineSeparator()
+				+ "print(mask.shape)" + System.lineSeparator()
+				+ "np.save('/home/carlos/git/aa.npy', mask)" + System.lineSeparator()
+				+ "non_zero = np.where(mask != 0)" + System.lineSeparator()
 				+ "task.update(str(non_zero[1][0]))" + System.lineSeparator()
 				+ "task.update(str(non_zero[0][0]))" + System.lineSeparator()
-				+ "contours, _ = trace_edge(mask[0], non_zero[1][0], non_zero[0][0])" + System.lineSeparator()
+				+ "contours, _ = trace_edge(mask, non_zero[1][0], non_zero[0][0])" + System.lineSeparator()
+				+ "task.update('mmmmmmmmmmmmmm')" + System.lineSeparator()
 				+ "task.update(contours)" + System.lineSeparator()
 				+ "contours = np.array(contours)" + System.lineSeparator()
 				+ "task.outputs['contours_x'] = contours[:, 0].tolist()" + System.lineSeparator()

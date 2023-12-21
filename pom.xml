@@ -114,7 +114,13 @@
 		<dependency>
     			<groupId>io.bioimage</groupId>
     			<artifactId>dl-modelrunner</artifactId>
-    			<version>0.4.3</version>
+    			<version>0.5.4</version>
 		</dependency>
 	</dependencies>
+	<repositories>
+		<repository>
+		  <id>scijava.public</id>
+		  <url>https://maven.scijava.org/content/groups/public</url>
+		</repository>
+	</repositories>
 </project>

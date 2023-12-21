@@ -155,7 +155,7 @@ public class SamJ implements AutoCloseable {
 		// input0_appose_shm = shared_memory.SharedMemory(name=input0)
 		// input0 = np.ndarray(size, dtype="float64", buffer=input0_appose_shm.buf).reshape([64, 64])
 		code += "box_shm = shared_memory.SharedMemory(name='" 
-							+ shma.getMemoryLocationPythonName() + "', size=" + shma.getSize() 
+							+ shma.getNameForPython() + "', size=" + shma.getSize() 
 							+ ")" + System.lineSeparator();
 		int size = 1;
 		long[] dims = boundingBox.dimensionsAsLongArray();

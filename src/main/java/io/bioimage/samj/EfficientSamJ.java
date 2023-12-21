@@ -33,6 +33,7 @@ public class EfficientSamJ implements AutoCloseable {
 	public static final String IMPORTS = ""
 			+ "task.update('start')" + System.lineSeparator()
 			+ "import numpy as np" + System.lineSeparator()
+			+ "import torch" + System.lineSeparator()
 			+ "from multiprocessing import shared_memory" + System.lineSeparator()
 			+ "task.update('import sam')" + System.lineSeparator()
 			+ "from efficient_sam.build_efficient_sam import build_efficient_sam_vits" + System.lineSeparator()
@@ -81,7 +82,7 @@ public class EfficientSamJ implements AutoCloseable {
 		sendImgLib2AsNp(rai);
 		this.script += ""
 				+ "task.update('starting encoding')" + System.lineSeparator()
-				+ "predictor.set_image(box)";
+				+ "predictor.vits.get_image_embeddings(box[None, :])";
 		try {
 			Task task = python.task(script);
 			task.waitFor();
@@ -103,6 +104,7 @@ public class EfficientSamJ implements AutoCloseable {
 	
 	public Polygon processBox(int[] boundingBox) 
 			throws IOException, RuntimeException, InterruptedException{
+		boundingBox = new int[] {boundingBox[1], boundingBox[0], boundingBox[3], boundingBox[2]};
 		this.script = "";
 		processWithSAM();
 		Map<String, Object> results = null;
@@ -164,21 +166,29 @@ public class EfficientSamJ implements AutoCloseable {
 			code += ll + ", ";
 		code = code.substring(0, code.length() - 2);
 		code += "])" + System.lineSeparator();
+		code += "input_h = box.shape[0]" + System.lineSeparator();
+		code += "input_w = box.shape[1]" + System.lineSeparator();
+		code += "globals()['input_h'] = input_h" + System.lineSeparator();
+		code += "globals()['input_w'] = input_w" + System.lineSeparator();
+		code += "box = torch.from_numpy(np.transpose(box, (2, 0, 1)))" + System.lineSeparator();
 		code += "box_shm.unlink()" + System.lineSeparator();
 		//code += "box_shm.close()" + System.lineSeparator();
 		this.script += code;
 	}
 	
 	private void processWithSAM() {
-		
 		String code = "" + System.lineSeparator()
 				+ "task.update('start predict')" + System.lineSeparator()
-				+ "input_box = np.array(input_box)" + System.lineSeparator()
-				+ "mask, _, _ = predictor.predict(" + System.lineSeparator()
-				+ "    point_coords=None," + System.lineSeparator()
-				+ "    point_labels=None," + System.lineSeparator()
-				+ "    box=input_box[None, :]," + System.lineSeparator()
+				+ "input_box = torch.from_numpy(np.array(input_box)).unsqueeze(0).unsqueeze(0)" + System.lineSeparator()
+				+ "input_label = torch.tensor([[[1, 1]]])" + System.lineSeparator()
+				+ "mask, _ = predictor.predict_masks(self.encoded_images" + System.lineSeparator()
+				+ "    input_box," + System.lineSeparator()
+				+ "    input_label," + System.lineSeparator()
 				+ "    multimask_output=False," + System.lineSeparator()
+				+ "    input_h=input_h," + System.lineSeparator()
+				+ "    input_w=input_w," + System.lineSeparator()
+				+ "    output_h=input_h," + System.lineSeparator()
+				+ "    output_w=input_w," + System.lineSeparator()
 				+ ")" + System.lineSeparator()
 				+ "task.update('end predict')" + System.lineSeparator()
 				+ "task.update(str(mask[0].shape))" + System.lineSeparator()

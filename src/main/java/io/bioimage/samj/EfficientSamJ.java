@@ -105,7 +105,6 @@ public class EfficientSamJ implements AutoCloseable {
 	
 	public Polygon processBox(int[] boundingBox) 
 			throws IOException, RuntimeException, InterruptedException{
-		boundingBox = new int[] {boundingBox[1], boundingBox[0], boundingBox[3], boundingBox[2]};
 		this.script = "";
 		processWithSAM();
 		Map<String, Object> results = null;
@@ -180,21 +179,25 @@ public class EfficientSamJ implements AutoCloseable {
 	private void processWithSAM() {
 		String code = "" + System.lineSeparator()
 				+ "task.update('start predict')" + System.lineSeparator()
-				+ "input_box = torch.from_numpy(np.array(input_box).reshape(2, 2)).unsqueeze(0).unsqueeze(0)" + System.lineSeparator()
+				+ "input_box = np.array([[input_box[0], input_box[1]], [input_box[2], input_box[3]]])" + System.lineSeparator()
+				+ "input_box = torch.reshape(torch.tensor(input_box), [1, 1, -1, 2])" + System.lineSeparator()
+				//+ "input_box = torch.from_numpy(np.array(input_box).reshape(2, 2)).unsqueeze(0).unsqueeze(0)" + System.lineSeparator()
 				+ "print(input_box.shape)" + System.lineSeparator()
-				+ "input_label = torch.tensor([[[1, 1]]])" + System.lineSeparator()
-				+ "mask, _ = predictor.predict_masks(predictor.encoded_images," + System.lineSeparator()
+				+ "input_label = torch.tensor([[[2, 3]]])" + System.lineSeparator()
+				+ "predicted_logits, predicted_iou = predictor.predict_masks(predictor.encoded_images," + System.lineSeparator()
 				+ "    input_box," + System.lineSeparator()
 				+ "    input_label," + System.lineSeparator()
-				+ "    multimask_output=False," + System.lineSeparator()
+				+ "    multimask_output=True," + System.lineSeparator()
 				+ "    input_h=input_h," + System.lineSeparator()
 				+ "    input_w=input_w," + System.lineSeparator()
 				+ "    output_h=input_h," + System.lineSeparator()
 				+ "    output_w=input_w," + System.lineSeparator()
-				+ ")" + System.lineSeparator()
+				+ "sorted_ids = torch.argsort(predicted_iou, dim=-1, descending=True)" + System.lineSeparator()
+				+ "predicted_iou = torch.take_along_dim(predicted_iou, sorted_ids, dim=2)" + System.lineSeparator()
+				+ "predicted_logits = torch.take_along_dim(predicted_logits, sorted_ids[..., None, None], dim=2)" + System.lineSeparator()
+				+ "mask = torch.ge(predicted_logits[0, 0, 0, :, :], 0).cpu().detach().numpy()" + System.lineSeparator()
 				+ "task.update('end predict')" + System.lineSeparator()
 				+ "task.update(str(mask.shape))" + System.lineSeparator()
-				+ "mask = torch.ge(mask.detach().squeeze().T, 0).cpu().numpy()" + System.lineSeparator()
 				+ "print(mask.shape)" + System.lineSeparator()
 				+ "np.save('/home/carlos/git/aa.npy', mask)" + System.lineSeparator()
 				+ "non_zero = np.where(mask != 0)" + System.lineSeparator()

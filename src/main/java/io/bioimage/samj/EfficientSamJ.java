@@ -82,8 +82,8 @@ public class EfficientSamJ implements AutoCloseable {
 		this.script = "";
 		sendImgLib2AsNp(rai);
 		this.script += ""
-				+ "task.update('starting encoding')" + System.lineSeparator()
-				+ "aa = predictor.get_image_embeddings(box[None, :])";
+				+ "task.update(str(box.shape))" + System.lineSeparator()
+				+ "aa = predictor.get_image_embeddings(box[None, ...])";
 		try {
 			Task task = python.task(script);
 			task.waitFor();
@@ -191,7 +191,7 @@ public class EfficientSamJ implements AutoCloseable {
 				+ "    input_h=input_h," + System.lineSeparator()
 				+ "    input_w=input_w," + System.lineSeparator()
 				+ "    output_h=input_h," + System.lineSeparator()
-				+ "    output_w=input_w," + System.lineSeparator()
+				+ "    output_w=input_w,)" + System.lineSeparator()
 				+ "sorted_ids = torch.argsort(predicted_iou, dim=-1, descending=True)" + System.lineSeparator()
 				+ "predicted_iou = torch.take_along_dim(predicted_iou, sorted_ids, dim=2)" + System.lineSeparator()
 				+ "predicted_logits = torch.take_along_dim(predicted_logits, sorted_ids[..., None, None], dim=2)" + System.lineSeparator()

@@ -1,25 +1,52 @@
 package io.bioimage.samj;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Paths;
 
-public class InstallSAM {
+import io.bioimage.modelrunner.system.PlatformDetection;
+
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apposed.appose.Conda;
+
+public class Installer {
 	final public static String SAM_WEIGHTS_NAME3 = "sam_vit_h_4b8939.pth";
 	final public static String SAM_WEIGHTS_NAME = "sam_vit_b_01ec64.pth";
 	final public static String SAM_MODEL_TYPE = "vit_b";
 	
 	final public static long SAM_BYTE_SIZE = 375042383;
 	
+	
+	private final static String MAMBA_RELATIVE_PATH = PlatformDetection.isWindows() ? 
+			 File.separator + "Library" + File.separator + "bin" + File.separator + "micromamba.exe" 
+			: File.separator + "bin" + File.separator + "micromamba";
+	
 	public static String getWeightsFName() {
 		//return Paths.get("models", "sam", SAM_WEIGHTS_NAME).toString();
 		return "/home/carlos/Downloads/" + SAM_WEIGHTS_NAME;
 	}
 	
+
+	private String path;
+	private String mambaPath;
+	private Conda mamba;
 	
-	public static void createInstaller() {
-		
+	public static Installer createInstaller(String path) {
+		Installer installer = new Installer();
+		installer.path = path;
+		installer.mambaPath = path + MAMBA_RELATIVE_PATH;
+		return installer;
 	}
 	
 	public boolean checkPythonMambaInstalled() {
+		if (new File(mambaPath).isFile() == false) 
+			return false;
+		try {
+			mamba = new Conda(path);
+		} catch (IOException | InterruptedException | ArchiveException | URISyntaxException e) {
+			return false;
+		}
 		return false;
 	}
 	
@@ -43,8 +70,15 @@ public class InstallSAM {
 		return false;
 	}
 	
-	public void installPython() {
-		
+	public void installPython() throws IOException, InterruptedException, ArchiveException, URISyntaxException {
+		installPython(false);
+	}
+	
+	public void installPython(boolean force) throws IOException, InterruptedException, ArchiveException, URISyntaxException {
+		if (!force)
+			mamba = new Conda(path);
+		else
+			
 	}
 	
 	public void installSAMPackage() {

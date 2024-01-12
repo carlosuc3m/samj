@@ -78,15 +78,23 @@ public class Installer {
 		if (!force)
 			mamba = new Conda(path);
 		else
-			
+			mamba = null;// TODO decide if it is necessary
 	}
 	
-	public void installSAMPackage() {
-		
+	public void installSAMPackage() throws IOException, InterruptedException {
+		installSAMPackage(false);
 	}
 	
-	public void installEfficientSAMPackage() {
-		
+	public void installSAMPackage(boolean force) throws IOException, InterruptedException {
+		mamba.create("samJ", false, null);
+	}
+	
+	public void installEfficientSAMPackage() throws IOException, InterruptedException {
+		installEfficientSAMPackage(false);
+	}
+	
+	public void installEfficientSAMPackage(boolean force) throws IOException, InterruptedException {
+		mamba.create("efficientSamJ", false, null);
 	}
 	
 	public void installSAM() {

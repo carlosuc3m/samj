@@ -2,8 +2,12 @@ package io.bioimage.samj;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.FileOutputStream;
 import java.net.URISyntaxException;
-import java.nio.file.Paths;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import io.bioimage.modelrunner.system.PlatformDetection;
 
@@ -17,6 +21,10 @@ public class Installer {
 	
 	final public static long SAM_BYTE_SIZE = 375042383;
 	
+	
+	final static public String COMMON_ENV_NAME = "sam_common_env";
+	final static public String ESAM_ENV_NAME = "efficient_sam_env";
+	final static public String ESAM_NAME = "EfficientSAM";
 	
 	private final static String MAMBA_RELATIVE_PATH = PlatformDetection.isWindows() ? 
 			 File.separator + "Library" + File.separator + "bin" + File.separator + "micromamba.exe" 
@@ -39,14 +47,8 @@ public class Installer {
 		return installer;
 	}
 	
-	public boolean checkPythonMambaInstalled() {
-		if (new File(mambaPath).isFile() == false) 
-			return false;
-		try {
-			mamba = new Conda(path);
-		} catch (IOException | InterruptedException | ArchiveException | URISyntaxException e) {
-			return false;
-		}
+	public boolean checkCommonPythonInstalled() {
+		// TODO check whether the common environment is created or not
 		return false;
 	}
 	
@@ -75,10 +77,9 @@ public class Installer {
 	}
 	
 	public void installPython(boolean force) throws IOException, InterruptedException, ArchiveException, URISyntaxException {
-		if (!force)
-			mamba = new Conda(path);
-		else
-			mamba = null;// TODO decide if it is necessary
+		mamba = new Conda(path);
+		if (!checkCommonPythonInstalled() || force)
+			mamba.create(COMMON_ENV_NAME, true, "-c", "conda-forge", "python=3.11", "-c", "pytorch", "pytorch", "torchvision", "cpuonly");
 	}
 	
 	public void installSAMPackage() throws IOException, InterruptedException {
@@ -94,7 +95,28 @@ public class Installer {
 	}
 	
 	public void installEfficientSAMPackage(boolean force) throws IOException, InterruptedException {
-		mamba.create("efficientSamJ", false, null);
+		if (checkEfficientSAMPackageInstalled() && !force)
+			return;
+		mamba.create(ESAM_ENV_NAME, true);
+		String zipResourcePath = "EfficientSAM.zip";
+        String outputDirectory = mamba.getEnvsDir() + File.separator + ESAM_ENV_NAME + File.separator + ESAM_NAME;
+        try (
+        	InputStream zipInputStream = Installer.class.getResourceAsStream(zipResourcePath);
+        	ZipInputStream zipInput = new ZipInputStream(zipInputStream);
+        		) {
+        	ZipEntry entry;
+        	while ((entry = zipInput.getNextEntry()) != null) {
+                File entryFile = new File(outputDirectory + File.separator + entry.getName());
+                entryFile.getParentFile().mkdirs();
+                try (OutputStream entryOutput = new FileOutputStream(entryFile)) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = zipInput.read(buffer)) != -1) {
+                        entryOutput.write(buffer, 0, bytesRead);
+                    }
+                }
+            }
+        }
 	}
 	
 	public void installSAM() {

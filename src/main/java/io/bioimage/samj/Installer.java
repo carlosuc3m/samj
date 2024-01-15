@@ -20,6 +20,7 @@ import io.bioimage.modelrunner.bioimageio.download.DownloadTracker;
 import io.bioimage.modelrunner.bioimageio.download.DownloadTracker.TwoParameterConsumer;
 import io.bioimage.modelrunner.engine.installation.FileDownloader;
 import io.bioimage.modelrunner.system.PlatformDetection;
+import io.bioimage.modelrunner.utils.ZipUtils;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apposed.appose.Conda;
@@ -103,9 +104,10 @@ public class Installer {
 	public void downloadESAMSmall(boolean force, DownloadTracker.TwoParameterConsumer<String, Double> consumer) throws IOException {
 		if (!force && checkEfficientSAMSmallWeightsDownloaded())
 			return;
+		File file = Paths.get(path, ESAM_ENV_NAME, ESAM_NAME, "weights", DownloadModel.getFileNameFromURLString(ESAMS_URL)).toFile();
 		Thread downloadThread = new Thread(() -> {
 			try {
-				downloadFile(ESAMS_URL, Paths.get(path, ESAM_ENV_NAME, ESAM_NAME, "weights", DownloadModel.getFileNameFromURLString(ESAMS_URL)).toFile());
+				downloadFile(ESAMS_URL, file);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -121,6 +123,7 @@ public class Installer {
 			}
         });
 		trackerThread.start();
+		ZipUtils.unzipFolder(file.getAbsolutePath(), file.getAbsolutePath().substring(0, file.getAbsolutePath().length() - 4));
 	}
 	
 	public void downloadESAMSmall() throws IOException {

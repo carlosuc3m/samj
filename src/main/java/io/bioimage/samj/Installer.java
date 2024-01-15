@@ -5,10 +5,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.FileOutputStream;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import io.bioimage.modelrunner.bioimageio.download.DownloadModel;
+import io.bioimage.modelrunner.bioimageio.download.DownloadTracker;
+import io.bioimage.modelrunner.bioimageio.download.DownloadTracker.TwoParameterConsumer;
+import io.bioimage.modelrunner.engine.installation.FileDownloader;
 import io.bioimage.modelrunner.system.PlatformDetection;
 
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -25,6 +35,8 @@ public class Installer {
 	final static public String COMMON_ENV_NAME = "sam_common_env";
 	final static public String ESAM_ENV_NAME = "efficient_sam_env";
 	final static public String ESAM_NAME = "EfficientSAM";
+	
+	final static public String ESAMS_URL = "https://github.com/yformer/EfficientSAM/raw/main/weights/efficient_sam_vits.pt.zip";
 	
 	private final static String MAMBA_RELATIVE_PATH = PlatformDetection.isWindows() ? 
 			 File.separator + "Library" + File.separator + "bin" + File.separator + "micromamba.exe" 
@@ -61,15 +73,75 @@ public class Installer {
 	}
 	
 	public boolean checkEfficientSAMSmallWeightsDownloaded() {
-		return false;
+		File weigthsFile = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights").toFile();
+		return weigthsFile.exists();
 	}
 	
 	public boolean checkEfficientSAMTinyWeightsDownloaded() {
-		return false;
+		File weigthsFile = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights").toFile();
+		return weigthsFile.exists();
 	}
 	
 	public boolean checkSAMWeightsDownloaded() {
-		return false;
+		File weigthsFile = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights").toFile();
+		return weigthsFile.exists();
+	}
+	
+	public void downloadSAM() {
+		downloadSAM(false);
+	}
+	
+	public void downloadSAM(boolean force) {
+		if (!force && checkSAMWeightsDownloaded())
+			return;
+	}
+	
+	public void downloadESAMSmall(DownloadTracker.TwoParameterConsumer<String, Double> consumer) throws IOException {
+		downloadESAMSmall(false);
+	}
+	
+	public void downloadESAMSmall(boolean force, DownloadTracker.TwoParameterConsumer<String, Double> consumer) throws IOException {
+		if (!force && checkEfficientSAMSmallWeightsDownloaded())
+			return;
+		Thread downloadThread = new Thread(() -> {
+			try {
+				downloadFile(ESAMS_URL, Paths.get(path, ESAM_ENV_NAME, ESAM_NAME, "weights", DownloadModel.getFileNameFromURLString(ESAMS_URL)).toFile());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+        });
+		downloadThread.start();
+		DownloadTracker tracker = DownloadTracker.getFilesDownloadTracker(Paths.get(path, ESAM_ENV_NAME, ESAM_NAME, "weights").toFile().toString(),
+				null, Arrays.asList(new String[] {ESAMS_URL}), downloadThread);
+		Thread trackerThread = new Thread(() -> {
+            try {
+            	tracker.track();
+			} catch (IOException | InterruptedException e) {
+				e.printStackTrace();
+			}
+        });
+		trackerThread.start();
+	}
+	
+	public void downloadESAMSmall() throws IOException {
+		downloadESAMSmall(false);
+	}
+	
+	public void downloadESAMSmall(boolean force) throws IOException {
+		if (!force && checkEfficientSAMSmallWeightsDownloaded())
+			return;
+		TwoParameterConsumer<String, Double> consumer = DownloadTracker.createConsumerProgress();
+		downloadESAMSmall(force, consumer);
+	}
+	
+	public void downloadESAMTiny() {
+		downloadESAMTiny(false);
+	}
+	
+	public void downloadESAMTiny(boolean force) {
+		if (!force && checkEfficientSAMTinyWeightsDownloaded())
+			return;
+		
 	}
 	
 	public void installPython() throws IOException, InterruptedException, ArchiveException, URISyntaxException {
@@ -141,5 +213,31 @@ public class Installer {
 	
 	public static String getEfficientSAMTinyWeights() {
 		return SAM_WEIGHTS_NAME;
+	}
+	
+	/**
+	 * Method that downloads a file
+	 * @param downloadURL
+	 * 	url of the file to be downloaded
+	 * @param targetFile
+	 * 	file where the file from the url will be downloaded too
+	 * @throws IOException if there si any error downloading the file
+	 */
+	public void downloadFile(String downloadURL, File targetFile) throws IOException {
+		FileOutputStream fos = null;
+		ReadableByteChannel rbc = null;
+		try {
+			URL website = new URL(downloadURL);
+			rbc = Channels.newChannel(website.openStream());
+			// Create the new model file as a zip
+			fos = new FileOutputStream(targetFile);
+			// Send the correct parameters to the progress screen
+			FileDownloader downloader = new FileDownloader(rbc, fos);
+		} finally {
+			if (fos != null)
+				fos.close();
+			if (rbc != null)
+				rbc.close();
+		}
 	}
 }

@@ -27,6 +27,8 @@ import org.apposed.appose.Conda;
 
 public class Installer {
 	final public static String SAM_WEIGHTS_NAME = "sam_vit_h_4b8939.pth";
+	final public static String ESAM_SMALL_WEIGHTS_NAME ="efficient_sam_vits.pt";
+	final public static String ESAM_TINY_WEIGHTS_NAME ="efficient_sam_vitt.pt";
 	final public static String SAM_MODEL_TYPE = "vit_b";
 	
 	final public static List<String> REQUIRED_DEPS = Arrays.asList(new String[] {"pytorch", "torchvision", "cpuonly"});
@@ -283,16 +285,28 @@ public class Installer {
 		if (!this.checkEfficientSAMTinyWeightsDownloaded()) this.downloadESAMTiny(false);
 	}
 	
+	public String getEfficientSAMSmallWeightsPath() {
+		return Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_SMALL_WEIGHTS_NAME).toAbsolutePath().toString();
+	}
+	
+	public String getEfficientSAMTinyWeightsPath() {
+		return Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_TINY_WEIGHTS_NAME).toAbsolutePath().toString();
+	}
+	
+	public String getSAMWeightsPath() {
+		return Paths.get(path, "envs", SAM_ENV_NAME, SAM_NAME, "weights", SAM_WEIGHTS_NAME).toAbsolutePath().toString();
+	}
+	
 	public static String getSAMWeightsName() {
 		return SAM_WEIGHTS_NAME;
 	}
 	
 	public static String getEfficientSAMSmallWeightsName() {
-		return SAM_WEIGHTS_NAME;
+		return ESAM_SMALL_WEIGHTS_NAME;
 	}
 	
 	public static String getEfficientSAMTinyWeightsName() {
-		return SAM_WEIGHTS_NAME;
+		return ESAM_TINY_WEIGHTS_NAME;
 	}
 	
 	/**
@@ -313,6 +327,7 @@ public class Installer {
 			fos = new FileOutputStream(targetFile);
 			// Send the correct parameters to the progress screen
 			FileDownloader downloader = new FileDownloader(rbc, fos);
+			downloader.call();
 		} finally {
 			if (fos != null)
 				fos.close();

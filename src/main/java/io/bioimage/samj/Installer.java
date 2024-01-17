@@ -12,7 +12,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -27,8 +26,7 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import org.apposed.appose.Conda;
 
 public class Installer {
-	final public static String SAM_WEIGHTS_NAME3 = "sam_vit_h_4b8939.pth";
-	final public static String SAM_WEIGHTS_NAME = "sam_vit_b_01ec64.pth";
+	final public static String SAM_WEIGHTS_NAME = "sam_vit_h_4b8939.pth";
 	final public static String SAM_MODEL_TYPE = "vit_b";
 	
 	final public static List<String> REQUIRED_DEPS = Arrays.asList(new String[] {"pytorch", "torchvision", "cpuonly"});
@@ -183,8 +181,13 @@ public class Installer {
 	public void installPython(boolean force) throws IOException, InterruptedException, ArchiveException, URISyntaxException {
 		if (!checkMambaInstalled())
 			throw new IllegalArgumentException("Unable to install Python without first installing Mamba. ");
+		String[] pythonArgs = new String[] {"-c", "conda-forge", "python=3.11", "-c", "pytorch"};
+		String[] args = new String[pythonArgs.length];
+		int c = 0;
+		for (String ss : pythonArgs) args[c ++] = ss;
+		for (String ss : REQUIRED_DEPS) args[c ++] = ss;
 		if (!checkCommonPythonInstalled() || force)
-			mamba.create(COMMON_ENV_NAME, true, "-c", "conda-forge", "python=3.11", "-c", "pytorch", "pytorch", "torchvision", "cpuonly");
+			mamba.create(COMMON_ENV_NAME, true, args);
 	}
 	
 	public void installSAMPackage() throws IOException, InterruptedException {
@@ -192,7 +195,28 @@ public class Installer {
 	}
 	
 	public void installSAMPackage(boolean force) throws IOException, InterruptedException {
-		mamba.create("samJ", false, null);
+		if (checkEfficientSAMPackageInstalled() && !force)
+			return;
+		mamba.create(ESAM_ENV_NAME, true);
+		String zipResourcePath = "SAM.zip";
+        String outputDirectory = mamba.getEnvsDir() + File.separator + SAM_ENV_NAME + File.separator + SAM_NAME;
+        try (
+        	InputStream zipInputStream = Installer.class.getResourceAsStream(zipResourcePath);
+        	ZipInputStream zipInput = new ZipInputStream(zipInputStream);
+        		) {
+        	ZipEntry entry;
+        	while ((entry = zipInput.getNextEntry()) != null) {
+                File entryFile = new File(outputDirectory + File.separator + entry.getName());
+                entryFile.getParentFile().mkdirs();
+                try (OutputStream entryOutput = new FileOutputStream(entryFile)) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = zipInput.read(buffer)) != -1) {
+                        entryOutput.write(buffer, 0, bytesRead);
+                    }
+                }
+            }
+        }
 	}
 	
 	public void installEfficientSAMPackage() throws IOException, InterruptedException {
@@ -224,27 +248,50 @@ public class Installer {
         }
 	}
 	
-	public void installSAM() {
-		
+	public void installMambaPython() throws IOException, InterruptedException, ArchiveException, URISyntaxException {
+		if (checkMambaInstalled()) return;
+		mamba = new Conda(path);
 	}
 	
-	public void installEfficientSAMSmall() {
+	public void installSAM() throws IOException, InterruptedException, ArchiveException, URISyntaxException {
+		if (!this.checkMambaInstalled()) this.installMambaPython();
 		
+		if (!this.checkCommonPythonInstalled()) this.installPython();
+		
+		if (!this.checkEfficientSAMPackageInstalled()) this.installSAMPackage();
+		
+		if (!this.checkEfficientSAMSmallWeightsDownloaded()) this.downloadSAM(false);
 	}
 	
-	public void installEfficientSAMTiny() {
+	public void installEfficientSAMSmall() throws IOException, InterruptedException, ArchiveException, URISyntaxException {
+		if (!this.checkMambaInstalled()) this.installMambaPython();
 		
+		if (!this.checkCommonPythonInstalled()) this.installPython();
+		
+		if (!this.checkEfficientSAMPackageInstalled()) this.installEfficientSAMPackage();
+		
+		if (!this.checkEfficientSAMSmallWeightsDownloaded()) this.downloadESAMSmall(false);
 	}
 	
-	public static String getSAMWeights() {
+	public void installEfficientSAMTiny() throws IOException, InterruptedException, ArchiveException, URISyntaxException {
+		if (!this.checkMambaInstalled()) this.installMambaPython();
+		
+		if (!this.checkCommonPythonInstalled()) this.installPython();
+		
+		if (!this.checkEfficientSAMPackageInstalled()) this.installEfficientSAMPackage();
+		
+		if (!this.checkEfficientSAMTinyWeightsDownloaded()) this.downloadESAMTiny(false);
+	}
+	
+	public static String getSAMWeightsName() {
 		return SAM_WEIGHTS_NAME;
 	}
 	
-	public static String getEfficientSAMSmallWeights() {
+	public static String getEfficientSAMSmallWeightsName() {
 		return SAM_WEIGHTS_NAME;
 	}
 	
-	public static String getEfficientSAMTinyWeights() {
+	public static String getEfficientSAMTinyWeightsName() {
 		return SAM_WEIGHTS_NAME;
 	}
 	

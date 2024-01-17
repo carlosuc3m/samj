@@ -170,7 +170,8 @@ public class EfficientSamJ implements AutoCloseable {
 		code += "input_w = box.shape[1]" + System.lineSeparator();
 		code += "globals()['input_h'] = input_h" + System.lineSeparator();
 		code += "globals()['input_w'] = input_w" + System.lineSeparator();
-		code += "box = torch.from_numpy(np.transpose(box, (2, 0, 1))).float()" + System.lineSeparator();
+		code += "box = torch.from_numpy(np.transpose(box.astype('float32'), (2, 0, 1)))" + System.lineSeparator();
+		code += "np.save('/home/carlos/git/sample_int8.npy', box.cpu().detach().numpy())" + System.lineSeparator();
 		code += "box_shm.unlink()" + System.lineSeparator();
 		//code += "box_shm.close()" + System.lineSeparator();
 		this.script += code;
@@ -189,10 +190,10 @@ public class EfficientSamJ implements AutoCloseable {
 				+ "    input_box," + System.lineSeparator()
 				+ "    input_label," + System.lineSeparator()
 				+ "    multimask_output=True," + System.lineSeparator()
-				+ "    input_h=163," + System.lineSeparator()
-				+ "    input_w=481," + System.lineSeparator()
-				+ "    output_h=163," + System.lineSeparator()
-				+ "    output_w=481,)" + System.lineSeparator()
+				+ "    input_h=input_h," + System.lineSeparator()
+				+ "    input_w=input_w," + System.lineSeparator()
+				+ "    output_h=input_h," + System.lineSeparator()
+				+ "    output_w=input_w,)" + System.lineSeparator()
 				+ "sorted_ids = torch.argsort(predicted_iou, dim=-1, descending=True)" + System.lineSeparator()
 				+ "predicted_iou = torch.take_along_dim(predicted_iou, sorted_ids, dim=2)" + System.lineSeparator()
 				+ "predicted_logits = torch.take_along_dim(predicted_logits, sorted_ids[..., None, None], dim=2)" + System.lineSeparator()

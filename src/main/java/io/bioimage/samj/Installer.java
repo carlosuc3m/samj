@@ -5,13 +5,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.FileOutputStream;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -30,12 +31,16 @@ public class Installer {
 	final public static String SAM_WEIGHTS_NAME = "sam_vit_b_01ec64.pth";
 	final public static String SAM_MODEL_TYPE = "vit_b";
 	
+	final public static List<String> REQUIRED_DEPS = Arrays.asList(new String[] {"pytorch", "torchvision", "cpuonly"});
+	
 	final public static long SAM_BYTE_SIZE = 375042383;
 	
 	
 	final static public String COMMON_ENV_NAME = "sam_common_env";
 	final static public String ESAM_ENV_NAME = "efficient_sam_env";
+	final static public String SAM_ENV_NAME = "sam_env";
 	final static public String ESAM_NAME = "EfficientSAM";
+	final static public String SAM_NAME = "SAM";
 	
 	final static public String ESAMS_URL = "https://github.com/yformer/EfficientSAM/raw/main/weights/efficient_sam_vits.pt.zip";
 	
@@ -60,17 +65,41 @@ public class Installer {
 		return installer;
 	}
 	
+	public boolean checkMambaInstalled() {
+		if (mamba != null) return true;
+		File ff = new File(path + MAMBA_RELATIVE_PATH);
+		if (!ff.exists()) return false;
+		try {
+			mamba = new Conda(path);
+		} catch (IOException | InterruptedException | ArchiveException | URISyntaxException e) {
+			return false;
+		}
+		return true;
+	}
+	
 	public boolean checkCommonPythonInstalled() {
-		// TODO check whether the common environment is created or not
-		return false;
+		if (!checkMambaInstalled()) return false;
+		File pythonEnv = Paths.get(this.path, "envs", COMMON_ENV_NAME).toFile();
+		if (!pythonEnv.exists()) return false;
+		
+		int sizeUninstalled = 0;
+		// TODO int sizeUninstalled = REQUIRED_DEPS.stream().filter(dep -> !mamba.isPackageInEnv()).collect(Collectors.toList()).size();
+		
+		return sizeUninstalled == 0;
 	}
 	
 	public boolean checkSAMPackageInstalled() {
-		return false;
+		if (!checkMambaInstalled()) return false;
+		File pythonEnv = Paths.get(this.path, "envs", SAM_ENV_NAME, SAM_NAME).toFile();
+		if (!pythonEnv.exists()) return false;
+		return true;
 	}
 	
 	public boolean checkEfficientSAMPackageInstalled() {
-		return false;
+		if (!checkMambaInstalled()) return false;
+		File pythonEnv = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME).toFile();
+		if (!pythonEnv.exists()) return false;
+		return true;
 	}
 	
 	public boolean checkEfficientSAMSmallWeightsDownloaded() {
@@ -84,7 +113,7 @@ public class Installer {
 	}
 	
 	public boolean checkSAMWeightsDownloaded() {
-		File weigthsFile = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights").toFile();
+		File weigthsFile = Paths.get(this.path, "envs", SAM_ENV_NAME, SAM_NAME, "weights").toFile();
 		return weigthsFile.exists();
 	}
 	
@@ -152,7 +181,8 @@ public class Installer {
 	}
 	
 	public void installPython(boolean force) throws IOException, InterruptedException, ArchiveException, URISyntaxException {
-		mamba = new Conda(path);
+		if (!checkMambaInstalled())
+			throw new IllegalArgumentException("Unable to install Python without first installing Mamba. ");
 		if (!checkCommonPythonInstalled() || force)
 			mamba.create(COMMON_ENV_NAME, true, "-c", "conda-forge", "python=3.11", "-c", "pytorch", "pytorch", "torchvision", "cpuonly");
 	}

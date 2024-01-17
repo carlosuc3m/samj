@@ -101,12 +101,12 @@
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
 		</dependency>
-		<dependency>
+		<!--<dependency>
 			<groupId>org.apposed</groupId>
 			<artifactId>appose</artifactId>
 			<version>0.1.1</version>
 		</dependency>
-		<!--<dependency>
+		<dependency>
             <groupId>org.msgpack</groupId>
             <artifactId>jackson-dataformat-msgpack</artifactId>
             <version>0.9.0</version>
@@ -114,7 +114,7 @@
 		<dependency>
     			<groupId>io.bioimage</groupId>
     			<artifactId>dl-modelrunner</artifactId>
-    			<version>0.5.4</version>
+    			<version>0.5.5-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	<repositories>

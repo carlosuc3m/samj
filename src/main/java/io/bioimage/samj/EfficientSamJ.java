@@ -7,10 +7,10 @@ import java.util.Map;
 import java.awt.Polygon;
 import java.io.IOException;
 
-import org.apposed.appose.Environment;
-import org.apposed.appose.Service;
-import org.apposed.appose.Service.Task;
-import org.apposed.appose.Service.TaskStatus;
+import io.bioimage.modelrunner.apposed.appose.Environment;
+import io.bioimage.modelrunner.apposed.appose.Service;
+import io.bioimage.modelrunner.apposed.appose.Service.Task;
+import io.bioimage.modelrunner.apposed.appose.Service.TaskStatus;
 
 import io.bioimage.modelrunner.tensor.shm.SharedMemoryArray;
 import io.bioimage.modelrunner.utils.CommonUtils;

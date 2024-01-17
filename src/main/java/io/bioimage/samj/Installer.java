@@ -23,7 +23,7 @@ import io.bioimage.modelrunner.system.PlatformDetection;
 import io.bioimage.modelrunner.utils.ZipUtils;
 
 import org.apache.commons.compress.archivers.ArchiveException;
-import org.apposed.appose.Conda;
+import io.bioimage.modelrunner.apposed.appose.Conda;
 
 public class Installer {
 	final public static String SAM_WEIGHTS_NAME = "sam_vit_h_4b8939.pth";
@@ -184,7 +184,7 @@ public class Installer {
 		if (!checkMambaInstalled())
 			throw new IllegalArgumentException("Unable to install Python without first installing Mamba. ");
 		String[] pythonArgs = new String[] {"-c", "conda-forge", "python=3.11", "-c", "pytorch"};
-		String[] args = new String[pythonArgs.length];
+		String[] args = new String[pythonArgs.length + REQUIRED_DEPS.size()];
 		int c = 0;
 		for (String ss : pythonArgs) args[c ++] = ss;
 		for (String ss : REQUIRED_DEPS) args[c ++] = ss;

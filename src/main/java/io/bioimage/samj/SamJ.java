@@ -7,10 +7,10 @@ import java.util.Map;
 import java.awt.Polygon;
 import java.io.IOException;
 
-import org.apposed.appose.Environment;
-import org.apposed.appose.Service;
-import org.apposed.appose.Service.Task;
-import org.apposed.appose.Service.TaskStatus;
+import io.bioimage.modelrunner.apposed.appose.Environment;
+import io.bioimage.modelrunner.apposed.appose.Service;
+import io.bioimage.modelrunner.apposed.appose.Service.Task;
+import io.bioimage.modelrunner.apposed.appose.Service.TaskStatus;
 
 import io.bioimage.modelrunner.tensor.shm.SharedMemoryArray;
 import io.bioimage.modelrunner.utils.CommonUtils;
@@ -38,8 +38,8 @@ public class SamJ implements AutoCloseable {
 			+ "from segment_anything import SamPredictor, sam_model_registry" + System.lineSeparator()
 			+ "task.update('imported')" + System.lineSeparator()
 			+ "" + System.lineSeparator()
-			+ "sam = sam_model_registry[\"" + InstallSAM.SAM_MODEL_TYPE 
-			+ "\"](checkpoint='" + InstallSAM.getWeightsFName() + "')" + System.lineSeparator()
+			+ "sam = sam_model_registry[\"" + Installer.SAM_MODEL_TYPE 
+			+ "\"](checkpoint='" + Installer.getWeightsFName() + "')" + System.lineSeparator()
 			+ "predictor = SamPredictor(sam)" + System.lineSeparator()
 			+ "task.update('created predictor')" + System.lineSeparator()
 			+ "globals()['shared_memory'] = shared_memory" + System.lineSeparator()

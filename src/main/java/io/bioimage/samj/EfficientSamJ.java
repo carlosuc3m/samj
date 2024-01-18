@@ -46,9 +46,9 @@ public class EfficientSamJ implements AutoCloseable {
 			+ "globals()['torch'] = torch" + System.lineSeparator()
 			+ "globals()['predictor'] = predictor" + System.lineSeparator();
 	
-	private EfficientSamJ(String envPath) throws IOException, RuntimeException, InterruptedException {
+	private EfficientSamJ(SamEnvManager manager) throws IOException, RuntimeException, InterruptedException {
 		this.env = new Environment() {
-			@Override public String base() { return envPath; }
+			@Override public String base() { return manager.getPythonEnv(); }
 			@Override public boolean useSystemPath() { return false; }
 			};
 		python = env.python();
@@ -65,8 +65,8 @@ public class EfficientSamJ implements AutoCloseable {
 	
 	
 	public static <T extends RealType<T> & NativeType<T>> EfficientSamJ 
-	initializeSam(String envPath, RandomAccessibleInterval<T> image) throws IOException, RuntimeException, InterruptedException {
-		EfficientSamJ sam = new EfficientSamJ(envPath);
+	initializeSam(SamEnvManager manager, RandomAccessibleInterval<T> image) throws IOException, RuntimeException, InterruptedException {
+		EfficientSamJ sam = new EfficientSamJ(manager);
 		sam.addImage(image);
 		return sam;
 	}
@@ -216,8 +216,7 @@ public class EfficientSamJ implements AutoCloseable {
 	
 	public static void main(String[] args) throws IOException, RuntimeException, InterruptedException {
 		RandomAccessibleInterval<UnsignedByteType> img = ArrayImgs.unsignedBytes(new long[] {50, 50, 3});
-		String envPath = "/home/carlos/micromamba/envs/sam";
-		try (EfficientSamJ sam = initializeSam(envPath, img)) {
+		try (EfficientSamJ sam = initializeSam(SamEnvManager.create(), img)) {
 			sam.processBox(new int[] {0, 5, 10, 26});
 		}
 	}

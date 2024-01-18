@@ -43,6 +43,7 @@ public class SamEnvManager {
 	final static public String SAM_NAME = "SAM";
 	
 	final static public String ESAMS_URL = "https://raw.githubusercontent.com/yformer/EfficientSAM/main/weights/efficient_sam_vits.pt.zip";
+	final static public String DEFAULT_DIR = new File("appose_x86_64").getAbsolutePath();
 	
 	private final static String MAMBA_RELATIVE_PATH = PlatformDetection.isWindows() ? 
 			 File.separator + "Library" + File.separator + "bin" + File.separator + "micromamba.exe" 
@@ -58,11 +59,15 @@ public class SamEnvManager {
 	private String mambaPath;
 	private Conda mamba;
 	
-	public static SamEnvManager createInstaller(String path) {
+	public static SamEnvManager create(String path) {
 		SamEnvManager installer = new SamEnvManager();
 		installer.path = path;
 		installer.mambaPath = path + MAMBA_RELATIVE_PATH;
 		return installer;
+	}
+	
+	public static SamEnvManager create() {
+		return create(DEFAULT_DIR);
 	}
 	
 	public boolean checkMambaInstalled() {

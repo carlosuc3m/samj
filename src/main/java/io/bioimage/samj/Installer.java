@@ -189,7 +189,7 @@ public class Installer {
 		for (String ss : pythonArgs) args[c ++] = ss;
 		for (String ss : REQUIRED_DEPS) args[c ++] = ss;
 		if (!checkCommonPythonInstalled() || force)
-			mamba.create(COMMON_ENV_NAME, true, args);
+			mamba.create(COMMON_ENV_NAME, false, args);
 	}
 	
 	public void installSAMPackage() throws IOException, InterruptedException {

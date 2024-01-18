@@ -50,17 +50,19 @@ public class EfficientSamJ implements AutoCloseable {
 			+ "globals()['np'] = np" + System.lineSeparator()
 			+ "globals()['torch'] = torch" + System.lineSeparator()
 			+ "globals()['predictor'] = predictor" + System.lineSeparator();
-	
+	private String IMPORTS_FORMATED;
+
 	private EfficientSamJ(SamEnvManager manager) throws IOException, RuntimeException, InterruptedException {
 		this.env = new Environment() {
 			@Override public String base() { return manager.getPythonEnv(); }
 			@Override public boolean useSystemPath() { return false; }
 			};
 		python = env.python();
-    	python.debug(line -> System.err.println(line));
-    	Task task = python.task(String.format(IMPORTS, 
-    			manager.getEfficientSamEnv() + File.separator + SamEnvManager.ESAM_NAME,
-    			manager.getEfficientSAMSmallWeightsPath()) + PythonMethods.TRACE_EDGES);
+		python.debug(line -> System.err.println(line));
+		IMPORTS_FORMATED = String.format(IMPORTS,
+				manager.getEfficientSamEnv() + File.separator + SamEnvManager.ESAM_NAME,
+				manager.getEfficientSAMSmallWeightsPath());
+		Task task = python.task(IMPORTS_FORMATED + PythonMethods.TRACE_EDGES);
 		task.waitFor();
 		if (task.status == TaskStatus.CANCELED)
 			throw new RuntimeException();
@@ -161,7 +163,7 @@ public class EfficientSamJ implements AutoCloseable {
 		// This line wants to recreate the original numpy array. Should look like:
 		// input0_appose_shm = shared_memory.SharedMemory(name=input0)
 		// input0 = np.ndarray(size, dtype="float64", buffer=input0_appose_shm.buf).reshape([64, 64])
-		code += "im_shm = shared_memory.SharedMemory(name='" 
+		code += IMPORTS_FORMATED+"im_shm = shared_memory.SharedMemory(name='"
 							+ shma.getNameForPython() + "', size=" + shma.getSize() 
 							+ ")" + System.lineSeparator();
 		int size = 1;

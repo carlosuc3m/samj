@@ -47,13 +47,7 @@ public class SamEnvManager {
 	
 	private final static String MAMBA_RELATIVE_PATH = PlatformDetection.isWindows() ? 
 			 File.separator + "Library" + File.separator + "bin" + File.separator + "micromamba.exe" 
-			: File.separator + "bin" + File.separator + "micromamba";
-	
-	public static String getWeightsFName() {
-		//return Paths.get("models", "sam", SAM_WEIGHTS_NAME).toString();
-		return "/home/carlos/Downloads/" + SAM_WEIGHTS_NAME;
-	}
-	
+			: File.separator + "bin" + File.separator + "micromamba";	
 
 	private String path;
 	private String mambaPath;
@@ -298,14 +292,14 @@ public class SamEnvManager {
 	}
 	
 	public String getEfficientSAMSmallWeightsPath() {
-		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_SMALL_WEIGHTS_NAME).toFile();
-		if (!file.isDirectory()) return null;
+		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_SMALL_WEIGHTS_NAME, ESAM_SMALL_WEIGHTS_NAME).toFile();
+		if (!file.isFile()) return null;
 		return file.getAbsolutePath();
 	}
 	
 	public String getEfficientSAMTinyWeightsPath() {
-		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_TINY_WEIGHTS_NAME).toFile();
-		if (!file.isDirectory()) return null;
+		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_TINY_WEIGHTS_NAME, ESAM_TINY_WEIGHTS_NAME).toFile();
+		if (!file.isFile()) return null;
 		return file.getAbsolutePath();
 	}
 	

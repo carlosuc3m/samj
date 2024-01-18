@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.awt.Polygon;
+import java.io.File;
 import java.io.IOException;
 
 import io.bioimage.modelrunner.apposed.appose.Environment;
@@ -30,16 +31,20 @@ public class EfficientSamJ implements AutoCloseable {
 	
 	private SharedMemoryArray shma;
 	
+	private SamEnvManager manager;
+	
 	public static final String IMPORTS = ""
 			+ "task.update('start')" + System.lineSeparator()
 			+ "import numpy as np" + System.lineSeparator()
 			+ "import torch" + System.lineSeparator()
+			+ "import sys" + System.lineSeparator()
+			+ "sys.path.append('%s')" + System.lineSeparator()
 			+ "from multiprocessing import shared_memory" + System.lineSeparator()
 			+ "task.update('import sam')" + System.lineSeparator()
-			+ "from efficient_sam.build_efficient_sam import build_efficient_sam_vits" + System.lineSeparator()
+			+ "from efficient_sam.efficient_sam import build_efficient_sam" + System.lineSeparator()
 			+ "task.update('imported')" + System.lineSeparator()
 			+ "" + System.lineSeparator()
-			+ "predictor = build_efficient_sam_vits()" + System.lineSeparator()
+			+ "predictor = build_efficient_sam(encoder_patch_embed_dim=384,encoder_num_heads=6,checkpoint='%s',).eval()" + System.lineSeparator()
 			+ "task.update('created predictor')" + System.lineSeparator()
 			+ "globals()['shared_memory'] = shared_memory" + System.lineSeparator()
 			+ "globals()['np'] = np" + System.lineSeparator()
@@ -53,7 +58,9 @@ public class EfficientSamJ implements AutoCloseable {
 			};
 		python = env.python();
     	python.debug(line -> System.err.println(line));
-    	Task task = python.task(IMPORTS + PythonMethods.TRACE_EDGES);
+    	Task task = python.task(String.format(IMPORTS, 
+    			manager.getEfficientSamEnv() + File.separator + SamEnvManager.ESAM_NAME,
+    			manager.getEfficientSAMSmallWeightsPath()) + PythonMethods.TRACE_EDGES);
 		task.waitFor();
 		if (task.status == TaskStatus.CANCELED)
 			throw new RuntimeException();
@@ -82,8 +89,8 @@ public class EfficientSamJ implements AutoCloseable {
 		this.script = "";
 		sendImgLib2AsNp(rai);
 		this.script += ""
-				+ "task.update(str(box.shape))" + System.lineSeparator()
-				+ "aa = predictor.get_image_embeddings(box[None, ...])";
+				+ "task.update(str(im.shape))" + System.lineSeparator()
+				+ "aa = predictor.get_image_embeddings(im[None, ...])";
 		try {
 			Task task = python.task(script);
 			task.waitFor();
@@ -148,31 +155,30 @@ public class EfficientSamJ implements AutoCloseable {
 	}
 	
 	private <T extends RealType<T> & NativeType<T>> 
-	void sendImgLib2AsNp(RandomAccessibleInterval<T> boundingBox) {
-		shma = SharedMemoryArray.buildSHMA(boundingBox);
+	void sendImgLib2AsNp(RandomAccessibleInterval<T> targetImg) {
+		shma = SharedMemoryArray.buildSHMA(targetImg);
 		String code = "";
 		// This line wants to recreate the original numpy array. Should look like:
 		// input0_appose_shm = shared_memory.SharedMemory(name=input0)
 		// input0 = np.ndarray(size, dtype="float64", buffer=input0_appose_shm.buf).reshape([64, 64])
-		code += "box_shm = shared_memory.SharedMemory(name='" 
+		code += "im_shm = shared_memory.SharedMemory(name='" 
 							+ shma.getNameForPython() + "', size=" + shma.getSize() 
 							+ ")" + System.lineSeparator();
 		int size = 1;
-		long[] dims = boundingBox.dimensionsAsLongArray();
+		long[] dims = targetImg.dimensionsAsLongArray();
 		for (long l : dims) {size *= l;}
-		code += "box = np.ndarray(" + size + ", dtype='" 
-				+ CommonUtils.getDataType(boundingBox) + "', buffer=box_shm.buf).reshape([";
+		code += "im = np.ndarray(" + size + ", dtype='" 
+				+ CommonUtils.getDataType(targetImg) + "', buffer=im_shm.buf).reshape([";
 		for (long ll : dims)
 			code += ll + ", ";
 		code = code.substring(0, code.length() - 2);
 		code += "])" + System.lineSeparator();
-		code += "input_h = box.shape[0]" + System.lineSeparator();
-		code += "input_w = box.shape[1]" + System.lineSeparator();
+		code += "input_h = im.shape[0]" + System.lineSeparator();
+		code += "input_w = im.shape[1]" + System.lineSeparator();
 		code += "globals()['input_h'] = input_h" + System.lineSeparator();
 		code += "globals()['input_w'] = input_w" + System.lineSeparator();
-		code += "box = torch.from_numpy(np.transpose(box.astype('float32'), (2, 0, 1)))" + System.lineSeparator();
-		code += "np.save('/home/carlos/git/sample_int8.npy', box.cpu().detach().numpy())" + System.lineSeparator();
-		code += "box_shm.unlink()" + System.lineSeparator();
+		code += "im = torch.from_numpy(np.transpose(im.astype('float32'), (2, 0, 1)))" + System.lineSeparator();
+		code += "im_shm.unlink()" + System.lineSeparator();
 		//code += "box_shm.close()" + System.lineSeparator();
 		this.script += code;
 	}

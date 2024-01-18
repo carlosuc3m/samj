@@ -24,6 +24,7 @@ import io.bioimage.modelrunner.utils.ZipUtils;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import io.bioimage.modelrunner.apposed.appose.Conda;
+import io.bioimage.modelrunner.apposed.appose.MambaInstallerUtils;
 
 public class Installer {
 	final public static String SAM_WEIGHTS_NAME = "sam_vit_h_4b8939.pth";
@@ -42,7 +43,7 @@ public class Installer {
 	final static public String ESAM_NAME = "EfficientSAM";
 	final static public String SAM_NAME = "SAM";
 	
-	final static public String ESAMS_URL = "https://github.com/yformer/EfficientSAM/raw/main/weights/efficient_sam_vits.pt.zip";
+	final static public String ESAMS_URL = "https://raw.githubusercontent.com/yformer/EfficientSAM/main/weights/efficient_sam_vits.pt.zip";
 	
 	private final static String MAMBA_RELATIVE_PATH = PlatformDetection.isWindows() ? 
 			 File.separator + "Library" + File.separator + "bin" + File.separator + "micromamba.exe" 
@@ -103,17 +104,17 @@ public class Installer {
 	}
 	
 	public boolean checkEfficientSAMSmallWeightsDownloaded() {
-		File weigthsFile = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights").toFile();
+		File weigthsFile = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_SMALL_WEIGHTS_NAME).toFile();
 		return weigthsFile.exists();
 	}
 	
 	public boolean checkEfficientSAMTinyWeightsDownloaded() {
-		File weigthsFile = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights").toFile();
+		File weigthsFile = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_TINY_WEIGHTS_NAME, ESAM_TINY_WEIGHTS_NAME).toFile();
 		return weigthsFile.exists();
 	}
 	
 	public boolean checkSAMWeightsDownloaded() {
-		File weigthsFile = Paths.get(this.path, "envs", SAM_ENV_NAME, SAM_NAME, "weights").toFile();
+		File weigthsFile = Paths.get(this.path, "envs", SAM_ENV_NAME, SAM_NAME, "weights", SAM_WEIGHTS_NAME).toFile();
 		return weigthsFile.exists();
 	}
 	
@@ -126,24 +127,25 @@ public class Installer {
 			return;
 	}
 	
-	public void downloadESAMSmall(DownloadTracker.TwoParameterConsumer<String, Double> consumer) throws IOException {
+	public void downloadESAMSmall(DownloadTracker.TwoParameterConsumer<String, Double> consumer) throws IOException, InterruptedException {
 		downloadESAMSmall(false);
 	}
 	
-	public void downloadESAMSmall(boolean force, DownloadTracker.TwoParameterConsumer<String, Double> consumer) throws IOException {
+	public void downloadESAMSmall(boolean force, DownloadTracker.TwoParameterConsumer<String, Double> consumer) throws IOException, InterruptedException {
 		if (!force && checkEfficientSAMSmallWeightsDownloaded())
 			return;
-		File file = Paths.get(path, ESAM_ENV_NAME, ESAM_NAME, "weights", DownloadModel.getFileNameFromURLString(ESAMS_URL)).toFile();
+		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", DownloadModel.getFileNameFromURLString(ESAMS_URL)).toFile();
+		file.getParentFile().mkdirs();
 		Thread downloadThread = new Thread(() -> {
 			try {
 				downloadFile(ESAMS_URL, file);
-			} catch (IOException e) {
+			} catch (IOException | URISyntaxException e) {
 				e.printStackTrace();
 			}
         });
+		DownloadTracker tracker = DownloadTracker.getFilesDownloadTracker(Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights").toFile().toString(),
+				consumer, Arrays.asList(new String[] {ESAMS_URL}), downloadThread);
 		downloadThread.start();
-		DownloadTracker tracker = DownloadTracker.getFilesDownloadTracker(Paths.get(path, ESAM_ENV_NAME, ESAM_NAME, "weights").toFile().toString(),
-				null, Arrays.asList(new String[] {ESAMS_URL}), downloadThread);
 		Thread trackerThread = new Thread(() -> {
             try {
             	tracker.track();
@@ -152,14 +154,16 @@ public class Installer {
 			}
         });
 		trackerThread.start();
+		try { DownloadTracker.printProgress(downloadThread, consumer); } 
+		catch (InterruptedException ex) { throw new InterruptedException("Model download interrupted."); }
 		ZipUtils.unzipFolder(file.getAbsolutePath(), file.getAbsolutePath().substring(0, file.getAbsolutePath().length() - 4));
 	}
 	
-	public void downloadESAMSmall() throws IOException {
+	public void downloadESAMSmall() throws IOException, InterruptedException {
 		downloadESAMSmall(false);
 	}
 	
-	public void downloadESAMSmall(boolean force) throws IOException {
+	public void downloadESAMSmall(boolean force) throws IOException, InterruptedException {
 		if (!force && checkEfficientSAMSmallWeightsDownloaded())
 			return;
 		TwoParameterConsumer<String, Double> consumer = DownloadTracker.createConsumerProgress();
@@ -230,15 +234,19 @@ public class Installer {
 			return;
 		mamba.create(ESAM_ENV_NAME, true);
 		String zipResourcePath = "EfficientSAM.zip";
-        String outputDirectory = mamba.getEnvsDir() + File.separator + ESAM_ENV_NAME + File.separator + ESAM_NAME;
+        String outputDirectory = mamba.getEnvsDir() + File.separator + ESAM_ENV_NAME;
         try (
-        	InputStream zipInputStream = Installer.class.getResourceAsStream(zipResourcePath);
+        	InputStream zipInputStream = Installer.class.getClassLoader().getResourceAsStream(zipResourcePath);
         	ZipInputStream zipInput = new ZipInputStream(zipInputStream);
         		) {
         	ZipEntry entry;
         	while ((entry = zipInput.getNextEntry()) != null) {
                 File entryFile = new File(outputDirectory + File.separator + entry.getName());
-                entryFile.getParentFile().mkdirs();
+                if (entry.isDirectory()) {
+                	entryFile.mkdirs();
+                	continue;
+                }
+            	entryFile.getParentFile().mkdirs();
                 try (OutputStream entryOutput = new FileOutputStream(entryFile)) {
                     byte[] buffer = new byte[1024];
                     int bytesRead;
@@ -316,8 +324,9 @@ public class Installer {
 	 * @param targetFile
 	 * 	file where the file from the url will be downloaded too
 	 * @throws IOException if there si any error downloading the file
+	 * @throws URISyntaxException 
 	 */
-	public void downloadFile(String downloadURL, File targetFile) throws IOException {
+	public void downloadFile(String downloadURL, File targetFile) throws IOException, URISyntaxException {
 		FileOutputStream fos = null;
 		ReadableByteChannel rbc = null;
 		try {

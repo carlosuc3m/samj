@@ -24,9 +24,8 @@ import io.bioimage.modelrunner.utils.ZipUtils;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import io.bioimage.modelrunner.apposed.appose.Conda;
-import io.bioimage.modelrunner.apposed.appose.MambaInstallerUtils;
 
-public class Installer {
+public class SamEnvManager {
 	final public static String SAM_WEIGHTS_NAME = "sam_vit_h_4b8939.pth";
 	final public static String ESAM_SMALL_WEIGHTS_NAME ="efficient_sam_vits.pt";
 	final public static String ESAM_TINY_WEIGHTS_NAME ="efficient_sam_vitt.pt";
@@ -59,8 +58,8 @@ public class Installer {
 	private String mambaPath;
 	private Conda mamba;
 	
-	public static Installer createInstaller(String path) {
-		Installer installer = new Installer();
+	public static SamEnvManager createInstaller(String path) {
+		SamEnvManager installer = new SamEnvManager();
 		installer.path = path;
 		installer.mambaPath = path + MAMBA_RELATIVE_PATH;
 		return installer;
@@ -207,7 +206,7 @@ public class Installer {
 		String zipResourcePath = "SAM.zip";
         String outputDirectory = mamba.getEnvsDir() + File.separator + SAM_ENV_NAME + File.separator + SAM_NAME;
         try (
-        	InputStream zipInputStream = Installer.class.getResourceAsStream(zipResourcePath);
+        	InputStream zipInputStream = SamEnvManager.class.getResourceAsStream(zipResourcePath);
         	ZipInputStream zipInput = new ZipInputStream(zipInputStream);
         		) {
         	ZipEntry entry;
@@ -236,7 +235,7 @@ public class Installer {
 		String zipResourcePath = "EfficientSAM.zip";
         String outputDirectory = mamba.getEnvsDir() + File.separator + ESAM_ENV_NAME;
         try (
-        	InputStream zipInputStream = Installer.class.getClassLoader().getResourceAsStream(zipResourcePath);
+        	InputStream zipInputStream = SamEnvManager.class.getClassLoader().getResourceAsStream(zipResourcePath);
         	ZipInputStream zipInput = new ZipInputStream(zipInputStream);
         		) {
         	ZipEntry entry;
@@ -294,15 +293,33 @@ public class Installer {
 	}
 	
 	public String getEfficientSAMSmallWeightsPath() {
-		return Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_SMALL_WEIGHTS_NAME).toAbsolutePath().toString();
+		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_SMALL_WEIGHTS_NAME).toFile();
+		if (!file.isDirectory()) return null;
+		return file.getAbsolutePath();
 	}
 	
 	public String getEfficientSAMTinyWeightsPath() {
-		return Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_TINY_WEIGHTS_NAME).toAbsolutePath().toString();
+		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_TINY_WEIGHTS_NAME).toFile();
+		if (!file.isDirectory()) return null;
+		return file.getAbsolutePath();
 	}
 	
 	public String getSAMWeightsPath() {
-		return Paths.get(path, "envs", SAM_ENV_NAME, SAM_NAME, "weights", SAM_WEIGHTS_NAME).toAbsolutePath().toString();
+		File file = Paths.get(path, "envs", SAM_ENV_NAME, SAM_NAME, "weights", SAM_WEIGHTS_NAME).toFile();
+		if (!file.isFile()) return null;
+		return file.getAbsolutePath();
+	}
+	
+	public String getPythonEnv() {
+		File file = Paths.get(path, "envs", COMMON_ENV_NAME).toFile();
+		if (!file.isDirectory()) return null;
+		return file.getAbsolutePath();
+	}
+	
+	public String getEfficientSamEnv() {
+		File file = Paths.get(path, "envs", ESAM_ENV_NAME).toFile();
+		if (!file.isDirectory()) return null;
+		return file.getAbsolutePath();
 	}
 	
 	public static String getSAMWeightsName() {

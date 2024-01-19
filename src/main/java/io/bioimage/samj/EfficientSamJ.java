@@ -229,7 +229,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 				+ "predicted_logits = torch.take_along_dim(predicted_logits, sorted_ids[..., None, None], dim=2)" + System.lineSeparator()
 				+ "mask = torch.ge(predicted_logits[0, 0, 0, :, :], 0).cpu().detach().numpy()" + System.lineSeparator()
 				//+ "task.update('end predict')" + System.lineSeparator()
-				//+ "task.update(str(mask.shape))" + System.lineSeparator()
+				+ "task.update(str(mask.shape))" + System.lineSeparator()
 				//+ "print(mask.shape)" + System.lineSeparator()
 				//+ "np.save('/home/carlos/git/aa.npy', mask)" + System.lineSeparator()
 				+ "non_zero = np.where(mask != 0)" + System.lineSeparator()

@@ -20,7 +20,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 
-public class SamJ implements AutoCloseable {
+public class SamJ extends AbstractSamJ implements AutoCloseable {
 		
 	private final Environment env;
 	
@@ -52,8 +52,9 @@ public class SamJ implements AutoCloseable {
 			@Override public boolean useSystemPath() { return false; }
 			};
 		python = env.python();
-    	python.debug(line -> System.err.println(line));
-    	Task task = python.task(IMPORTS + PythonMethods.TRACE_EDGES);
+		python.debug(debugPrinter::printText);
+		printScript(IMPORTS + PythonMethods.TRACE_EDGES, "Edges tracing code");
+		Task task = python.task(IMPORTS + PythonMethods.TRACE_EDGES);
 		task.waitFor();
 		if (task.status == TaskStatus.CANCELED)
 			throw new RuntimeException();
@@ -85,6 +86,7 @@ public class SamJ implements AutoCloseable {
 				+ "task.update('starting encoding')" + System.lineSeparator()
 				+ "predictor.set_image(box)";
 		try {
+			printScript(script, "Creation of initial embeddings");
 			Task task = python.task(script);
 			task.waitFor();
 			if (task.status == TaskStatus.CANCELED)
@@ -111,6 +113,7 @@ public class SamJ implements AutoCloseable {
 		HashMap<String, Object> inputs = new HashMap<String, Object>();
 		inputs.put("input_box", boundingBox);
 		try {
+			printScript(script, "Rectangle inference");
 			Task task = python.task(script, inputs);
 			task.waitFor();
 			if (task.status == TaskStatus.CANCELED)

@@ -21,8 +21,8 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 
-public class EfficientSamJ implements AutoCloseable {
-		
+public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
+
 	private final Environment env;
 	
 	private final Service python;
@@ -58,10 +58,11 @@ public class EfficientSamJ implements AutoCloseable {
 			@Override public boolean useSystemPath() { return false; }
 			};
 		python = env.python();
-		python.debug(line -> System.err.println(line));
+		python.debug(debugPrinter::printText);
 		IMPORTS_FORMATED = String.format(IMPORTS,
 				manager.getEfficientSamEnv() + File.separator + SamEnvManager.ESAM_NAME,
 				manager.getEfficientSAMSmallWeightsPath());
+		printScript(IMPORTS_FORMATED + PythonMethods.TRACE_EDGES, "Edges tracing code");
 		Task task = python.task(IMPORTS_FORMATED + PythonMethods.TRACE_EDGES);
 		task.waitFor();
 		if (task.status == TaskStatus.CANCELED)
@@ -94,6 +95,7 @@ public class EfficientSamJ implements AutoCloseable {
 				+ "task.update(str(im.shape))" + System.lineSeparator()
 				+ "aa = predictor.get_image_embeddings(im[None, ...])";
 		try {
+			printScript(script, "Creation of initial embeddings");
 			Task task = python.task(script);
 			task.waitFor();
 			if (task.status == TaskStatus.CANCELED)
@@ -120,6 +122,7 @@ public class EfficientSamJ implements AutoCloseable {
 		HashMap<String, Object> inputs = new HashMap<String, Object>();
 		inputs.put("input_box", boundingBox);
 		try {
+			printScript(script, "Rectangle inference");
 			Task task = python.task(script, inputs);
 			task.waitFor();
 			if (task.status == TaskStatus.CANCELED)

@@ -39,7 +39,7 @@ public class SamJ extends AbstractSamJ implements AutoCloseable {
 			+ "task.update('imported')" + System.lineSeparator()
 			+ "" + System.lineSeparator()
 			+ "sam = sam_model_registry[\"" + SamEnvManager.SAM_MODEL_TYPE 
-			+ "\"](checkpoint='" + SamEnvManager.getWeightsFName() + "')" + System.lineSeparator()
+			+ "\"](checkpoint='" + SamEnvManager.getSAMWeightsName() + "')" + System.lineSeparator()
 			+ "predictor = SamPredictor(sam)" + System.lineSeparator()
 			+ "task.update('created predictor')" + System.lineSeparator()
 			+ "globals()['shared_memory'] = shared_memory" + System.lineSeparator()

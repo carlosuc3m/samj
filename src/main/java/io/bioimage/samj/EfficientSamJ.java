@@ -53,6 +53,16 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	private String IMPORTS_FORMATED;
 
 	private EfficientSamJ(SamEnvManager manager) throws IOException, RuntimeException, InterruptedException {
+		this(manager, (t) -> {}, false);
+	}
+
+	private EfficientSamJ(SamEnvManager manager,
+	                      final DebugTextPrinter debugPrinter,
+	                      final boolean printPythonCode) throws IOException, RuntimeException, InterruptedException {
+
+		this.debugPrinter = debugPrinter;
+		this.isDebugging = printPythonCode;
+
 		this.env = new Environment() {
 			@Override public String base() { return manager.getPythonEnv(); }
 			@Override public boolean useSystemPath() { return false; }
@@ -72,9 +82,18 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		else if (task.status == TaskStatus.CRASHED)
 			throw new RuntimeException();
 	}
-	
-	
-	public static <T extends RealType<T> & NativeType<T>> EfficientSamJ 
+
+	public static <T extends RealType<T> & NativeType<T>> EfficientSamJ
+	initializeSam(SamEnvManager manager,
+	              RandomAccessibleInterval<T> image,
+	              final DebugTextPrinter debugPrinter,
+	              final boolean printPythonCode) throws IOException, RuntimeException, InterruptedException {
+		EfficientSamJ sam = new EfficientSamJ(manager, debugPrinter, printPythonCode);
+		sam.addImage(image);
+		return sam;
+	}
+
+	public static <T extends RealType<T> & NativeType<T>> EfficientSamJ
 	initializeSam(SamEnvManager manager, RandomAccessibleInterval<T> image) throws IOException, RuntimeException, InterruptedException {
 		EfficientSamJ sam = new EfficientSamJ(manager);
 		sam.addImage(image);

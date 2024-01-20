@@ -47,6 +47,16 @@ public class SamJ extends AbstractSamJ implements AutoCloseable {
 			+ "globals()['predictor'] = predictor" + System.lineSeparator();
 	
 	private SamJ(String envPath) throws IOException, RuntimeException, InterruptedException {
+		this(envPath, (t) -> {}, false);
+	}
+
+	private SamJ(String envPath,
+	             final DebugTextPrinter debugPrinter,
+	             final boolean printPythonCode) throws IOException, RuntimeException, InterruptedException {
+
+		this.debugPrinter = debugPrinter;
+		this.isDebugging = printPythonCode;
+
 		this.env = new Environment() {
 			@Override public String base() { return envPath; }
 			@Override public boolean useSystemPath() { return false; }

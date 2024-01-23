@@ -180,7 +180,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	
 	private <T extends RealType<T> & NativeType<T>> 
 	void sendImgLib2AsNp(RandomAccessibleInterval<T> targetImg) {
-		shma = SharedMemoryArray.buildSHMA(targetImg);
+		shma = SharedMemoryArray.buildSHMA( normalizedView(targetImg) );
 		String code = "";
 		// This line wants to recreate the original numpy array. Should look like:
 		// input0_appose_shm = shared_memory.SharedMemory(name=input0)

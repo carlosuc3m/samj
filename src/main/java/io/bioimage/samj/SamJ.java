@@ -162,7 +162,7 @@ public class SamJ extends AbstractSamJ implements AutoCloseable {
 	
 	private <T extends RealType<T> & NativeType<T>> 
 	void sendImgLib2AsNp(RandomAccessibleInterval<T> boundingBox) {
-		shma = SharedMemoryArray.buildSHMA(boundingBox);
+		shma = SharedMemoryArray.buildSHMA( normalizedView(boundingBox) );
 		String code = "";
 		// This line wants to recreate the original numpy array. Should look like:
 		// input0_appose_shm = shared_memory.SharedMemory(name=input0)

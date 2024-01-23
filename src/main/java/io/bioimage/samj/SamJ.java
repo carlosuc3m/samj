@@ -1,7 +1,9 @@
 package io.bioimage.samj;
 
 import java.lang.AutoCloseable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.awt.Polygon;
@@ -32,6 +34,7 @@ public class SamJ extends AbstractSamJ implements AutoCloseable {
 	
 	public static final String IMPORTS = ""
 			+ "task.update('start')" + System.lineSeparator()
+			+ "from skimage import measure" + System.lineSeparator()
 			+ "import numpy as np" + System.lineSeparator()
 			+ "from multiprocessing import shared_memory" + System.lineSeparator()
 			+ "task.update('import sam')" + System.lineSeparator()
@@ -147,11 +150,18 @@ public class SamJ extends AbstractSamJ implements AutoCloseable {
 			}
 			throw e;
 		}
-		int[] contours_x = 
-				((List<Number>) results.get("contours_x")).stream().mapToInt(j -> j.intValue()).toArray();
-		int[] contours_y = 
-				((List<Number>) results.get("contours_y")).stream().mapToInt(j -> j.intValue()).toArray();
-		return new Polygon(contours_x, contours_y, contours_x.length);
+
+		final List<List<Number>> contours_x_container = (List<List<Number>>)results.get("contours_x");
+		final Iterator<List<Number>> contours_x = contours_x_container.iterator();
+		final Iterator<List<Number>> contours_y = ((List<List<Number>>)results.get("contours_y")).iterator();
+		final List<Polygon> polys = new ArrayList<>(contours_x_container.size());
+		while (contours_x.hasNext()) {
+			int[] xArr = contours_x.next().stream().mapToInt(Number::intValue).toArray();
+			int[] yArr = contours_y.next().stream().mapToInt(Number::intValue).toArray();
+			polys.add( new Polygon(xArr, yArr, xArr.length) );
+		}
+		debugPrinter.printText("processBox() obtained "+polys.size()+" polygons");
+		return polys.get(0);
 	}
 
 
@@ -197,14 +207,11 @@ public class SamJ extends AbstractSamJ implements AutoCloseable {
 				+ ")" + System.lineSeparator()
 				+ "task.update('end predict')" + System.lineSeparator()
 				+ "task.update(str(mask[0].shape))" + System.lineSeparator()
-				+ "non_zero = np.where(mask[0] != 0)" + System.lineSeparator()
-				+ "task.update(str(non_zero[1][0]))" + System.lineSeparator()
-				+ "task.update(str(non_zero[0][0]))" + System.lineSeparator()
-				+ "contours, _ = trace_edge(mask[0], non_zero[1][0], non_zero[0][0])" + System.lineSeparator()
-				+ "task.update(contours)" + System.lineSeparator()
-				+ "contours = np.array(contours)" + System.lineSeparator()
-				+ "task.outputs['contours_x'] = contours[:, 0].tolist()" + System.lineSeparator()
-				+ "task.outputs['contours_y'] = contours[:, 1].tolist()" + System.lineSeparator();
+				//+ "np.save('/temp/aa.npy', mask[0])" + System.lineSeparator()
+				+ "contours_x,contours_y = get_polygons_from_binary_mask(mask[0])" + System.lineSeparator()
+				+ "task.update('all contours traced')" + System.lineSeparator()
+				+ "task.outputs['contours_x'] = contours_x" + System.lineSeparator()
+				+ "task.outputs['contours_y'] = contours_y" + System.lineSeparator();
 		this.script = code;
 	}
 	

@@ -244,7 +244,6 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 				//+ "np.save('/temp/aa.npy', mask)" + System.lineSeparator()
 				+ "contours_x,contours_y = get_polygons_from_binary_mask(mask)" + System.lineSeparator()
 				+ "task.update('all contours traced')" + System.lineSeparator()
-				//+ "contours = np.array(contours)" + System.lineSeparator()
 				+ "task.outputs['contours_x'] = contours_x" + System.lineSeparator()
 				+ "task.outputs['contours_y'] = contours_y" + System.lineSeparator();
 		this.script = code;

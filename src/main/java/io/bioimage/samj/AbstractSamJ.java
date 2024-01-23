@@ -1,5 +1,14 @@
 package io.bioimage.samj;
 
+import net.imglib2.IterableInterval;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.converter.Converter;
+import net.imglib2.converter.Converters;
+import net.imglib2.type.Type;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.util.Util;
+import net.imglib2.view.Views;
+
 import java.time.LocalDateTime;
 
 public class AbstractSamJ {
@@ -29,5 +38,56 @@ public class AbstractSamJ {
 		debugPrinter.printText(LocalDateTime.now().toString());
 		debugPrinter.printText(script);
 		debugPrinter.printText("END:   =========== "+designationOfTheScript+" ===========");
+	}
+
+
+	public static <T extends RealType<T>>
+	void getMinMaxPixelValue(final IterableInterval<T> inImg, final double[] outMinMax) {
+		double min = inImg.firstElement().getRealDouble();
+		double max = min;
+
+		for (T px : inImg) {
+			double val = px.getRealDouble();
+			min = Math.min(min,val);
+			max = Math.max(max,val);
+		}
+
+		if (outMinMax.length > 1) {
+			outMinMax[0] = min;
+			outMinMax[1] = max;
+		}
+	}
+
+	public static boolean isNormalizedInterval(final double[] inMinMax) {
+		return (inMinMax[0] >= 0 && inMinMax[0] <= 1
+			&& inMinMax[1] >= 0 && inMinMax[1] <= 1);
+	}
+
+	public static <T extends RealType<T>>
+	RandomAccessibleInterval<T> normalizedView(final RandomAccessibleInterval<T> inImg, final double[] inMinMax) {
+		final double min = inMinMax[0];
+		final double range = inMinMax[1] - min;
+		return Converters.convert(inImg, (i, o) -> o.setReal((i.getRealDouble() - min) / range), Util.getTypeFromInterval(inImg));
+	}
+
+	/**
+	 * Checks the input RAI if its min and max pixel values are between [0,1].
+	 * If they are not, the RAI will be subject to {@link Converters#convert(RandomAccessibleInterval, Converter, Type)}
+	 * with here-created Converter that knows how to bring the pixel values into the interval [0,1].
+	 *
+	 * @param inImg RAI to be potentially normalized.
+	 * @return The input image itself or a View of it.
+	 */
+	public <T extends RealType<T>>
+	RandomAccessibleInterval<T> normalizedView(final RandomAccessibleInterval<T> inImg) {
+		final double[] minMax = new double[2];
+		getMinMaxPixelValue(Views.iterable(inImg), minMax);
+		if (isNormalizedInterval(minMax)) {
+			debugPrinter.printText("MIN VALUE="+minMax[0]+", MAX VALUE="+minMax[1]+", IMAGE IS NORMALIZED, returning directly itself");
+			return inImg;
+		} else {
+			debugPrinter.printText("MIN VALUE="+minMax[0]+", MAX VALUE="+minMax[1]+", IMAGE IS _NOT_ NORMALIZED, returning Converted view");
+			return normalizedView(inImg, minMax);
+		}
 	}
 }

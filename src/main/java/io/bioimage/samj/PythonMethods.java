@@ -7,7 +7,7 @@ package io.bioimage.samj;
  * @author Carlos Garcia Lopez de Haro
  */
 public class PythonMethods {
-	
+
 	protected static String TRACE_EDGES = ""
 			+ "def inside(mask, x, y, direction):\n"
 			+ "    # Check if the pixel in a given direction is inside the mask\n"
@@ -57,12 +57,29 @@ public class PythonMethods {
 			+ "            if not points or points[0] != (x, y):\n"
 			+ "                add_point(points, x, y)\n"
 			+ "            break\n"
-			+ "    return points, direction <= 0" + System.lineSeparator()
+			+ "    return points, direction <= 0\n"
+			+ "\n"
+			+ "def get_polygons_from_binary_mask(sam_result, at_least_of_this_size = 3):\n"
+			+ "    labels = measure.regionprops( measure.label(sam_result,connectivity=1) )\n"
+			+ "    x_contours = []\n"
+			+ "    y_contours = []\n"
+			+ "    for obj in labels:\n"
+			+ "        if obj.num_pixels >= at_least_of_this_size:\n"
+			+ "            non_zero = np.where(obj.image != 0)\n"
+			+ "            local_contours, _ = trace_edge(obj.image, non_zero[1][0], non_zero[0][0])\n"
+			+ "            img_offset_y = obj.bbox[0]\n"
+			+ "            img_offset_x = obj.bbox[1]\n"
+			+ "            global_x_contours = [ int(coord[0]+img_offset_x) for coord in local_contours ]\n"
+			+ "            global_y_contours = [ int(coord[1]+img_offset_y) for coord in local_contours ]\n"
+			+ "            x_contours.append(global_x_contours)\n"
+			+ "            y_contours.append(global_y_contours)\n"
+			+ "    return x_contours,y_contours" + System.lineSeparator()
 			+ "globals()['inside'] = inside" + System.lineSeparator()
 			+ "globals()['add_point'] = add_point" +  System.lineSeparator()
-			+ "globals()['trace_edge'] = trace_edge" +  System.lineSeparator();
+			+ "globals()['trace_edge'] = trace_edge" +  System.lineSeparator()
+			+ "globals()['get_polygons_from_binary_mask'] = get_polygons_from_binary_mask" +  System.lineSeparator();
 
-	
+
 	protected static final String  FIND_CONTOURS = ""
 			+"def find_contours(mask):" + System.lineSeparator()
 			+ "    # Ensure mask is binary" + System.lineSeparator()

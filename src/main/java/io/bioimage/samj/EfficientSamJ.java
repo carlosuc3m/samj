@@ -35,6 +35,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	
 	public static final String IMPORTS = ""
 			+ "task.update('start')" + System.lineSeparator()
+			+ "from skimage import measure" + System.lineSeparator()
 			+ "import numpy as np" + System.lineSeparator()
 			+ "import torch" + System.lineSeparator()
 			+ "import sys" + System.lineSeparator()
@@ -47,6 +48,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "predictor = build_efficient_sam(encoder_patch_embed_dim=384,encoder_num_heads=6,checkpoint='%s',).eval()" + System.lineSeparator()
 			+ "task.update('created predictor')" + System.lineSeparator()
 			+ "globals()['shared_memory'] = shared_memory" + System.lineSeparator()
+			+ "globals()['measure'] = measure" + System.lineSeparator()
 			+ "globals()['np'] = np" + System.lineSeparator()
 			+ "globals()['torch'] = torch" + System.lineSeparator()
 			+ "globals()['predictor'] = predictor" + System.lineSeparator();

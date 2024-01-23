@@ -118,7 +118,7 @@ public class SamJ extends AbstractSamJ implements AutoCloseable {
 		}
 	}
 	
-	public Polygon processBox(int[] boundingBox) 
+	public List<Polygon> processBox(int[] boundingBox)
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";
 		processWithSAM();
@@ -161,7 +161,7 @@ public class SamJ extends AbstractSamJ implements AutoCloseable {
 			polys.add( new Polygon(xArr, yArr, xArr.length) );
 		}
 		debugPrinter.printText("processBox() obtained "+polys.size()+" polygons");
-		return polys.get(0);
+		return polys;
 	}
 
 

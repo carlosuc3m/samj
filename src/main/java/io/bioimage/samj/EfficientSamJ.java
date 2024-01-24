@@ -137,7 +137,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		}
 	}
 	
-	public Polygon processBox(int[] boundingBox) 
+	public List<Polygon> processBox(int[] boundingBox)
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";
 		processWithSAM();
@@ -180,7 +180,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 			polys.add( new Polygon(xArr, yArr, xArr.length) );
 		}
 		debugPrinter.printText("processBox() obtained "+polys.size()+" polygons");
-		return polys.get(0);
+		return polys;
 	}
 
 
@@ -244,7 +244,6 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 				//+ "np.save('/temp/aa.npy', mask)" + System.lineSeparator()
 				+ "contours_x,contours_y = get_polygons_from_binary_mask(mask)" + System.lineSeparator()
 				+ "task.update('all contours traced')" + System.lineSeparator()
-				//+ "contours = np.array(contours)" + System.lineSeparator()
 				+ "task.outputs['contours_x'] = contours_x" + System.lineSeparator()
 				+ "task.outputs['contours_y'] = contours_y" + System.lineSeparator();
 		this.script = code;

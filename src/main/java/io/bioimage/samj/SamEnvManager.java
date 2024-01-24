@@ -81,10 +81,9 @@ public class SamEnvManager {
 		File pythonEnv = Paths.get(this.path, "envs", COMMON_ENV_NAME).toFile();
 		if (!pythonEnv.exists()) return false;
 		
-		int sizeUninstalled = 0;
-		// TODO int sizeUninstalled = REQUIRED_DEPS.stream().filter(dep -> !mamba.isPackageInEnv()).collect(Collectors.toList()).size();
+		List<String> uninstalled = Conda.checkUninstalledDependenciesInEnv(pythonEnv.getAbsolutePath(), REQUIRED_DEPS);
 		
-		return sizeUninstalled == 0;
+		return uninstalled.size() == 0;
 	}
 	
 	public boolean checkSAMPackageInstalled() {

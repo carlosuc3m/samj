@@ -137,15 +137,10 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		}
 	}
 	
-	public List<Polygon> processBox(int[] boundingBox)
-			throws IOException, RuntimeException, InterruptedException{
-		this.script = "";
-		processWithSAM();
+	private List<Polygon> processAndRetrieveContours(HashMap<String, Object> inputs) 
+			throws IOException, RuntimeException, InterruptedException {
 		Map<String, Object> results = null;
-		HashMap<String, Object> inputs = new HashMap<String, Object>();
-		inputs.put("input_box", boundingBox);
 		try {
-			printScript(script, "Rectangle inference");
 			Task task = python.task(script, inputs);
 			task.waitFor();
 			if (task.status == TaskStatus.CANCELED)
@@ -179,7 +174,30 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 			int[] yArr = contours_y.next().stream().mapToInt(Number::intValue).toArray();
 			polys.add( new Polygon(xArr, yArr, xArr.length) );
 		}
-		debugPrinter.printText("processBox() obtained "+polys.size()+" polygons");
+		return polys;
+	}
+	
+	public List<Polygon> processPoints(List<int[]> pointsList)
+			throws IOException, RuntimeException, InterruptedException{
+		this.script = "";
+		processPointsWithSAM(pointsList.size());
+		HashMap<String, Object> inputs = new HashMap<String, Object>();
+		inputs.put("input_box", pointsList);
+		printScript(script, "Rectangle inference");
+		List<Polygon> polys = processAndRetrieveContours(inputs);
+		debugPrinter.printText("processPoints() obtained " + polys.size() + " polygons");
+		return polys;
+	}
+	
+	public List<Polygon> processBox(int[] boundingBox)
+			throws IOException, RuntimeException, InterruptedException{
+		this.script = "";
+		processBoxWithSAM();
+		HashMap<String, Object> inputs = new HashMap<String, Object>();
+		inputs.put("input_box", boundingBox);
+		printScript(script, "Rectangle inference");
+		List<Polygon> polys = processAndRetrieveContours(inputs);
+		debugPrinter.printText("processBox() obtained " + polys.size() + " polygons");
 		return polys;
 	}
 
@@ -218,13 +236,44 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		this.script += code;
 	}
 	
-	private void processWithSAM() {
+	private void processPointsWithSAM(int nPoints) {
+		String code = "" + System.lineSeparator()
+				+ "task.update('start predict')" + System.lineSeparator()
+				+ "input_points_list = []" + System.lineSeparator();
+		for (int n = 0; n < nPoints; n ++)
+			code += "input_points_list.append([input_points[" + n + "][0], input_points[" + n + "][1]])" + System.lineSeparator();
+		code += ""
+				+ "input_points = np.array(input_points_list)" + System.lineSeparator()
+				+ "input_points = torch.reshape(torch.tensor(input_points), [1, 1, -1, 2])" + System.lineSeparator()
+				+ "input_label = np.array([1] * " + nPoints + ")" + System.lineSeparator()
+				+ "input_label = torch.reshape(torch.tensor(input_label), [1, 1, -1])" + System.lineSeparator()
+				+ "predicted_logits, predicted_iou = predictor.predict_masks(predictor.encoded_images," + System.lineSeparator()
+				+ "    input_points," + System.lineSeparator()
+				+ "    input_label," + System.lineSeparator()
+				+ "    multimask_output=True," + System.lineSeparator()
+				+ "    input_h=input_h," + System.lineSeparator()
+				+ "    input_w=input_w," + System.lineSeparator()
+				+ "    output_h=input_h," + System.lineSeparator()
+				+ "    output_w=input_w,)" + System.lineSeparator()
+				+ "sorted_ids = torch.argsort(predicted_iou, dim=-1, descending=True)" + System.lineSeparator()
+				+ "predicted_iou = torch.take_along_dim(predicted_iou, sorted_ids, dim=2)" + System.lineSeparator()
+				+ "predicted_logits = torch.take_along_dim(predicted_logits, sorted_ids[..., None, None], dim=2)" + System.lineSeparator()
+				+ "mask = torch.ge(predicted_logits[0, 0, 0, :, :], 0).cpu().detach().numpy()" + System.lineSeparator()
+				+ "task.update('end predict')" + System.lineSeparator()
+				+ "task.update(str(mask.shape))" + System.lineSeparator()
+				//+ "np.save('/temp/aa.npy', mask)" + System.lineSeparator()
+				+ "contours_x,contours_y = get_polygons_from_binary_mask(mask)" + System.lineSeparator()
+				+ "task.update('all contours traced')" + System.lineSeparator()
+				+ "task.outputs['contours_x'] = contours_x" + System.lineSeparator()
+				+ "task.outputs['contours_y'] = contours_y" + System.lineSeparator();
+		this.script = code;
+	}
+	
+	private void processBoxWithSAM() {
 		String code = "" + System.lineSeparator()
 				+ "task.update('start predict')" + System.lineSeparator()
 				+ "input_box = np.array([[input_box[0], input_box[1]], [input_box[2], input_box[3]]])" + System.lineSeparator()
-				//+ "input_box = np.array([[200, 60], [220, 80]])" + System.lineSeparator()
 				+ "input_box = torch.reshape(torch.tensor(input_box), [1, 1, -1, 2])" + System.lineSeparator()
-				//+ "input_box = torch.from_numpy(np.array(input_box).reshape(2, 2)).unsqueeze(0).unsqueeze(0)" + System.lineSeparator()
 				+ "input_label = np.array([2,3])" + System.lineSeparator()
 				+ "input_label = torch.reshape(torch.tensor(input_label), [1, 1, -1])" + System.lineSeparator()
 				+ "predicted_logits, predicted_iou = predictor.predict_masks(predictor.encoded_images," + System.lineSeparator()

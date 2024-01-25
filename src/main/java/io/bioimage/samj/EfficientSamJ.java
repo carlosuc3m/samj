@@ -22,6 +22,9 @@ import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.util.Intervals;
+import net.imglib2.view.IntervalView;
+import net.imglib2.view.Views;
 
 public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 
@@ -296,6 +299,26 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 				+ "task.outputs['contours_x'] = contours_x" + System.lineSeparator()
 				+ "task.outputs['contours_y'] = contours_y" + System.lineSeparator();
 		this.script = code;
+	}
+	
+	@Override
+	public <T extends RealType<T> & NativeType<T>>
+	RandomAccessibleInterval<T> adaptImageToModel(final RandomAccessibleInterval<T> inImg) {
+		if (inImg.numDimensions() == 3 && inImg.dimensionsAsLongArray()[2] == 3) {
+			for (int i = 0; i < 3; i ++) normalizedView(Views.hyperSlice(inImg, 2, i));
+			return inImg;
+		} else if (inImg.numDimensions() == 3 && inImg.dimensionsAsLongArray()[2] == 1) {
+			normalizedView(inImg);
+			debugPrinter.printText("CONVERTED 1 CHANNEL IMAGE INTO 3 TO BE FEEDED TO SAMJ");
+			IntervalView<T> resIm = Views.interval( Views.expandMirrorDouble(inImg, new long[] {0, 0, 2}), 
+					Intervals.createMinMax(new long[] {0, 0, 0, inImg.dimensionsAsLongArray()[0], inImg.dimensionsAsLongArray()[1], 2}) );
+			return resIm;
+		} else if (inImg.numDimensions() == 2) {
+			return inImg;
+		} else {
+			throw new IllegalArgumentException("Currently SAMJ only supports 1-channel (grayscale) or 3-channel (RGB, BGR, ...) 2D images."
+					+ "The image dimensions order should be 'yxc', first dimension height, second width and third channels.");
+		}
 	}
 	
 	public static void main(String[] args) throws IOException, RuntimeException, InterruptedException {

@@ -4,6 +4,7 @@ import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.converter.Converters;
+import net.imglib2.type.NativeType;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Util;
@@ -40,8 +41,12 @@ public class AbstractSamJ {
 		debugPrinter.printText("END:   =========== "+designationOfTheScript+" ===========");
 	}
 
+	public <T extends RealType<T> & NativeType<T>>
+	RandomAccessibleInterval<T> adaptImageToModel(final RandomAccessibleInterval<T> inImg) {
+		return inImg;
+	}
 
-	public static <T extends RealType<T>>
+	public static <T extends RealType<T> & NativeType<T>>
 	void getMinMaxPixelValue(final IterableInterval<T> inImg, final double[] outMinMax) {
 		double min = inImg.firstElement().getRealDouble();
 		double max = min;
@@ -63,7 +68,7 @@ public class AbstractSamJ {
 			&& inMinMax[1] >= 0 && inMinMax[1] <= 1);
 	}
 
-	public static <T extends RealType<T>>
+	public static <T extends RealType<T> & NativeType<T>>
 	RandomAccessibleInterval<T> normalizedView(final RandomAccessibleInterval<T> inImg, final double[] inMinMax) {
 		final double min = inMinMax[0];
 		final double range = inMinMax[1] - min;
@@ -78,7 +83,7 @@ public class AbstractSamJ {
 	 * @param inImg RAI to be potentially normalized.
 	 * @return The input image itself or a View of it.
 	 */
-	public <T extends RealType<T>>
+	public <T extends RealType<T> & NativeType<T>>
 	RandomAccessibleInterval<T> normalizedView(final RandomAccessibleInterval<T> inImg) {
 		final double[] minMax = new double[2];
 		getMinMaxPixelValue(Views.iterable(inImg), minMax);

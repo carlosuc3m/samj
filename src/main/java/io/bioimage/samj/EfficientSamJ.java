@@ -134,6 +134,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 				throw new RuntimeException();
 			else if (task.status == TaskStatus.CRASHED)
 				throw new RuntimeException();
+			this.shma.close();
 		} catch (IOException | InterruptedException | RuntimeException e) {
 			try {
 				this.shma.close();
@@ -216,7 +217,8 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	
 	private <T extends RealType<T> & NativeType<T>> 
 	void sendImgLib2AsNp(RandomAccessibleInterval<T> targetImg) {
-		shma = SharedMemoryArray.buildSHMA( normalizedView(targetImg) );
+		shma = createEfficientSAMInputSHM(targetImg);
+		adaptImageToModel(targetImg, shma.getSharedRAI());
 		String code = "";
 		// This line wants to recreate the original numpy array. Should look like:
 		// input0_appose_shm = shared_memory.SharedMemory(name=input0)
@@ -306,13 +308,13 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	}
 	
 	private static <T extends RealType<T> & NativeType<T>>
-	RandomAccessibleInterval<FloatType>  createEfficientSAMInputimage(final RandomAccessibleInterval<T> inImg) {
+	SharedMemoryArray  createEfficientSAMInputSHM(final RandomAccessibleInterval<T> inImg) {
 		long[] dims = inImg.dimensionsAsLongArray();
 		if ((dims.length != 3 && dims.length != 2) || (dims.length == 3 && dims[2] != 3 && dims[2] != 1)){
 			throw new IllegalArgumentException("Currently SAMJ only supports 1-channel (grayscale) or 3-channel (RGB, BGR, ...) 2D images."
 					+ "The image dimensions order should be 'yxc', first dimension height, second width and third channels.");
 		}
-		return ArrayImgs.floats(new long[] {dims[0], dims[1], 3});
+		return SharedMemoryArray.buildMemorySegmentForImage(new long[] {dims[0], dims[1], 3}, new FloatType());
 	}
 	
 	private <T extends RealType<T> & NativeType<T>>

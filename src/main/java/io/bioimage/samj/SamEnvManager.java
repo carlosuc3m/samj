@@ -31,8 +31,12 @@ public class SamEnvManager {
 	final public static String ESAM_TINY_WEIGHTS_NAME ="efficient_sam_vitt.pt";
 	final public static String SAM_MODEL_TYPE = "vit_b";
 	
-	final public static List<String> REQUIRED_DEPS = Arrays.asList(new String[] {"appose", "pytorch", "torchvision", "cpuonly"});
+	final public static List<String> CHECK_DEPS = Arrays.asList(new String[] {"appose", "torch", "torchvision", "skimage"});
 	
+	final public static List<String> INSTALL_CONDA_DEPS = Arrays.asList(new String[] {"scikit-image", "pytorch", "torchvision", "cpuonly"});
+
+	final public static List<String> INSTALL_PIP_DEPS = Arrays.asList(new String[] {"appose"});
+
 	final public static long SAM_BYTE_SIZE = 375042383;
 	
 	
@@ -81,7 +85,7 @@ public class SamEnvManager {
 		File pythonEnv = Paths.get(this.path, "envs", COMMON_ENV_NAME).toFile();
 		if (!pythonEnv.exists()) return false;
 		
-		List<String> uninstalled = Conda.checkUninstalledDependenciesInEnv(pythonEnv.getAbsolutePath(), REQUIRED_DEPS);
+		List<String> uninstalled = Conda.checkUninstalledDependenciesInEnv(pythonEnv.getAbsolutePath(), CHECK_DEPS);
 		
 		return uninstalled.size() == 0;
 	}
@@ -211,12 +215,17 @@ public class SamEnvManager {
 		if (!checkMambaInstalled())
 			throw new IllegalArgumentException("Unable to install Python without first installing Mamba. ");
 		String[] pythonArgs = new String[] {"-c", "conda-forge", "python=3.11", "-c", "pytorch"};
-		String[] args = new String[pythonArgs.length + REQUIRED_DEPS.size()];
+		String[] args = new String[pythonArgs.length + INSTALL_CONDA_DEPS.size()];
 		int c = 0;
 		for (String ss : pythonArgs) args[c ++] = ss;
-		for (String ss : REQUIRED_DEPS) args[c ++] = ss;
-		if (!checkCommonPythonInstalled() || force)
+		for (String ss : INSTALL_CONDA_DEPS) args[c ++] = ss;
+		if (!checkCommonPythonInstalled() || force) {
 			mamba.create(COMMON_ENV_NAME, false, args);
+			String pipInstall = " -m pip install ";
+			for (int i = 0; i < INSTALL_PIP_DEPS.size() - 1; i ++) pipInstall += INSTALL_PIP_DEPS.get(i) + ", ";
+			pipInstall += INSTALL_PIP_DEPS.get(INSTALL_PIP_DEPS.size() - 1);
+			Conda.runPythonIn(Paths.get(path,  "envs", COMMON_ENV_NAME).toFile(), pipInstall);
+		}
 	}
 	
 	public void installSAMPackage() throws IOException, InterruptedException {

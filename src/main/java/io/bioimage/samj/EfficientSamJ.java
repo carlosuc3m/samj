@@ -18,10 +18,14 @@ import io.bioimage.modelrunner.apposed.appose.Service.TaskStatus;
 import io.bioimage.modelrunner.tensor.shm.SharedMemoryArray;
 import io.bioimage.modelrunner.utils.CommonUtils;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.converter.RealTypeConverters;
+import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.loops.LoopBuilder;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
@@ -301,20 +305,29 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		this.script = code;
 	}
 	
-	@Override
-	public <T extends RealType<T> & NativeType<T>>
-	RandomAccessibleInterval<T> adaptImageToModel(final RandomAccessibleInterval<T> inImg) {
-		if (inImg.numDimensions() == 3 && inImg.dimensionsAsLongArray()[2] == 3) {
-			for (int i = 0; i < 3; i ++) normalizedView(Views.hyperSlice(inImg, 2, i));
-			return inImg;
-		} else if (inImg.numDimensions() == 3 && inImg.dimensionsAsLongArray()[2] == 1) {
-			normalizedView(inImg);
+	private static <T extends RealType<T> & NativeType<T>>
+	RandomAccessibleInterval<FloatType>  createEfficientSAMInputimage(final RandomAccessibleInterval<T> inImg) {
+		long[] dims = inImg.dimensionsAsLongArray();
+		if ((dims.length != 3 && dims.length != 2) || (dims.length == 3 && dims[2] != 3 && dims[2] != 1)){
+			throw new IllegalArgumentException("Currently SAMJ only supports 1-channel (grayscale) or 3-channel (RGB, BGR, ...) 2D images."
+					+ "The image dimensions order should be 'yxc', first dimension height, second width and third channels.");
+		}
+		return ArrayImgs.floats(new long[] {dims[0], dims[1], 3});
+	}
+	
+	private <T extends RealType<T> & NativeType<T>>
+	void adaptImageToModel(final RandomAccessibleInterval<T> ogImg, RandomAccessibleInterval<FloatType> targetImg) {
+		if (ogImg.numDimensions() == 3 && ogImg.dimensionsAsLongArray()[2] == 3) {
+			for (int i = 0; i < 3; i ++) normalizedView(Views.hyperSlice(ogImg, 2, i));
+			RealTypeConverters.copyFromTo( ogImg, targetImg );
+		} else if (ogImg.numDimensions() == 3 && ogImg.dimensionsAsLongArray()[2] == 1) {
+			normalizedView(ogImg);
 			debugPrinter.printText("CONVERTED 1 CHANNEL IMAGE INTO 3 TO BE FEEDED TO SAMJ");
-			IntervalView<T> resIm = Views.interval( Views.expandMirrorDouble(inImg, new long[] {0, 0, 2}), 
-					Intervals.createMinMax(new long[] {0, 0, 0, inImg.dimensionsAsLongArray()[0], inImg.dimensionsAsLongArray()[1], 2}) );
-			return resIm;
-		} else if (inImg.numDimensions() == 2) {
-			return inImg;
+			IntervalView<T> resIm = Views.interval( Views.expandMirrorDouble(ogImg, new long[] {0, 0, 2}), 
+					Intervals.createMinMax(new long[] {0, 0, 0, ogImg.dimensionsAsLongArray()[0], ogImg.dimensionsAsLongArray()[1], 2}) );
+			RealTypeConverters.copyFromTo( resIm, targetImg );
+		} else if (ogImg.numDimensions() == 2) {
+			adaptImageToModel(Views.addDimension(ogImg, 0, 0), targetImg);
 		} else {
 			throw new IllegalArgumentException("Currently SAMJ only supports 1-channel (grayscale) or 3-channel (RGB, BGR, ...) 2D images."
 					+ "The image dimensions order should be 'yxc', first dimension height, second width and third channels.");
@@ -323,6 +336,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	
 	public static void main(String[] args) throws IOException, RuntimeException, InterruptedException {
 		RandomAccessibleInterval<UnsignedByteType> img = ArrayImgs.unsignedBytes(new long[] {50, 50, 3});
+		img = Views.addDimension(img, 1, 2);
 		try (EfficientSamJ sam = initializeSam(SamEnvManager.create(), img)) {
 			sam.processBox(new int[] {0, 5, 10, 26});
 		}

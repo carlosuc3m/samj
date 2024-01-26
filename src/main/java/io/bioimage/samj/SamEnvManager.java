@@ -106,17 +106,17 @@ public class SamEnvManager {
 	
 	public boolean checkEfficientSAMSmallWeightsDownloaded() {
 		File weigthsFile = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_SMALL_WEIGHTS_NAME).toFile();
-		return weigthsFile.exists();
+		return weigthsFile.isFile();
 	}
 	
 	public boolean checkEfficientSAMTinyWeightsDownloaded() {
 		File weigthsFile = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_TINY_WEIGHTS_NAME, ESAM_TINY_WEIGHTS_NAME).toFile();
-		return weigthsFile.exists();
+		return weigthsFile.isFile();
 	}
 	
 	public boolean checkSAMWeightsDownloaded() {
 		File weigthsFile = Paths.get(this.path, "envs", SAM_ENV_NAME, SAM_NAME, "weights", SAM_WEIGHTS_NAME).toFile();
-		return weigthsFile.exists();
+		return weigthsFile.isFile();
 	}
 	
 	public void downloadSAM() {
@@ -325,13 +325,13 @@ public class SamEnvManager {
 	}
 	
 	public String getEfficientSAMSmallWeightsPath() {
-		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_SMALL_WEIGHTS_NAME, ESAM_SMALL_WEIGHTS_NAME).toFile();
+		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_SMALL_WEIGHTS_NAME).toFile();
 		if (!file.isFile()) return null;
 		return file.getAbsolutePath();
 	}
 	
 	public String getEfficientSAMTinyWeightsPath() {
-		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_TINY_WEIGHTS_NAME, ESAM_TINY_WEIGHTS_NAME).toFile();
+		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_TINY_WEIGHTS_NAME).toFile();
 		if (!file.isFile()) return null;
 		return file.getAbsolutePath();
 	}

@@ -220,11 +220,10 @@ public class SamEnvManager {
 		for (String ss : pythonArgs) args[c ++] = ss;
 		for (String ss : INSTALL_CONDA_DEPS) args[c ++] = ss;
 		if (!checkCommonPythonInstalled() || force) {
-			mamba.create(COMMON_ENV_NAME, false, args);
-			String pipInstall = " -m pip install ";
-			for (int i = 0; i < INSTALL_PIP_DEPS.size() - 1; i ++) pipInstall += INSTALL_PIP_DEPS.get(i) + ", ";
-			pipInstall += INSTALL_PIP_DEPS.get(INSTALL_PIP_DEPS.size() - 1);
-			Conda.runPythonIn(Paths.get(path,  "envs", COMMON_ENV_NAME).toFile(), pipInstall);
+			mamba.create(COMMON_ENV_NAME, true, args);
+			List<String> pipInstall = Arrays.asList(new String[] {"-m", "pip", "install"});
+			for (String ss : INSTALL_PIP_DEPS) pipInstall.add(ss);
+			Conda.runPythonIn(Paths.get(path,  "envs", COMMON_ENV_NAME).toFile(), pipInstall.stream().toArray( String[]::new ));
 		}
 	}
 	

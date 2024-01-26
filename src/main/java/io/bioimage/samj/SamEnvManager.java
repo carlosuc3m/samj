@@ -93,14 +93,14 @@ public class SamEnvManager {
 	public boolean checkSAMPackageInstalled() {
 		if (!checkMambaInstalled()) return false;
 		File pythonEnv = Paths.get(this.path, "envs", SAM_ENV_NAME, SAM_NAME).toFile();
-		if (!pythonEnv.exists()) return false;
+		if (!pythonEnv.exists() || pythonEnv.list().length <= 1) return false;
 		return true;
 	}
 	
 	public boolean checkEfficientSAMPackageInstalled() {
 		if (!checkMambaInstalled()) return false;
 		File pythonEnv = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME).toFile();
-		if (!pythonEnv.exists()) return false;
+		if (!pythonEnv.exists() || pythonEnv.list().length <= 1) return false;
 		return true;
 	}
 	
@@ -137,7 +137,6 @@ public class SamEnvManager {
 		if (!force && checkEfficientSAMSmallWeightsDownloaded())
 			return;
 
-		mamba.create(ESAM_ENV_NAME, true);
 		String zipResourcePath = "efficient_sam_vits.pt.zip";
         String outputDirectory = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights").toFile().getAbsolutePath();
         try (

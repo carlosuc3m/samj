@@ -31,7 +31,7 @@ public class SamEnvManager {
 	final public static String ESAM_TINY_WEIGHTS_NAME ="efficient_sam_vitt.pt";
 	final public static String SAM_MODEL_TYPE = "vit_b";
 	
-	final public static List<String> REQUIRED_DEPS = Arrays.asList(new String[] {"pytorch", "torchvision", "cpuonly"});
+	final public static List<String> REQUIRED_DEPS = Arrays.asList(new String[] {"appose", "pytorch", "torchvision", "cpuonly"});
 	
 	final public static long SAM_BYTE_SIZE = 375042383;
 	
@@ -128,9 +128,36 @@ public class SamEnvManager {
 		downloadESAMSmall(false);
 	}
 	
+	// TODO
 	public void downloadESAMSmall(boolean force, DownloadTracker.TwoParameterConsumer<String, Double> consumer) throws IOException, InterruptedException {
 		if (!force && checkEfficientSAMSmallWeightsDownloaded())
 			return;
+
+		mamba.create(ESAM_ENV_NAME, true);
+		String zipResourcePath = "efficient_sam_vits.pt.zip";
+        String outputDirectory = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights").toFile().getAbsolutePath();
+        try (
+        	InputStream zipInputStream = SamEnvManager.class.getClassLoader().getResourceAsStream(zipResourcePath);
+        	ZipInputStream zipInput = new ZipInputStream(zipInputStream);
+        		) {
+        	ZipEntry entry;
+        	while ((entry = zipInput.getNextEntry()) != null) {
+                File entryFile = new File(outputDirectory + File.separator + entry.getName());
+                if (entry.isDirectory()) {
+                	entryFile.mkdirs();
+                	continue;
+                }
+            	entryFile.getParentFile().mkdirs();
+                try (OutputStream entryOutput = new FileOutputStream(entryFile)) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = zipInput.read(buffer)) != -1) {
+                        entryOutput.write(buffer, 0, bytesRead);
+                    }
+                }
+            }
+        }
+		/** TODO AVOID DOWONLOADING EFF SAM
 		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", DownloadModel.getFileNameFromURLString(ESAMS_URL)).toFile();
 		file.getParentFile().mkdirs();
 		Thread downloadThread = new Thread(() -> {
@@ -154,6 +181,7 @@ public class SamEnvManager {
 		try { DownloadTracker.printProgress(downloadThread, consumer); } 
 		catch (InterruptedException ex) { throw new InterruptedException("Model download interrupted."); }
 		ZipUtils.unzipFolder(file.getAbsolutePath(), file.getAbsolutePath().substring(0, file.getAbsolutePath().length() - 4));
+		**/
 	}
 	
 	public void downloadESAMSmall() throws IOException, InterruptedException {
@@ -161,8 +189,6 @@ public class SamEnvManager {
 	}
 	
 	public void downloadESAMSmall(boolean force) throws IOException, InterruptedException {
-		if (!force && checkEfficientSAMSmallWeightsDownloaded())
-			return;
 		TwoParameterConsumer<String, Double> consumer = DownloadTracker.createConsumerProgress();
 		downloadESAMSmall(force, consumer);
 	}
@@ -198,7 +224,7 @@ public class SamEnvManager {
 	}
 	
 	public void installSAMPackage(boolean force) throws IOException, InterruptedException {
-		if (checkEfficientSAMPackageInstalled() && !force)
+		if (checkSAMPackageInstalled() && !force)
 			return;
 		mamba.create(ESAM_ENV_NAME, true);
 		String zipResourcePath = "SAM.zip";

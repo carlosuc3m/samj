@@ -24,6 +24,12 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import io.bioimage.modelrunner.apposed.appose.Mamba;
 import io.bioimage.modelrunner.apposed.appose.MambaInstallException;
 
+/*
+ * Class that is manages the installation of SAM and EfficientSAM together with Python, their corresponding environments
+ * and dependencies
+ * 
+ * @author Carlos Javier Garcia Lopez de Haro
+ */
 public class SamEnvManager {
 	final public static String SAM_WEIGHTS_NAME = "sam_vit_h_4b8939.pth";
 	final public static String ESAM_SMALL_WEIGHTS_NAME ="efficient_sam_vits.pt";

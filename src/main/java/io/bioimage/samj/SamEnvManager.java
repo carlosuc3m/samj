@@ -224,7 +224,7 @@ public class SamEnvManager {
 		for (String ss : pythonArgs) args[c ++] = ss;
 		for (String ss : INSTALL_CONDA_DEPS) args[c ++] = ss;
 		if (!checkCommonPythonInstalled() || force) {
-			mamba.create(COMMON_ENV_NAME, true, null, Arrays.asList(args));
+			mamba.create(COMMON_ENV_NAME, true, args);
 			List<String> pipInstall = Arrays.asList(new String[] {"-m", "pip", "install"});
 			for (String ss : INSTALL_PIP_DEPS) pipInstall.add(ss);
 			Mamba.runPythonIn(Paths.get(path,  "envs", COMMON_ENV_NAME).toFile(), pipInstall.stream().toArray( String[]::new ));
@@ -296,7 +296,7 @@ public class SamEnvManager {
 	public void installMambaPython() throws IOException, InterruptedException, 
 											ArchiveException, URISyntaxException, MambaInstallException {
 		if (checkMambaInstalled()) return;
-		mamba = new Mamba(path);
+		mamba = new Mamba(path, true);
 	}
 	
 	public void installSAM() throws IOException, InterruptedException, 

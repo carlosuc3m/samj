@@ -10,6 +10,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -225,7 +226,8 @@ public class SamEnvManager {
 		for (String ss : INSTALL_CONDA_DEPS) args[c ++] = ss;
 		if (!checkCommonPythonInstalled() || force) {
 			mamba.create(COMMON_ENV_NAME, true, args);
-			List<String> pipInstall = Arrays.asList(new String[] {"-m", "pip", "install"});
+			ArrayList<String> pipInstall = new ArrayList<String>();
+			for (String ss : new String[] {"-m", "pip", "install"}) pipInstall.add(ss);
 			for (String ss : INSTALL_PIP_DEPS) pipInstall.add(ss);
 			Mamba.runPythonIn(Paths.get(path,  "envs", COMMON_ENV_NAME).toFile(), pipInstall.stream().toArray( String[]::new ));
 		}

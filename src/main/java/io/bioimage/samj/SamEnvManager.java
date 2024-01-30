@@ -15,15 +15,14 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import io.bioimage.modelrunner.bioimageio.download.DownloadModel;
 import io.bioimage.modelrunner.bioimageio.download.DownloadTracker;
 import io.bioimage.modelrunner.bioimageio.download.DownloadTracker.TwoParameterConsumer;
 import io.bioimage.modelrunner.engine.installation.FileDownloader;
 import io.bioimage.modelrunner.system.PlatformDetection;
-import io.bioimage.modelrunner.utils.ZipUtils;
 
 import org.apache.commons.compress.archivers.ArchiveException;
-import io.bioimage.modelrunner.apposed.appose.Conda;
+import io.bioimage.modelrunner.apposed.appose.Mamba;
+import io.bioimage.modelrunner.apposed.appose.MambaInstallException;
 
 public class SamEnvManager {
 	final public static String SAM_WEIGHTS_NAME = "sam_vit_h_4b8939.pth";
@@ -55,7 +54,7 @@ public class SamEnvManager {
 
 	private String path;
 	private String mambaPath;
-	private Conda mamba;
+	private Mamba mamba;
 	
 	public static SamEnvManager create(String path) {
 		SamEnvManager installer = new SamEnvManager();
@@ -73,8 +72,8 @@ public class SamEnvManager {
 		File ff = new File(path + MAMBA_RELATIVE_PATH);
 		if (!ff.exists()) return false;
 		try {
-			mamba = new Conda(path);
-		} catch (IOException | InterruptedException | ArchiveException | URISyntaxException e) {
+			mamba = new Mamba(path);
+		} catch (IOException | InterruptedException | ArchiveException | URISyntaxException | MambaInstallException e) {
 			return false;
 		}
 		return true;
@@ -85,7 +84,7 @@ public class SamEnvManager {
 		File pythonEnv = Paths.get(this.path, "envs", COMMON_ENV_NAME).toFile();
 		if (!pythonEnv.exists()) return false;
 		
-		List<String> uninstalled = Conda.checkUninstalledDependenciesInEnv(pythonEnv.getAbsolutePath(), CHECK_DEPS);
+		List<String> uninstalled = mamba.checkUninstalledDependenciesInEnv(pythonEnv.getAbsolutePath(), CHECK_DEPS);
 		
 		return uninstalled.size() == 0;
 	}
@@ -219,10 +218,10 @@ public class SamEnvManager {
 		for (String ss : pythonArgs) args[c ++] = ss;
 		for (String ss : INSTALL_CONDA_DEPS) args[c ++] = ss;
 		if (!checkCommonPythonInstalled() || force) {
-			mamba.create(COMMON_ENV_NAME, true, args);
+			mamba.create(COMMON_ENV_NAME, true, null, Arrays.asList(args));
 			List<String> pipInstall = Arrays.asList(new String[] {"-m", "pip", "install"});
 			for (String ss : INSTALL_PIP_DEPS) pipInstall.add(ss);
-			Conda.runPythonIn(Paths.get(path,  "envs", COMMON_ENV_NAME).toFile(), pipInstall.stream().toArray( String[]::new ));
+			Mamba.runPythonIn(Paths.get(path,  "envs", COMMON_ENV_NAME).toFile(), pipInstall.stream().toArray( String[]::new ));
 		}
 	}
 	
@@ -288,12 +287,14 @@ public class SamEnvManager {
         }
 	}
 	
-	public void installMambaPython() throws IOException, InterruptedException, ArchiveException, URISyntaxException {
+	public void installMambaPython() throws IOException, InterruptedException, 
+											ArchiveException, URISyntaxException, MambaInstallException {
 		if (checkMambaInstalled()) return;
-		mamba = new Conda(path);
+		mamba = new Mamba(path);
 	}
 	
-	public void installSAM() throws IOException, InterruptedException, ArchiveException, URISyntaxException {
+	public void installSAM() throws IOException, InterruptedException, 
+									ArchiveException, URISyntaxException, MambaInstallException {
 		if (!this.checkMambaInstalled()) this.installMambaPython();
 		
 		if (!this.checkCommonPythonInstalled()) this.installPython();
@@ -303,7 +304,8 @@ public class SamEnvManager {
 		if (!this.checkEfficientSAMSmallWeightsDownloaded()) this.downloadSAM(false);
 	}
 	
-	public void installEfficientSAMSmall() throws IOException, InterruptedException, ArchiveException, URISyntaxException {
+	public void installEfficientSAMSmall() throws IOException, InterruptedException, 
+													ArchiveException, URISyntaxException, MambaInstallException {
 		if (!this.checkMambaInstalled()) this.installMambaPython();
 		
 		if (!this.checkCommonPythonInstalled()) this.installPython();
@@ -313,7 +315,8 @@ public class SamEnvManager {
 		if (!this.checkEfficientSAMSmallWeightsDownloaded()) this.downloadESAMSmall(false);
 	}
 	
-	public void installEfficientSAMTiny() throws IOException, InterruptedException, ArchiveException, URISyntaxException {
+	public void installEfficientSAMTiny() throws IOException, InterruptedException, 
+													ArchiveException, URISyntaxException, MambaInstallException {
 		if (!this.checkMambaInstalled()) this.installMambaPython();
 		
 		if (!this.checkCommonPythonInstalled()) this.installPython();

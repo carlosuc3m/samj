@@ -2,16 +2,18 @@ package sc.fiji.samj.communication;
 
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
+import sc.fiji.samj.ui.SAMJLogger;
+
 import org.scijava.log.Logger;
 import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PromptsToFakeSamJ implements PromptsToNetAdapter {
-	private final Logger log;
+	private final SAMJLogger log;
 	private final String fakeNetworkName;
 
-	public PromptsToFakeSamJ(final Logger log, final String fakeSamName) {
+	public PromptsToFakeSamJ(final SAMJLogger log, final String fakeSamName) {
 		this.log = log;
 		this.fakeNetworkName = fakeSamName;
 	}

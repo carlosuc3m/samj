@@ -39,6 +39,7 @@ import sc.fiji.samj.gui.components.GridPanel;
 import sc.fiji.samj.gui.icons.ButtonIcon;
 import sc.fiji.samj.gui.tools.Tools;
 import sc.fiji.samj.ui.PromptsResultsDisplay;
+import sc.fiji.samj.ui.SAMJLogger;
 
 public class SAMJDialog extends JDialog implements ActionListener, WindowListener {
 
@@ -63,18 +64,19 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 	
 	private final SAMModelPanel panelModel;
 	private final PromptsResultsDisplay display;
-	private final Logger GUIsOwnLog;
-	private final Logger logForNetworks;
+	private final SAMJLogger GUIsOwnLog;
+	private final SAMJLogger logForNetworks;
 
 	private boolean encodingDone = false;
 
 	public SAMJDialog(final PromptsResultsDisplay display,
 	                  final SAMModels availableModel,
-	                  final Logger hmmFijiLogForNow) {
+	                  final SAMJLogger guilogger,
+	                  final SAMJLogger networkLogger) {
 		super(new JFrame(), "SAMJ Annotator");
 		this.display = display;
-		this.GUIsOwnLog = hmmFijiLogForNow.subLogger("SAM controlling dialog");
-		this.logForNetworks = hmmFijiLogForNow.subLogger("SAM networks");
+		this.GUIsOwnLog = guilogger;
+		this.logForNetworks = networkLogger;
 
 		//TODO: is this needed?
 		this.imp = imp;

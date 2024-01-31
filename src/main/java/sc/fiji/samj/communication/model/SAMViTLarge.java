@@ -4,6 +4,7 @@ import net.imglib2.RandomAccessibleInterval;
 import org.scijava.log.Logger;
 import sc.fiji.samj.communication.PromptsToFakeSamJ;
 import sc.fiji.samj.communication.PromptsToNetAdapter;
+import sc.fiji.samj.ui.SAMJLogger;
 
 public class SAMViTLarge implements SAMModel {
 	
@@ -23,7 +24,7 @@ public class SAMViTLarge implements SAMModel {
 	}
 
 	@Override
-	public PromptsToNetAdapter instantiate(final RandomAccessibleInterval<?> image, final Logger useThisLoggerForIt) {
+	public PromptsToNetAdapter instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt) {
 		return new PromptsToFakeSamJ(useThisLoggerForIt, "Official_ViT");
 	}
 }

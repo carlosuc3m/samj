@@ -6,6 +6,8 @@ import io.bioimage.samj.SamEnvManager;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
+import sc.fiji.samj.ui.SAMJLogger;
+
 import org.scijava.log.Logger;
 import java.awt.Polygon;
 import java.io.IOException;
@@ -18,10 +20,10 @@ public class PromptsToEfficientSamJ implements PromptsToNetAdapter {
 	private static final String LONG_NAME = "EfficientSamJ";
 
 	private final EfficientSamJ efficientSamJ;
-	private final Logger log;
+	private final SAMJLogger log;
 
 	public PromptsToEfficientSamJ(final RandomAccessibleInterval<?> image,
-	                              final Logger log)
+	                              final SAMJLogger log)
 	throws IOException, RuntimeException, InterruptedException {
 		this.log = log;
 		AbstractSamJ.DebugTextPrinter filteringLogger = text -> {

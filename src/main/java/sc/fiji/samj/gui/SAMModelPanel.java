@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
@@ -26,6 +27,8 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	
 	private JButton bnInstall = new JButton("Install");
 	private JButton bnUninstall = new JButton("Uninstall");
+	
+	private JProgressBar progressInstallation = new JProgressBar();
 	
 	private ArrayList<JRadioButton> rbModels = new ArrayList<JRadioButton>();
 	private SAMModels models;
@@ -49,6 +52,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	
 		JPanel pnManageModel = new JPanel(new BorderLayout());
 		pnManageModel.add(pnToolbarModel, BorderLayout.NORTH);
+		pnManageModel.add(progressInstallation, BorderLayout.SOUTH);
 		pnManageModel.add(new JScrollPane(info), BorderLayout.CENTER);
 		
 		GridPanel pnModel = new GridPanel(true);
@@ -56,7 +60,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		for(JRadioButton rb : rbModels)
 			pnModel.place(1, col++, 1, 1, rb);
 		
-		pnModel.place(2, 1, 4, 1, pnManageModel);
+		pnModel.place(2, 1, 5, 2, pnManageModel);
 		
 		add(pnModel);
 		info.append("p", "Description of the model");

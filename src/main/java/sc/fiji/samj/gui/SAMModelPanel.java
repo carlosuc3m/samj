@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.ButtonGroup;
@@ -13,7 +14,9 @@ import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 
+import io.bioimage.samj.SamEnvManager;
 import sc.fiji.samj.communication.model.SAMModel;
 import sc.fiji.samj.communication.model.SAMModels;
 import sc.fiji.samj.gui.components.GridPanel;
@@ -32,9 +35,11 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	
 	private ArrayList<JRadioButton> rbModels = new ArrayList<JRadioButton>();
 	private SAMModels models;
+	private final SamEnvManager manager;
 	
 	public SAMModelPanel(SAMModels models) {
 		super();
+		manager = SamEnvManager.create();
 		this.models = models;
 		JToolBar pnToolbarModel = new JToolBar();
 		pnToolbarModel.setFloatable(false);
@@ -88,16 +93,49 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		return null;
 	}
 	
+	public SamEnvManager getInstallationManager() {
+		return this.manager;
+	}
+	
+	public boolean isInstallationEnabled() {
+		return this.bnInstall.isEnabled();
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
 		if (e.getSource() == bnInstall) {
-			//TODO IJ.log("TODO: call the installation of ");
+			Thread currentThread = Thread.currentThread();
+			Thread installThread = new Thread(() -> {
+				try {
+					SwingUtilities.invokeLater(() -> installationInProcess(true));
+					this.manager.installEfficientSAMSmall();
+					this.progressInstallation.setValue(100);
+				} catch (IOException | InterruptedException e1) {
+					e1.printStackTrace();
+				}
+				SwingUtilities.invokeLater(() -> installationInProcess(false));
+			});
+			installThread.start();
+			
+			Thread controlThread = new Thread(() -> {
+				while (currentThread.isAlive() && installThread.isAlive())
+					Thread.sleep(50);
+				if (!currentThread.isAlive()) installThread.interrupt();
+			});
+			controlThread.start();
 		}
 		if (e.getSource() == bnUninstall) {
 			//TODO IJ.log("TODO: call the uninstallation of ");
 		}
 		updateInterface();
+	}
+	
+	private void installationInProcess(boolean install) {
+		this.bnUninstall.setEnabled(!install);
+		this.bnInstall.setEnabled(!install);
+		this.rbModels.stream().forEach(btn -> btn.setEnabled(!install));
+		this.progressInstallation.setIndeterminate(install);
 	}
 }
 

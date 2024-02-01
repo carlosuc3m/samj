@@ -25,6 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 
+import io.bioimage.samj.SamEnvManager;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.view.Views;
 import sc.fiji.samj.communication.PromptsToNetAdapter;
@@ -178,6 +179,10 @@ public class SAMJDialog extends JPanel implements ActionListener {
 	public void setPromptsProvider(PromptsResultsDisplay pp) {
 		this.display = pp;
 	}
+	
+	public SamEnvManager getModelInstallationManager() {
+		return this.panelModel.getInstallationManager();
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -232,14 +237,22 @@ public class SAMJDialog extends JPanel implements ActionListener {
 	}
 
 	public void updateInterface() {
+		if (this.panelModel.isInstallationEnabled()) {
+			this.bnStart.setEnabled(false);
+			this.cmbImage.setEnabled(false);
+			bnComplete.setEnabled(false);
+			bnRoi2Mask.setEnabled(false);
+			encodingDone = false;
+		} else {
+			this.bnStart.setEnabled(true);
+			this.cmbImage.setEnabled(true);
+			bnComplete.setEnabled(true);
+			bnRoi2Mask.setEnabled(true);
+		}
 		bnRect.setEnabled(encodingDone);
 		bnPoints.setEnabled(encodingDone);
 		bnBrush.setEnabled(encodingDone);
 		bnMask.setEnabled(encodingDone);
-
-		//TODO: this was checking if ROIManager is not empty...
-		bnComplete.setEnabled(false);
-		bnRoi2Mask.setEnabled(false);
 	}
 
 	public class LocalDropTarget extends DropTarget {

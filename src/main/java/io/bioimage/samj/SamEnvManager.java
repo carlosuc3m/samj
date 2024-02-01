@@ -78,12 +78,7 @@ public class SamEnvManager {
 		if (mamba != null) return true;
 		File ff = new File(path + MAMBA_RELATIVE_PATH);
 		if (!ff.exists()) return false;
-		try {
-			mamba = new Mamba(path);
-		} catch (IOException | InterruptedException | ArchiveException | URISyntaxException | MambaInstallException e) {
-			return false;
-		}
-		return true;
+		return mamba.checkMambaInstalled();
 	}
 	
 	public boolean checkCommonPythonInstalled() {
@@ -91,7 +86,12 @@ public class SamEnvManager {
 		File pythonEnv = Paths.get(this.path, "envs", COMMON_ENV_NAME).toFile();
 		if (!pythonEnv.exists()) return false;
 		
-		List<String> uninstalled = mamba.checkUninstalledDependenciesInEnv(pythonEnv.getAbsolutePath(), CHECK_DEPS);
+		List<String> uninstalled;
+		try {
+			uninstalled = mamba.checkUninstalledDependenciesInEnv(pythonEnv.getAbsolutePath(), CHECK_DEPS);
+		} catch (MambaInstallException e) {
+			return false;
+		}
 		
 		return uninstalled.size() == 0;
 	}
@@ -216,7 +216,7 @@ public class SamEnvManager {
 		installPython(false);
 	}
 	
-	public void installPython(boolean force) throws IOException, InterruptedException, ArchiveException, URISyntaxException {
+	public void installPython(boolean force) throws IOException, InterruptedException {
 		if (!checkMambaInstalled())
 			throw new IllegalArgumentException("Unable to install Python without first installing Mamba. ");
 		String[] pythonArgs = new String[] {"-c", "conda-forge", "python=3.11", "-c", "pytorch"};
@@ -225,7 +225,11 @@ public class SamEnvManager {
 		for (String ss : pythonArgs) args[c ++] = ss;
 		for (String ss : INSTALL_CONDA_DEPS) args[c ++] = ss;
 		if (!checkCommonPythonInstalled() || force) {
-			mamba.create(COMMON_ENV_NAME, true, args);
+			try {
+				mamba.create(COMMON_ENV_NAME, true, args);
+			} catch (MambaInstallException e) {
+				throw new IllegalArgumentException("Unable to install Python without first installing Mamba. ");
+			}
 			ArrayList<String> pipInstall = new ArrayList<String>();
 			for (String ss : new String[] {"-m", "pip", "install"}) pipInstall.add(ss);
 			for (String ss : INSTALL_PIP_DEPS) pipInstall.add(ss);
@@ -240,7 +244,13 @@ public class SamEnvManager {
 	public void installSAMPackage(boolean force) throws IOException, InterruptedException {
 		if (checkSAMPackageInstalled() && !force)
 			return;
-		mamba.create(ESAM_ENV_NAME, true);
+		if (!checkMambaInstalled())
+			throw new IllegalArgumentException("Unable to SAM without first installing Mamba. ");
+		try {
+			mamba.create(ESAM_ENV_NAME, true);
+		} catch (MambaInstallException e) {
+			throw new IllegalArgumentException("Unable to SAM without first installing Mamba. ");
+		}
 		String zipResourcePath = "SAM.zip";
         String outputDirectory = mamba.getEnvsDir() + File.separator + SAM_ENV_NAME + File.separator + SAM_NAME;
         try (
@@ -269,7 +279,13 @@ public class SamEnvManager {
 	public void installEfficientSAMPackage(boolean force) throws IOException, InterruptedException {
 		if (checkEfficientSAMPackageInstalled() && !force)
 			return;
-		mamba.create(ESAM_ENV_NAME, true);
+		if (!checkMambaInstalled())
+			throw new IllegalArgumentException("Unable to EfficientSAM without first installing Mamba. ");
+		try {
+			mamba.create(ESAM_ENV_NAME, true);
+		} catch (MambaInstallException e) {
+			throw new IllegalArgumentException("Unable to EfficientSAM without first installing Mamba. ");
+		}
 		String zipResourcePath = "EfficientSAM.zip";
         String outputDirectory = mamba.getEnvsDir() + File.separator + ESAM_ENV_NAME;
         try (
@@ -298,7 +314,7 @@ public class SamEnvManager {
 	public void installMambaPython() throws IOException, InterruptedException, 
 											ArchiveException, URISyntaxException, MambaInstallException {
 		if (checkMambaInstalled()) return;
-		mamba = new Mamba(path, true);
+		mamba.installMicromamba();;
 	}
 	
 	public void installSAM() throws IOException, InterruptedException, 

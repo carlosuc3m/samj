@@ -21,7 +21,7 @@ public class EfficientSAM implements SAMModel {
 
 	@Override
 	public boolean isInstalled() {
-		return true;
+		return false;
 	}
 
 	@Override

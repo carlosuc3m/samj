@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.ButtonGroup;
@@ -32,7 +31,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	private JButton bnUninstall = new JButton("Uninstall");
 	
 	private JProgressBar progressInstallation = new JProgressBar();
-	
+
 	private ArrayList<JRadioButton> rbModels = new ArrayList<JRadioButton>();
 	private SAMModels models;
 	private final SamEnvManager manager;
@@ -78,10 +77,11 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	
 	private void updateInterface() {
 		for(int i=0; i<rbModels.size(); i++) {
-			bnInstall.setEnabled(rbModels.get(i).isSelected());
-			bnUninstall.setEnabled(!rbModels.get(i).isSelected());
+			if (!rbModels.get(i).isSelected()) continue;
 			info.clear();
 			info.append("p", models.get(i).getDescription());
+			bnInstall.setEnabled(!models.get(i).isInstalled());
+			bnUninstall.setEnabled(models.get(i).isInstalled());
 		}
 	}
 	
@@ -109,9 +109,9 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 			Thread installThread = new Thread(() -> {
 				try {
 					SwingUtilities.invokeLater(() -> installationInProcess(true));
-					this.manager.installEfficientSAMSmall();
+					//this.manager.installEfficientSAMSmall();
 					this.progressInstallation.setValue(100);
-				} catch (IOException | InterruptedException e1) {
+				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
 				SwingUtilities.invokeLater(() -> installationInProcess(false));
@@ -119,15 +119,16 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 			installThread.start();
 			
 			Thread controlThread = new Thread(() -> {
-				while (currentThread.isAlive() && installThread.isAlive())
-					Thread.sleep(50);
+				while (currentThread.isAlive() && installThread.isAlive()) {
+					try{ Thread.sleep(50); } catch(Exception ex) {}
+				}
 				if (!currentThread.isAlive()) installThread.interrupt();
 			});
 			controlThread.start();
-		}
-		if (e.getSource() == bnUninstall) {
+		} else if (e.getSource() == bnUninstall) {
 			//TODO IJ.log("TODO: call the uninstallation of ");
 		}
+		
 		updateInterface();
 	}
 	

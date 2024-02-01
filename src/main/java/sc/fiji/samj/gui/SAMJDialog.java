@@ -122,6 +122,7 @@ public class SAMJDialog extends JPanel implements ActionListener {
 		pnStatus.setFloatable(false);
 		pnStatus.setLayout(new BorderLayout());
 		pnStatus.add(bnHelp, BorderLayout.EAST);
+		txtStatus.setEditable(false);
 		pnStatus.add(txtStatus, BorderLayout.CENTER);
 		pnStatus.add(bnClose, BorderLayout.WEST);
 
@@ -242,12 +243,14 @@ public class SAMJDialog extends JPanel implements ActionListener {
 			this.cmbImage.setEnabled(false);
 			bnComplete.setEnabled(false);
 			bnRoi2Mask.setEnabled(false);
+			this.chkROIManager.setEnabled(false);
 			encodingDone = false;
 		} else {
 			this.bnStart.setEnabled(true);
 			this.cmbImage.setEnabled(true);
 			bnComplete.setEnabled(true);
 			bnRoi2Mask.setEnabled(true);
+			this.chkROIManager.setEnabled(true);
 		}
 		bnRect.setEnabled(encodingDone);
 		bnPoints.setEnabled(encodingDone);

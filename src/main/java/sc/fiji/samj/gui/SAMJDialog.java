@@ -26,13 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.WindowManager;
-import ij.gui.GUI;
-import ij.process.ImageProcessor;
 import net.imglib2.view.Views;
-import org.scijava.log.Logger;
 import sc.fiji.samj.communication.PromptsToNetAdapter;
 import sc.fiji.samj.communication.model.SAMModels;
 import sc.fiji.samj.gui.components.GridPanel;
@@ -70,16 +64,46 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 	private boolean encodingDone = false;
 
 	public SAMJDialog(final PromptsResultsDisplay display,
+	                  final SAMModels availableModel) {
+		this(display, availableModel, null, null);
+	}
+
+	public SAMJDialog(final PromptsResultsDisplay display,
+	                  final SAMModels availableModel,
+	                  final SAMJLogger guilogger) {
+		this(display, availableModel, guilogger, null);
+	}
+
+	public SAMJDialog(final PromptsResultsDisplay display,
 	                  final SAMModels availableModel,
 	                  final SAMJLogger guilogger,
 	                  final SAMJLogger networkLogger) {
 		super(new JFrame(), "SAMJ Annotator");
+		if (guilogger == null) {
+			this.GUIsOwnLog = new SAMJLogger () {
+				@Override
+				public void info(String text) {}
+				@Override
+				public void warn(String text) {}
+				@Override
+				public void error(String text) {}
+			};
+		} else {
+			this.GUIsOwnLog = guilogger;
+		}
+		if (networkLogger == null) {
+			this.logForNetworks = new SAMJLogger () {
+				@Override
+				public void info(String text) {}
+				@Override
+				public void warn(String text) {}
+				@Override
+				public void error(String text) {}
+			};
+		} else {
+			this.logForNetworks = networkLogger;
+		}
 		this.display = display;
-		this.GUIsOwnLog = guilogger;
-		this.logForNetworks = networkLogger;
-
-		//TODO: is this needed?
-		this.imp = imp;
 
 		panelModel = new SAMModelPanel(availableModel);
 		// Buttons
@@ -138,7 +162,7 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 		this.setResizable(false);
 		this.setModal(false);
 		this.setVisible(true);
-		GUI.center(this);
+		// TODO remove GUI.center(this);
 		updateInterface();
 
 		this.addWindowListener(this);

@@ -8,7 +8,6 @@ import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
 import sc.fiji.samj.ui.SAMJLogger;
 
-import org.scijava.log.Logger;
 import java.awt.Polygon;
 import java.io.IOException;
 import java.util.ArrayList;

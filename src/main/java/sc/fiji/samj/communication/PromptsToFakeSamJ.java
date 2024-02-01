@@ -4,7 +4,6 @@ import net.imglib2.Interval;
 import net.imglib2.Localizable;
 import sc.fiji.samj.ui.SAMJLogger;
 
-import org.scijava.log.Logger;
 import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.List;

@@ -13,7 +13,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 
-import ij.IJ;
 import sc.fiji.samj.communication.model.SAMModel;
 import sc.fiji.samj.communication.model.SAMModels;
 import sc.fiji.samj.gui.components.GridPanel;

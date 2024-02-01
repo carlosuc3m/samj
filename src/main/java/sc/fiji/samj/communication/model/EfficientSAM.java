@@ -1,7 +1,6 @@
 package sc.fiji.samj.communication.model;
 
 import net.imglib2.RandomAccessibleInterval;
-import org.scijava.log.Logger;
 import sc.fiji.samj.communication.PromptsToNetAdapter;
 import sc.fiji.samj.ui.SAMJLogger;
 import sc.fiji.samj.communication.PromptsToEfficientSamJ;

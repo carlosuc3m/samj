@@ -20,6 +20,8 @@ import sc.fiji.samj.gui.components.HTMLPane;
 
 public class SAMModelPanel extends JPanel implements ActionListener {
 	
+	private static final long serialVersionUID = 7623385356575804931L;
+
 	private HTMLPane info = new HTMLPane(400, 70);
 	
 	private JButton bnInstall = new JButton("Install");
@@ -86,10 +88,10 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		
 		if (e.getSource() == bnInstall) {
-			IJ.log("TODO: call the installation of ");
+			//TODO IJ.log("TODO: call the installation of ");
 		}
 		if (e.getSource() == bnUninstall) {
-			IJ.log("TODO: call the uninstallation of ");
+			//TODO IJ.log("TODO: call the uninstallation of ");
 		}
 		updateInterface();
 	}

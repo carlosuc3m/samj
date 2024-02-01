@@ -50,6 +50,7 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 	private JTextField txtStatus = new JTextField("(c) SAMJ team 2024");
 
 	private RandomAccessibleInterval<?> mask;
+	private PromptsResultsDisplay display;
 	
 	private ButtonIcon bnRect = new ButtonIcon("Rect", "rect.png");
 	private ButtonIcon bnPoints = new ButtonIcon("Points", "edit.png");
@@ -60,28 +61,24 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 	private JComboBox<String> cmbImage = new JComboBox<String>();
 	
 	private final SAMModelPanel panelModel;
-	private final PromptsResultsDisplay display;
 	private final ExternalMethodsInterface softwareMethods;
 	private final SAMJLogger GUIsOwnLog;
 	private final SAMJLogger logForNetworks;
 
 	private boolean encodingDone = false;
 
-	public SAMJDialog(final PromptsResultsDisplay display,
-	                  final SAMModels availableModel,
+	public SAMJDialog(final SAMModels availableModel,
 	                  final ExternalMethodsInterface softwareMethods) {
-		this(display, availableModel, null, null);
+		this(availableModel, softwareMethods, null, null);
 	}
 
-	public SAMJDialog(final PromptsResultsDisplay display,
-	                  final SAMModels availableModel,
+	public SAMJDialog(final SAMModels availableModel,
 	                  final ExternalMethodsInterface softwareMethods,
 	                  final SAMJLogger guilogger) {
-		this(display, availableModel, softwareMethods, guilogger, null);
+		this(availableModel, softwareMethods, guilogger, null);
 	}
 
-	public SAMJDialog(final PromptsResultsDisplay display,
-	                  final SAMModels availableModel,
+	public SAMJDialog(final SAMModels availableModel,
 	                  final ExternalMethodsInterface softwareMethods,
 	                  final SAMJLogger guilogger,
 	                  final SAMJLogger networkLogger) {
@@ -110,7 +107,6 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 		} else {
 			this.logForNetworks = networkLogger;
 		}
-		this.display = display;
 		this.softwareMethods = softwareMethods;
 
 		panelModel = new SAMModelPanel(availableModel);
@@ -134,7 +130,7 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 		pnActions.add(bnComplete);
 		pnActions.add(chkROIManager);
 		
-		ArrayList<String> listImages = this.softwareMethods.getListOfOpenImages();
+		List<String> listImages = this.softwareMethods.getListOfOpenImages();
 		for(String nameImage : listImages)
 			cmbImage.addItem(nameImage);
 	
@@ -174,6 +170,10 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 		updateInterface();
 
 		this.addWindowListener(this);
+	}
+	
+	public void setPromptsProvider(PromptsResultsDisplay pp) {
+		this.display = pp;
 	}
 
 	@Override

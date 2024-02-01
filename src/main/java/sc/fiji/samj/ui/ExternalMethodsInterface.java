@@ -1,7 +1,7 @@
 package sc.fiji.samj.ui;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.List;
 
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
@@ -24,7 +24,7 @@ public interface ExternalMethodsInterface {
 	 * 
 	 * @return
 	 */
-	public ArrayList<String> getListOfOpenImages();
+	public List<String> getListOfOpenImages();
 	
 	
 }

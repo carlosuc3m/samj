@@ -53,6 +53,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 			rb.addActionListener(this);
 			group.add(rb);
 		}
+		rbModels.get(0).setSelected(true);
 	
 		JPanel pnManageModel = new JPanel(new BorderLayout());
 		pnManageModel.add(pnToolbarModel, BorderLayout.NORTH);

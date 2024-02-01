@@ -14,7 +14,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -37,7 +36,7 @@ import sc.fiji.samj.ui.ExternalMethodsInterface;
 import sc.fiji.samj.ui.PromptsResultsDisplay;
 import sc.fiji.samj.ui.SAMJLogger;
 
-public class SAMJDialog extends JDialog implements ActionListener, WindowListener {
+public class SAMJDialog extends JPanel implements ActionListener {
 
 	private static final long serialVersionUID = -4362794696325316195L;
 	
@@ -82,7 +81,7 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 	                  final ExternalMethodsInterface softwareMethods,
 	                  final SAMJLogger guilogger,
 	                  final SAMJLogger networkLogger) {
-		super(new JFrame(), "SAMJ Annotator");
+		// TODO super(new JFrame(), "SAMJ Annotator");
 		if (guilogger == null) {
 			this.GUIsOwnLog = new SAMJLogger () {
 				@Override
@@ -162,14 +161,18 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 		bnMask.setDropTarget(new LocalDropTarget());
 		
 		add(pn);
-		pack();
-		this.setResizable(false);
-		this.setModal(false);
-		this.setVisible(true);
+		// TODO pack();
+		// TODO this.setResizable(false);
+		// TODO this.setModal(false);
+		// TODO this.setVisible(true);
 		// TODO remove GUI.center(this);
 		updateInterface();
 
-		this.addWindowListener(this);
+		// TODO this.addWindowListener(this);
+		// TODO this.addWindowListener(this);
+		// TODO this.addWindowListener(this);
+		// TODO this.addWindowListener(this);
+		// TODO this.addWindowListener(this);
 	}
 	
 	public void setPromptsProvider(PromptsResultsDisplay pp) {
@@ -195,7 +198,11 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 		
 		if (e.getSource() == bnClose) {
 			display.notifyNetToClose();
-			dispose();
+			// TODO dispose();
+			// TODO dispose();
+			// TODO dispose();
+			// TODO dispose();
+			// TODO dispose();
 		}
 		
 		if (e.getSource() == bnComplete) {
@@ -269,13 +276,24 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 			super.drop(e);
 		}
 	}
+	
+	public void close() {
+		if (display != null)
+			display.notifyNetToClose();
+	}
 
+	/**
+	 * TODO
+	 * TODO
+	 * TODO
+	 * TODO
+	 * TODO
 	@Override
 	public void windowOpened(WindowEvent windowEvent) {}
 	@Override
 	public void windowClosing(WindowEvent windowEvent) {
-		//NB: reacts to closing the window using OS tools (such as "cross decoration icon")
-		display.notifyNetToClose();
+		if (display != null)
+			display.notifyNetToClose();
 	}
 	@Override
 	public void windowClosed(WindowEvent windowEvent) {}
@@ -287,4 +305,5 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 	public void windowActivated(WindowEvent windowEvent) {}
 	@Override
 	public void windowDeactivated(WindowEvent windowEvent) {}
+	**/
 }

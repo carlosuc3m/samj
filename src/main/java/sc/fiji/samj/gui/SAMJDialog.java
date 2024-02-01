@@ -26,17 +26,21 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.view.Views;
 import sc.fiji.samj.communication.PromptsToNetAdapter;
 import sc.fiji.samj.communication.model.SAMModels;
 import sc.fiji.samj.gui.components.GridPanel;
 import sc.fiji.samj.gui.icons.ButtonIcon;
 import sc.fiji.samj.gui.tools.Tools;
+import sc.fiji.samj.ui.ExternalMethodsInterface;
 import sc.fiji.samj.ui.PromptsResultsDisplay;
 import sc.fiji.samj.ui.SAMJLogger;
 
 public class SAMJDialog extends JDialog implements ActionListener, WindowListener {
 
+	private static final long serialVersionUID = -4362794696325316195L;
+	
 	private JButton bnClose = new JButton("Close");
 	private JButton bnHelp = new JButton("Help");
 	private JButton bnStart = new JButton("Start/Encode");
@@ -45,8 +49,7 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 	private JButton bnRoi2Mask = new JButton("Create Mask");
 	private JTextField txtStatus = new JTextField("(c) SAMJ team 2024");
 
-	private ImagePlus imp;
-	private ImagePlus mask;
+	private RandomAccessibleInterval<?> mask;
 	
 	private ButtonIcon bnRect = new ButtonIcon("Rect", "rect.png");
 	private ButtonIcon bnPoints = new ButtonIcon("Points", "edit.png");
@@ -58,24 +61,28 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 	
 	private final SAMModelPanel panelModel;
 	private final PromptsResultsDisplay display;
+	private final ExternalMethodsInterface softwareMethods;
 	private final SAMJLogger GUIsOwnLog;
 	private final SAMJLogger logForNetworks;
 
 	private boolean encodingDone = false;
 
 	public SAMJDialog(final PromptsResultsDisplay display,
-	                  final SAMModels availableModel) {
+	                  final SAMModels availableModel,
+	                  final ExternalMethodsInterface softwareMethods) {
 		this(display, availableModel, null, null);
 	}
 
 	public SAMJDialog(final PromptsResultsDisplay display,
 	                  final SAMModels availableModel,
+	                  final ExternalMethodsInterface softwareMethods,
 	                  final SAMJLogger guilogger) {
-		this(display, availableModel, guilogger, null);
+		this(display, availableModel, softwareMethods, guilogger, null);
 	}
 
 	public SAMJDialog(final PromptsResultsDisplay display,
 	                  final SAMModels availableModel,
+	                  final ExternalMethodsInterface softwareMethods,
 	                  final SAMJLogger guilogger,
 	                  final SAMJLogger networkLogger) {
 		super(new JFrame(), "SAMJ Annotator");
@@ -104,6 +111,7 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 			this.logForNetworks = networkLogger;
 		}
 		this.display = display;
+		this.softwareMethods = softwareMethods;
 
 		panelModel = new SAMModelPanel(availableModel);
 		// Buttons
@@ -126,7 +134,7 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 		pnActions.add(bnComplete);
 		pnActions.add(chkROIManager);
 		
-		ArrayList<String> listImages = getListImages();
+		ArrayList<String> listImages = this.softwareMethods.getListOfOpenImages();
 		for(String nameImage : listImages)
 			cmbImage.addItem(nameImage);
 	
@@ -229,6 +237,8 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 
 	public class LocalDropTarget extends DropTarget {
 
+		private static final long serialVersionUID = 286813958463411816L;
+
 		@Override
 		public void drop(DropTargetDropEvent e) {
 			e.acceptDrop(DnDConstants.ACTION_COPY);
@@ -240,7 +250,8 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 					try {
 						List<File> files = (List<File>) transferable.getTransferData(flavor);
 						for (File file : files) {
-							mask = getImageMask(file);
+							GUIsOwnLog.info("Taking mask from file " + file.getAbsolutePath());
+							mask = SAMJDialog.this.softwareMethods.getImageMask(file);
 							if (mask != null) {
 								return;
 							}
@@ -258,40 +269,6 @@ public class SAMJDialog extends JDialog implements ActionListener, WindowListene
 			super.drop(e);
 		}
 	}
-
-	private ImagePlus getImageMask(File file) {
-		GUIsOwnLog.info("Taking mask from file "+file.getAbsolutePath());
-		//TODO: outsource this to display, this dialog must have no IJ-specific dependencies
-		ImagePlus tmp = IJ.openImage(file.getAbsolutePath());
-		if (tmp == null)
-			return null;
-		/*
-		if (imp.getWidth() != tmp.getWidth())
-			return null;
-		if (imp.getHeight() != tmp.getHeight())
-			return null;
-			*/
-		ImageProcessor ip = tmp.getProcessor();
-		mask = new ImagePlus(file.getName(), ip);
-		mask.show();
-		GUIsOwnLog.info(mask.toString());
-		return mask;
-	}
-	
-	private ArrayList<String> getListImages() {
-		int[] ids = WindowManager.getIDList();
-		ArrayList<String> list = new ArrayList<String>();
-		if (ids != null) {
-			for (int id : ids) {
-				ImagePlus idp = WindowManager.getImage(id);
-				if (idp != null) {
-					list.add((String)idp.getTitle());
-				}
-			}
-		}
-		return list;
-	}
-
 
 	@Override
 	public void windowOpened(WindowEvent windowEvent) {}

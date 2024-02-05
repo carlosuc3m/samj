@@ -11,6 +11,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,12 +57,13 @@ public class SamEnvManager {
 	final static public String ESAMS_URL = "https://raw.githubusercontent.com/yformer/EfficientSAM/main/weights/efficient_sam_vits.pt.zip";
 	final static public String DEFAULT_DIR = new File("appose_x86_64").getAbsolutePath();
 	
+	private static DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
+	
 	private final static String MAMBA_RELATIVE_PATH = PlatformDetection.isWindows() ? 
 			 File.separator + "Library" + File.separator + "bin" + File.separator + "micromamba.exe" 
 			: File.separator + "bin" + File.separator + "micromamba";	
 
 	private String path;
-	private String mambaPath;
 	private Mamba mamba;
 	private Consumer<String> consumer;
 	
@@ -72,8 +74,8 @@ public class SamEnvManager {
 	public static SamEnvManager create(String path, Consumer<String> consumer) {
 		SamEnvManager installer = new SamEnvManager();
 		installer.path = path;
-		installer.mambaPath = path + MAMBA_RELATIVE_PATH;
 		installer.consumer = consumer;
+		installer.mamba = new Mamba(path);
 		return installer;
 	}
 	
@@ -86,7 +88,6 @@ public class SamEnvManager {
 	}
 	
 	public boolean checkMambaInstalled() {
-		if (mamba != null) return true;
 		File ff = new File(path + MAMBA_RELATIVE_PATH);
 		if (!ff.exists()) return false;
 		return mamba.checkMambaInstalled();
@@ -153,7 +154,7 @@ public class SamEnvManager {
 	public void downloadESAMSmall(boolean force) throws IOException {
 		if (!force && checkEfficientSAMSmallWeightsDownloaded())
 			return;
-		Thread thread = reportProgress(LocalDateTime.now().toString() + " -- INSTALLING EFFICIENTSAM WEIGHTS");
+		Thread thread = reportProgress(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- INSTALLING EFFICIENTSAM WEIGHTS");
 		String zipResourcePath = "efficient_sam_vits.pt.zip";
         String outputDirectory = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights").toFile().getAbsolutePath();
         try (
@@ -178,11 +179,11 @@ public class SamEnvManager {
             }
         } catch (IOException ex) {
             thread.interrupt();
-            consumer.accept(LocalDateTime.now().toString() + " -- FAILED EFFICIENTSAM WEIGHTS INSTALLATION");
+            consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED EFFICIENTSAM WEIGHTS INSTALLATION");
             throw ex;
         }
         thread.interrupt();
-        consumer.accept(LocalDateTime.now().toString() + " -- EFFICIENTSAM WEIGHTS INSTALLED");
+        consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTSAM WEIGHTS INSTALLED");
 		/** TODO AVOID DOWONLOADING EFF SAM
 		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", DownloadModel.getFileNameFromURLString(ESAMS_URL)).toFile();
 		file.getParentFile().mkdirs();
@@ -231,7 +232,7 @@ public class SamEnvManager {
 	public void installPython(boolean force) throws IOException, InterruptedException, MambaInstallException {
 		if (!checkMambaInstalled())
 			throw new IllegalArgumentException("Unable to install Python without first installing Mamba. ");
-		Thread thread = reportProgress(LocalDateTime.now().toString() + " -- CREATING THE PYTHON ENVIRONMENT WIHT ITS DEPENDENCIES");
+		Thread thread = reportProgress(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- CREATING THE PYTHON ENVIRONMENT WIHT ITS DEPENDENCIES");
 		String[] pythonArgs = new String[] {"-c", "conda-forge", "python=3.11", "-c", "pytorch"};
 		String[] args = new String[pythonArgs.length + INSTALL_CONDA_DEPS.size()];
 		int c = 0;
@@ -242,11 +243,11 @@ public class SamEnvManager {
 				mamba.create(COMMON_ENV_NAME, true, args);
 			} catch (MambaInstallException e) {
 	            thread.interrupt();
-	            consumer.accept(LocalDateTime.now().toString() + " -- FAILED PYTHON ENVIRONMENT CREATION");
+	            consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED PYTHON ENVIRONMENT CREATION");
 				throw new MambaInstallException("Unable to install Python without first installing Mamba. ");
 			} catch (IOException | InterruptedException e) {
 	            thread.interrupt();
-	            consumer.accept(LocalDateTime.now().toString() + " -- FAILED PYTHON ENVIRONMENT CREATION");
+	            consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED PYTHON ENVIRONMENT CREATION");
 				throw e;
 			}
 			ArrayList<String> pipInstall = new ArrayList<String>();
@@ -256,12 +257,12 @@ public class SamEnvManager {
 				Mamba.runPythonIn(Paths.get(path,  "envs", COMMON_ENV_NAME).toFile(), pipInstall.stream().toArray( String[]::new ));
 			} catch (IOException | InterruptedException e) {
 	            thread.interrupt();
-	            consumer.accept(LocalDateTime.now().toString() + " -- FAILED PYTHON ENVIRONMENT CREATION WHEN INSTALLING PIP DEPENDENCIES");
+	            consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED PYTHON ENVIRONMENT CREATION WHEN INSTALLING PIP DEPENDENCIES");
 				throw e;
 			}
 		}
         thread.interrupt();
-		consumer.accept(LocalDateTime.now().toString() + " -- PYTHON ENVIRONMENT CREATED");
+		consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- PYTHON ENVIRONMENT CREATED");
 	}
 	
 	public void installSAMPackage() throws IOException, InterruptedException, MambaInstallException {
@@ -273,16 +274,16 @@ public class SamEnvManager {
 			return;
 		if (!checkMambaInstalled())
 			throw new IllegalArgumentException("Unable to SAM without first installing Mamba. ");
-		Thread thread = reportProgress(LocalDateTime.now().toString() + " -- INSTALLING 'SAM' PYTHON PACKAGE");
+		Thread thread = reportProgress(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- INSTALLING 'SAM' PYTHON PACKAGE");
 		try {
 			mamba.create(ESAM_ENV_NAME, true);
 		} catch (MambaInstallException e) {
 			thread.interrupt();
-			consumer.accept(LocalDateTime.now().toString() + " -- FAILED 'SAM' PYTHON PACKAGE INSTALLATION");
+			consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED 'SAM' PYTHON PACKAGE INSTALLATION");
 			throw new MambaInstallException("Unable to SAM without first installing Mamba.");
 		} catch (IOException | InterruptedException | RuntimeException e) {
 			thread.interrupt();
-			consumer.accept(LocalDateTime.now().toString() + " -- FAILED 'SAM' PYTHON PACKAGE INSTALLATION");
+			consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED 'SAM' PYTHON PACKAGE INSTALLATION");
 			throw e;
 		}
 		String zipResourcePath = "SAM.zip";
@@ -305,11 +306,11 @@ public class SamEnvManager {
             }
         } catch (IOException e) {
 			thread.interrupt();
-			consumer.accept(LocalDateTime.now().toString() + " -- FAILED 'SAM' PYTHON PACKAGE INSTALLATION");
+			consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED 'SAM' PYTHON PACKAGE INSTALLATION");
 			throw e;
 		}
 		thread.interrupt();
-		consumer.accept(LocalDateTime.now().toString() + " -- 'SAM' PYTHON PACKAGE INSATLLED");
+		consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- 'SAM' PYTHON PACKAGE INSATLLED");
 	}
 	
 	public void installEfficientSAMPackage() throws IOException, InterruptedException, MambaInstallException {
@@ -321,16 +322,16 @@ public class SamEnvManager {
 			return;
 		if (!checkMambaInstalled())
 			throw new IllegalArgumentException("Unable to EfficientSAM without first installing Mamba. ");
-		Thread thread = reportProgress(LocalDateTime.now().toString() + " -- INSTALLING 'EFFICIENTSAM' PYTHON PACKAGE");
+		Thread thread = reportProgress(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- INSTALLING 'EFFICIENTSAM' PYTHON PACKAGE");
 		try {
 			mamba.create(ESAM_ENV_NAME, true);
 		} catch (MambaInstallException e) {
 			thread.interrupt();
-			consumer.accept(LocalDateTime.now().toString() + " -- FAILED 'EFFICIENTSAM' PYTHON PACKAGE INSTALLATION");
+			consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED 'EFFICIENTSAM' PYTHON PACKAGE INSTALLATION");
 			throw new MambaInstallException("Unable to install EfficientSAM without first installing Mamba.");
 		} catch (IOException | InterruptedException | RuntimeException e) {
 			thread.interrupt();
-			consumer.accept(LocalDateTime.now().toString() + " -- FAILED 'EFFICIENTSAM' PYTHON PACKAGE INSTALLATION");
+			consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED 'EFFICIENTSAM' PYTHON PACKAGE INSTALLATION");
 			throw e;
 		}
 		String zipResourcePath = "EfficientSAM.zip";
@@ -357,26 +358,26 @@ public class SamEnvManager {
             }
         } catch (IOException e) {
 			thread.interrupt();
-			consumer.accept(LocalDateTime.now().toString() + " -- FAILED 'EFFICIENTSAM' PYTHON PACKAGE INSTALLATION");
+			consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED 'EFFICIENTSAM' PYTHON PACKAGE INSTALLATION");
 			throw e;
 		}
 		thread.interrupt();
-		consumer.accept(LocalDateTime.now().toString() + " -- 'EFFICIENTSAM' PYTHON PACKAGE INSATLLED");
+		consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- 'EFFICIENTSAM' PYTHON PACKAGE INSATLLED");
 	}
 	
 	public void installMambaPython() throws IOException, InterruptedException, 
 	ArchiveException, URISyntaxException, MambaInstallException{
 		if (checkMambaInstalled()) return;
-		Thread thread = reportProgress(LocalDateTime.now().toString() + " -- INSTALLING MICROMAMBA");
+		Thread thread = reportProgress(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- INSTALLING MICROMAMBA");
 		try {
 			mamba.installMicromamba();
 		} catch (IOException | InterruptedException | ArchiveException | URISyntaxException e) {
 			thread.interrupt();
-			consumer.accept(LocalDateTime.now().toString() + " -- FAILED MICROMAMBA INSTALLATION");
+			consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED MICROMAMBA INSTALLATION");
 			throw e;
 		}
 		thread.interrupt();
-		consumer.accept(LocalDateTime.now().toString() + " -- MICROMAMBA INSTALLED");
+		consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- MICROMAMBA INSTALLED");
 	}
 	
 	public void installSAM() throws IOException, InterruptedException, 

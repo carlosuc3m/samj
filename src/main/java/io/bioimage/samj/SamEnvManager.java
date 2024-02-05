@@ -150,10 +150,10 @@ public class SamEnvManager {
 	}
 	
 	// TODO
-	public void downloadESAMSmall(boolean force) throws IOException, InterruptedException {
+	public void downloadESAMSmall(boolean force) throws IOException {
 		if (!force && checkEfficientSAMSmallWeightsDownloaded())
 			return;
-		consumer.accept(LocalDateTime.now().toString() + " -- INSTALLING EFFICIENTSAM WEIGHTS");
+		Thread thread = reportProgress(LocalDateTime.now().toString() + " -- INSTALLING EFFICIENTSAM WEIGHTS");
 		String zipResourcePath = "efficient_sam_vits.pt.zip";
         String outputDirectory = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights").toFile().getAbsolutePath();
         try (
@@ -176,8 +176,13 @@ public class SamEnvManager {
                     }
                 }
             }
+        } catch (IOException ex) {
+            thread.interrupt();
+            consumer.accept(LocalDateTime.now().toString() + " -- FAILED EFFICIENTSAM WEIGHTS INSTALLATION");
+            throw ex;
         }
-		consumer.accept(LocalDateTime.now().toString() + " -- EFFICIENTSAM WEIGHTS INSTALLED");
+        thread.interrupt();
+        consumer.accept(LocalDateTime.now().toString() + " -- EFFICIENTSAM WEIGHTS INSTALLED");
 		/** TODO AVOID DOWONLOADING EFF SAM
 		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", DownloadModel.getFileNameFromURLString(ESAMS_URL)).toFile();
 		file.getParentFile().mkdirs();
@@ -219,14 +224,14 @@ public class SamEnvManager {
 		
 	}
 	
-	public void installPython() throws IOException, InterruptedException, ArchiveException, URISyntaxException {
+	public void installPython() throws IOException, InterruptedException, ArchiveException, URISyntaxException, MambaInstallException {
 		installPython(false);
 	}
 	
-	public void installPython(boolean force) throws IOException, InterruptedException {
+	public void installPython(boolean force) throws IOException, InterruptedException, MambaInstallException {
 		if (!checkMambaInstalled())
 			throw new IllegalArgumentException("Unable to install Python without first installing Mamba. ");
-		consumer.accept(LocalDateTime.now().toString() + " -- CREATING THE PHYTON ENVIRONMENT WIHT ITS DEPENDENCIES");
+		Thread thread = reportProgress(LocalDateTime.now().toString() + " -- CREATING THE PYTHON ENVIRONMENT WIHT ITS DEPENDENCIES");
 		String[] pythonArgs = new String[] {"-c", "conda-forge", "python=3.11", "-c", "pytorch"};
 		String[] args = new String[pythonArgs.length + INSTALL_CONDA_DEPS.size()];
 		int c = 0;
@@ -236,13 +241,26 @@ public class SamEnvManager {
 			try {
 				mamba.create(COMMON_ENV_NAME, true, args);
 			} catch (MambaInstallException e) {
-				throw new IllegalArgumentException("Unable to install Python without first installing Mamba. ");
+	            thread.interrupt();
+	            consumer.accept(LocalDateTime.now().toString() + " -- FAILED PYTHON ENVIRONMENT CREATION");
+				throw new MambaInstallException("Unable to install Python without first installing Mamba. ");
+			} catch (IOException | InterruptedException e) {
+	            thread.interrupt();
+	            consumer.accept(LocalDateTime.now().toString() + " -- FAILED PYTHON ENVIRONMENT CREATION");
+				throw e;
 			}
 			ArrayList<String> pipInstall = new ArrayList<String>();
 			for (String ss : new String[] {"-m", "pip", "install"}) pipInstall.add(ss);
 			for (String ss : INSTALL_PIP_DEPS) pipInstall.add(ss);
-			Mamba.runPythonIn(Paths.get(path,  "envs", COMMON_ENV_NAME).toFile(), pipInstall.stream().toArray( String[]::new ));
+			try {
+				Mamba.runPythonIn(Paths.get(path,  "envs", COMMON_ENV_NAME).toFile(), pipInstall.stream().toArray( String[]::new ));
+			} catch (IOException | InterruptedException e) {
+	            thread.interrupt();
+	            consumer.accept(LocalDateTime.now().toString() + " -- FAILED PYTHON ENVIRONMENT CREATION WHEN INSTALLING PIP DEPENDENCIES");
+				throw e;
+			}
 		}
+        thread.interrupt();
 		consumer.accept(LocalDateTime.now().toString() + " -- PYTHON ENVIRONMENT CREATED");
 	}
 	
@@ -446,5 +464,17 @@ public class SamEnvManager {
 	
 	public String getEnvCreationProgress() {
 		return this.getEnvCreationProgress();
+	}
+	
+	private Thread reportProgress(String startStr) {
+		Thread thread = new Thread (() -> {
+			consumer.accept(startStr);
+			while (!Thread.interrupted()) {
+				try {Thread.sleep(300);} catch (InterruptedException e) {}
+				consumer.accept("");
+			}
+		});
+		thread.start();
+		return thread;
 	}
 }

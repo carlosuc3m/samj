@@ -4,7 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -14,7 +17,11 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
 
+import io.bioimage.modelrunner.apposed.appose.Mamba;
 import io.bioimage.samj.SamEnvManager;
 import sc.fiji.samj.communication.model.SAMModel;
 import sc.fiji.samj.communication.model.SAMModels;
@@ -26,6 +33,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 7623385356575804931L;
 
 	private HTMLPane info = new HTMLPane(400, 70);
+    private int waitingIter = 0;
 	
 	private JButton bnInstall = new JButton("Install");
 	private JButton bnUninstall = new JButton("Uninstall");
@@ -102,29 +110,48 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		return this.bnInstall.isEnabled();
 	}
 	
+	private Thread createInstallationThread() {
+		Thread installThread = new Thread(() -> {
+			try {
+				SwingUtilities.invokeLater(() -> installationInProcess(true));
+				//this.manager.installEfficientSAMSmall();
+				SwingUtilities.invokeLater(() -> installationInProcess(false));
+				this.progressInstallation.setValue(100);
+			} catch (Exception e1) {
+				e1.printStackTrace();
+				SwingUtilities.invokeLater(() -> installationInProcess(false));
+			}
+		});
+		return installThread;
+	}
+	
+	private Thread createControlThread(Thread installThread) {
+		Thread currentThread = Thread.currentThread();
+		Thread controlThread = new Thread(() -> {
+			while (currentThread.isAlive() && installThread.isAlive()) {
+				try{ Thread.sleep(50); } catch(Exception ex) {}
+			}
+			if (!currentThread.isAlive()) installThread.interrupt();
+		});
+		return controlThread;
+	}
+	
+	private Thread createInfoThread(Thread installThread) {
+		Thread infoThread = new Thread(() -> {
+			while (installThread.isAlive()) {
+				try{ Thread.sleep(50); } catch(Exception ex) {}
+			}
+		});
+		return infoThread;
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
 		if (e.getSource() == bnInstall) {
-			Thread currentThread = Thread.currentThread();
-			Thread installThread = new Thread(() -> {
-				try {
-					SwingUtilities.invokeLater(() -> installationInProcess(true));
-					//this.manager.installEfficientSAMSmall();
-					this.progressInstallation.setValue(100);
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-				SwingUtilities.invokeLater(() -> installationInProcess(false));
-			});
+			Thread installThread = createInstallationThread();
 			installThread.start();
-			
-			Thread controlThread = new Thread(() -> {
-				while (currentThread.isAlive() && installThread.isAlive()) {
-					try{ Thread.sleep(50); } catch(Exception ex) {}
-				}
-				if (!currentThread.isAlive()) installThread.interrupt();
-			});
+			Thread controlThread = createControlThread(installThread);
 			controlThread.start();
 		} else if (e.getSource() == bnUninstall) {
 			//TODO IJ.log("TODO: call the uninstallation of ");
@@ -139,6 +166,116 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		this.rbModels.stream().forEach(btn -> btn.setEnabled(!install));
 		this.progressInstallation.setIndeterminate(install);
 	}
+
+    /**
+     * Sets the HTML text to be displayed.
+     * 
+     * @param html
+     *        HTML text.
+     * @throws NullPointerException
+     *         If the HTML text is null.
+     */
+    public void setHtml(String html) throws NullPointerException
+    {
+        Objects.requireNonNull(html, "HTML text is null");
+        info.setText(formatHTML(html));
+        info.setCaretPosition(0);
+    }
+
+    /**
+     * Sets the HTML text to be displayed and moves the caret until the end of the text
+     * 
+     * @param html
+     *        HTML text.
+     * @throws NullPointerException
+     *         If the HTML text is null.
+     */
+    public void setHtmlAndDontMoveCaret(String html) throws NullPointerException {
+        Objects.requireNonNull(html, "HTML text is null");
+        HTMLDocument doc = (HTMLDocument) info.getDocument();
+        HTMLEditorKit editorKit = (HTMLEditorKit) info.getEditorKit();
+        try {
+            doc.remove(0, doc.getLength());
+            editorKit.insertHTML(doc, doc.getLength(), formatHTML(html), 0, 0, null);
+        } catch (BadLocationException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @return HTML text shown in this component.
+     */
+    public String getHtml()
+    {
+        return info.getText();
+    }
+
+    public void addHtml(String html) {
+        if (html == null) return;
+        if (html.trim().isEmpty()) {
+        	html = manageEmptyMessage(html);
+        } else {
+        	waitingIter = 0;
+        }
+        String nContent = formatHTML(html);
+        
+        SwingUtilities.invokeLater(() -> {
+            try {
+                HTMLDocument doc = (HTMLDocument) info.getDocument();
+                HTMLEditorKit editorKit = (HTMLEditorKit) info.getEditorKit();
+            	editorKit.insertHTML(doc, doc.getLength(), nContent, 0, 0, null);
+            	info.setCaretPosition(doc.getLength());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+    
+    public static String formatHTML(String html) {
+	    html = html.replace(System.lineSeparator(), "<br>")
+	            .replace("    ", "&emsp;")
+	            .replace("  ", "&ensp;")
+	            .replace(" ", "&nbsp;");
+	
+	    if (html.startsWith(Mamba.ERR_STREAM_UUUID)) {
+	    	html = "<span style=\"color: red;\">" + html.replace(Mamba.ERR_STREAM_UUUID, "") + "</span>";
+	    } else {
+	    	html = "<span style=\"color: black;\">" + html + "</span>";
+	    }
+	    return html;
+    }
+    
+    private String manageEmptyMessage(String html) {
+    	if (html.trim().isEmpty() && waitingIter == 0) {
+        	html = LocalDateTime.now().toString() + " -- Working, this operation migh take several minutes .";
+        	waitingIter += 1;
+        } else if (html.trim().isEmpty() && waitingIter % 3 == 1) {
+        	html = LocalDateTime.now().toString() + " -- Working, this operation migh take several minutes . .";
+        	int len = html.length() - (" .").length() + System.lineSeparator().length();
+        	SwingUtilities.invokeLater(() -> {
+        		HTMLDocument doc = (HTMLDocument) info.getDocument();
+        		try {doc.remove(doc.getLength() - len, len);} catch (BadLocationException e) {}
+        	});
+        	waitingIter += 1;
+        } else if (html.trim().isEmpty() && waitingIter % 3 == 2) {
+        	html = LocalDateTime.now().toString() + " -- Working, this operation migh take several minutes . . .";
+        	int len = html.length() - (" .").length() + System.lineSeparator().length();
+        	SwingUtilities.invokeLater(() -> {
+        		HTMLDocument doc = (HTMLDocument) info.getDocument();
+        		try {doc.remove(doc.getLength() - len, len);} catch (BadLocationException e) {}
+        	});
+        	waitingIter += 1;
+        } else if (html.trim().isEmpty() && waitingIter % 3 == 0) {
+        	html = LocalDateTime.now().toString() + " -- Working, this operation migh take several minutes .";
+        	int len = html.length() + (" . .").length() + System.lineSeparator().length();
+        	SwingUtilities.invokeLater(() -> {
+        		HTMLDocument doc = (HTMLDocument) info.getDocument();
+        		try {doc.remove(doc.getLength() - len, len);} catch (BadLocationException e) {}
+        	});
+        	waitingIter += 1;
+        }
+    	return html;
+    }
 }
 
 

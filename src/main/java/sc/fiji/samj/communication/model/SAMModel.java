@@ -17,6 +17,7 @@ public interface SAMModel {
 	String getName();
 	String getDescription();
 	boolean isInstalled();
+	void setInstalled(boolean installed);
 
 	/** Returns null if it is no installed. */
 	PromptsToNetAdapter instantiate(

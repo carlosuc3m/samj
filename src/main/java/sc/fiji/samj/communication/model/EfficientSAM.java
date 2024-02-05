@@ -7,6 +7,7 @@ import sc.fiji.samj.communication.PromptsToEfficientSamJ;
 import java.io.IOException;
 
 public class EfficientSAM implements SAMModel {
+	private boolean installed = false;
 	private static final String FULL_NAME = "Efficient SAM";
 
 	@Override
@@ -21,7 +22,7 @@ public class EfficientSAM implements SAMModel {
 
 	@Override
 	public boolean isInstalled() {
-		return false;
+		return installed;
 	}
 
 	@Override
@@ -33,5 +34,10 @@ public class EfficientSAM implements SAMModel {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	@Override
+	public void setInstalled(boolean installed) {
+		this.installed = installed;		
 	}
 }

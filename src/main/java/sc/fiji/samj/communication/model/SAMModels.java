@@ -7,6 +7,8 @@ import java.util.ArrayList;
  */
 public class SAMModels extends ArrayList<SAMModel> {
 
+	private static final long serialVersionUID = -6037502816438646853L;
+
 	public  SAMModels() {
 		super();
 		add(new EfficientSAM());

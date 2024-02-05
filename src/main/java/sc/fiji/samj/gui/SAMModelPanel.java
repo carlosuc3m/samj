@@ -6,8 +6,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -32,7 +34,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	
 	private static final long serialVersionUID = 7623385356575804931L;
 
-	private HTMLPane info = new HTMLPane(400, 70);
+	private HTMLPane info = new HTMLPane(450, 120);
     private int waitingIter = 0;
 	
 	private JButton bnInstall = new JButton("Install");
@@ -44,8 +46,17 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	private SAMModels models;
 	private final SamEnvManager manager;
 	
-	public SAMModelPanel(SAMModels models) {
+	private static DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
+	
+	interface CallParent {
+		public void task();
+	}
+	
+	private CallParent updateParent;
+	
+	public SAMModelPanel(SAMModels models, CallParent updateParent) {
 		super();
+		this.updateParent = updateParent;
 		manager = SamEnvManager.create((str) -> addHtml(str));
 		this.models = models;
 		JToolBar pnToolbarModel = new JToolBar();
@@ -91,7 +102,20 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 			info.append("p", models.get(i).getDescription());
 			bnInstall.setEnabled(!models.get(i).isInstalled());
 			bnUninstall.setEnabled(models.get(i).isInstalled());
+			break;
 		}
+	}
+	
+	/**
+	 * 
+	 * @return whether the selected mdoel is installed or not
+	 */
+	public boolean isSelectedModelInstalled() {
+		for(int i=0; i<rbModels.size(); i++) {
+			if (!rbModels.get(i).isSelected()) continue;
+			return models.get(i).isInstalled();
+		}
+		return false;
 	}
 	
 	public SAMModel getSelectedModel() {
@@ -115,11 +139,14 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 			try {
 				SwingUtilities.invokeLater(() -> installationInProcess(true));
 				this.manager.installEfficientSAMSmall();
-				SwingUtilities.invokeLater(() -> installationInProcess(false));
-				this.progressInstallation.setValue(100);
+				getSelectedModel().setInstalled(true);
+				SwingUtilities.invokeLater(() -> {
+					installationInProcess(false); 
+					this.updateParent.task();
+					this.progressInstallation.setValue(100);});
 			} catch (Exception e1) {
 				e1.printStackTrace();
-				SwingUtilities.invokeLater(() -> installationInProcess(false));
+				SwingUtilities.invokeLater(() -> {installationInProcess(false); this.updateParent.task();});
 			}
 		});
 		return installThread;
@@ -247,10 +274,10 @@ public class SAMModelPanel extends JPanel implements ActionListener {
     
     private String manageEmptyMessage(String html) {
     	if (html.trim().isEmpty() && waitingIter == 0) {
-        	html = LocalDateTime.now().toString() + " -- Working, this operation migh take several minutes .";
+        	html = LocalDateTime.now().format(DATE_FORMAT).toString() + " -- Working, this operation migh take several minutes .";
         	waitingIter += 1;
         } else if (html.trim().isEmpty() && waitingIter % 3 == 1) {
-        	html = LocalDateTime.now().toString() + " -- Working, this operation migh take several minutes . .";
+        	html = LocalDateTime.now().format(DATE_FORMAT).toString() + " -- Working, this operation migh take several minutes . .";
         	int len = html.length() - (" .").length() + System.lineSeparator().length();
         	SwingUtilities.invokeLater(() -> {
         		HTMLDocument doc = (HTMLDocument) info.getDocument();
@@ -258,7 +285,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
         	});
         	waitingIter += 1;
         } else if (html.trim().isEmpty() && waitingIter % 3 == 2) {
-        	html = LocalDateTime.now().toString() + " -- Working, this operation migh take several minutes . . .";
+        	html = LocalDateTime.now().format(DATE_FORMAT).toString() + " -- Working, this operation migh take several minutes . . .";
         	int len = html.length() - (" .").length() + System.lineSeparator().length();
         	SwingUtilities.invokeLater(() -> {
         		HTMLDocument doc = (HTMLDocument) info.getDocument();
@@ -266,7 +293,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
         	});
         	waitingIter += 1;
         } else if (html.trim().isEmpty() && waitingIter % 3 == 0) {
-        	html = LocalDateTime.now().toString() + " -- Working, this operation migh take several minutes .";
+        	html = LocalDateTime.now().format(DATE_FORMAT).toString() + " -- Working, this operation migh take several minutes .";
         	int len = html.length() + (" . .").length() + System.lineSeparator().length();
         	SwingUtilities.invokeLater(() -> {
         		HTMLDocument doc = (HTMLDocument) info.getDocument();

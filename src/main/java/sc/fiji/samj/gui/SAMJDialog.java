@@ -109,7 +109,7 @@ public class SAMJDialog extends JPanel implements ActionListener {
 		}
 		this.softwareMethods = softwareMethods;
 
-		panelModel = new SAMModelPanel(availableModel);
+		panelModel = new SAMModelPanel(availableModel, () -> this.updateInterface());
 		// Buttons
 		JPanel pnButtons = new JPanel(new FlowLayout());
 		pnButtons.add(bnRect);
@@ -238,7 +238,7 @@ public class SAMJDialog extends JPanel implements ActionListener {
 	}
 
 	public void updateInterface() {
-		if (this.panelModel.isInstallationEnabled()) {
+		if (!this.panelModel.isSelectedModelInstalled()) {
 			this.bnStart.setEnabled(false);
 			this.cmbImage.setEnabled(false);
 			bnComplete.setEnabled(false);

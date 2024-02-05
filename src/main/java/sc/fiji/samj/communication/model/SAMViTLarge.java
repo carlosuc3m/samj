@@ -6,6 +6,8 @@ import sc.fiji.samj.communication.PromptsToNetAdapter;
 import sc.fiji.samj.ui.SAMJLogger;
 
 public class SAMViTLarge implements SAMModel {
+
+	private boolean installed = false;
 	
 	@Override
 	public String getName() {
@@ -19,11 +21,16 @@ public class SAMViTLarge implements SAMModel {
 
 	@Override
 	public boolean isInstalled() {
-		return true;
+		return installed;
 	}
 
 	@Override
 	public PromptsToNetAdapter instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt) {
 		return new PromptsToFakeSamJ(useThisLoggerForIt, "Official_ViT");
+	}
+
+	@Override
+	public void setInstalled(boolean installed) {
+		this.installed = installed;		
 	}
 }

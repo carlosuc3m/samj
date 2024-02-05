@@ -7,8 +7,8 @@ import sc.fiji.samj.communication.PromptsToEfficientSamJ;
 import java.io.IOException;
 
 public class EfficientSAM implements SAMModel {
-	private boolean installed = false;
-	private static final String FULL_NAME = "Efficient SAM";
+	private Boolean installed = false;
+	public static final String FULL_NAME = "Efficient SAM";
 
 	@Override
 	public String getName() {

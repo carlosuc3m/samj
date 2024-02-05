@@ -7,10 +7,11 @@ import sc.fiji.samj.ui.SAMJLogger;
 public class SAMViTHuge implements SAMModel {
 
 	private boolean installed = false;
+	public static final String FULL_NAME = "ViT Huge";
 	
 	@Override
 	public String getName() {
-		return "ViT Huge";
+		return FULL_NAME;
 	}
 
 	@Override

@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -25,8 +24,10 @@ import javax.swing.text.html.HTMLEditorKit;
 
 import io.bioimage.modelrunner.apposed.appose.Mamba;
 import io.bioimage.samj.SamEnvManager;
+import sc.fiji.samj.communication.model.EfficientSAM;
 import sc.fiji.samj.communication.model.SAMModel;
 import sc.fiji.samj.communication.model.SAMModels;
+import sc.fiji.samj.communication.model.SAMViTHuge;
 import sc.fiji.samj.gui.components.GridPanel;
 import sc.fiji.samj.gui.components.HTMLPane;
 
@@ -66,7 +67,12 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		pnToolbarModel.add(bnUninstall);
 		
 		ButtonGroup group = new ButtonGroup();
+		boolean commonPython = manager.checkCommonPythonInstalled();
 		for(SAMModel model : models) {
+			if (model.getName().equals(EfficientSAM.FULL_NAME)) 
+				model.setInstalled(manager.checkEfficientSAMSmallWeightsDownloaded() && manager.checkEfficientSAMPackageInstalled() && commonPython);
+			else if (model.getName().equals(SAMViTHuge.FULL_NAME))
+				model.setInstalled(manager.checkSAMPackageInstalled() && manager.checkSAMWeightsDownloaded() && commonPython);
 			JRadioButton rb = new JRadioButton(model.getName(), model.isInstalled());
 			rbModels.add(rb);
 			rb.addActionListener(this);
@@ -102,6 +108,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 			info.append("p", models.get(i).getDescription());
 			bnInstall.setEnabled(!models.get(i).isInstalled());
 			bnUninstall.setEnabled(models.get(i).isInstalled());
+			this.progressInstallation.setValue(models.get(i).isInstalled() ? 100 : 0);
 			break;
 		}
 	}
@@ -185,6 +192,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		}
 		
 		updateInterface();
+		this.updateParent.task();
 	}
 	
 	private void installationInProcess(boolean install) {

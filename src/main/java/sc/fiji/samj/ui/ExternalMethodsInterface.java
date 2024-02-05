@@ -6,6 +6,7 @@ import java.util.List;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import sc.fiji.samj.gui.components.ComboBoxItem;
 
 /**
  * @author Carlos Javier Garcia Lopez de Haro
@@ -24,7 +25,10 @@ public interface ExternalMethodsInterface {
 	 * 
 	 * @return
 	 */
-	public List<String> getListOfOpenImages();
+	public List<ComboBoxItem> getListOfOpenImages();
+	
+	
+	
 	
 	
 }

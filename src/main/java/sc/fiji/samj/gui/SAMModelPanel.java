@@ -149,8 +149,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 				getSelectedModel().setInstalled(true);
 				SwingUtilities.invokeLater(() -> {
 					installationInProcess(false); 
-					this.updateParent.task();
-					this.progressInstallation.setValue(100);});
+					this.updateParent.task();});
 			} catch (Exception e1) {
 				e1.printStackTrace();
 				SwingUtilities.invokeLater(() -> {installationInProcess(false); this.updateParent.task();});
@@ -170,15 +169,6 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		return controlThread;
 	}
 	
-	private Thread createInfoThread(Thread installThread) {
-		Thread infoThread = new Thread(() -> {
-			while (installThread.isAlive()) {
-				try{ Thread.sleep(50); } catch(Exception ex) {}
-			}
-		});
-		return infoThread;
-	}
-	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
@@ -195,11 +185,13 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		this.updateParent.task();
 	}
 	
-	private void installationInProcess(boolean install) {
-		this.bnUninstall.setEnabled(!install);
-		this.bnInstall.setEnabled(!install);
-		this.rbModels.stream().forEach(btn -> btn.setEnabled(!install));
-		this.progressInstallation.setIndeterminate(install);
+	private void installationInProcess(boolean inProcess) {
+		this.bnUninstall.setEnabled(inProcess ? false : getSelectedModel().isInstalled());
+		this.bnInstall.setEnabled(inProcess ? false : !getSelectedModel().isInstalled());
+		this.rbModels.stream().forEach(btn -> btn.setEnabled(!inProcess));
+		this.progressInstallation.setIndeterminate(inProcess);
+		if (!inProcess)
+			this.progressInstallation.setValue(this.getSelectedModel().isInstalled() ? 100 : 0);
 	}
 
     /**

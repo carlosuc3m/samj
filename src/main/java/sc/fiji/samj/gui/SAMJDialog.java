@@ -10,26 +10,28 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 import io.bioimage.samj.SamEnvManager;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.view.Views;
 import sc.fiji.samj.communication.PromptsToNetAdapter;
 import sc.fiji.samj.communication.model.SAMModels;
+import sc.fiji.samj.gui.components.ComboBoxItem;
 import sc.fiji.samj.gui.components.GridPanel;
 import sc.fiji.samj.gui.icons.ButtonIcon;
 import sc.fiji.samj.gui.tools.Tools;
@@ -37,7 +39,7 @@ import sc.fiji.samj.ui.ExternalMethodsInterface;
 import sc.fiji.samj.ui.PromptsResultsDisplay;
 import sc.fiji.samj.ui.SAMJLogger;
 
-public class SAMJDialog extends JPanel implements ActionListener {
+public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListener, MouseListener {
 
 	private static final long serialVersionUID = -4362794696325316195L;
 	
@@ -58,12 +60,14 @@ public class SAMJDialog extends JPanel implements ActionListener {
 	private ButtonIcon bnMask = new ButtonIcon("Mask", "help.png");
 	private JCheckBox chkROIManager = new JCheckBox("Add to ROI Manager", true);
 
-	private JComboBox<String> cmbImage = new JComboBox<String>();
+	private JComboBox<ComboBoxItem> cmbImage = new JComboBox<ComboBoxItem>();
 	
 	private final SAMModelPanel panelModel;
 	private final ExternalMethodsInterface softwareMethods;
 	private final SAMJLogger GUIsOwnLog;
 	private final SAMJLogger logForNetworks;
+	
+	private Integer selectedID = null;
 
 	private boolean encodingDone = false;
 
@@ -131,9 +135,11 @@ public class SAMJDialog extends JPanel implements ActionListener {
 		pnActions.add(bnComplete);
 		pnActions.add(chkROIManager);
 		
-		List<String> listImages = this.softwareMethods.getListOfOpenImages();
-		for(String nameImage : listImages)
-			cmbImage.addItem(nameImage);
+		List<ComboBoxItem> listImages = this.softwareMethods.getListOfOpenImages();
+		for(ComboBoxItem item : listImages)
+			cmbImage.addItem(item);
+		cmbImage.addPopupMenuListener(this);
+		cmbImage.addMouseListener(this);
 	
 		GridPanel panelImage = new GridPanel(true);
 		panelImage.place(1, 1, 1, 1, bnStart);
@@ -163,18 +169,7 @@ public class SAMJDialog extends JPanel implements ActionListener {
 		bnMask.setDropTarget(new LocalDropTarget());
 		
 		add(pn);
-		// TODO pack();
-		// TODO this.setResizable(false);
-		// TODO this.setModal(false);
-		// TODO this.setVisible(true);
-		// TODO remove GUI.center(this);
 		updateInterface();
-
-		// TODO this.addWindowListener(this);
-		// TODO this.addWindowListener(this);
-		// TODO this.addWindowListener(this);
-		// TODO this.addWindowListener(this);
-		// TODO this.addWindowListener(this);
 	}
 	
 	public void setPromptsProvider(PromptsResultsDisplay pp) {
@@ -204,11 +199,6 @@ public class SAMJDialog extends JPanel implements ActionListener {
 		
 		if (e.getSource() == bnClose) {
 			display.notifyNetToClose();
-			// TODO dispose();
-			// TODO dispose();
-			// TODO dispose();
-			// TODO dispose();
-			// TODO dispose();
 		}
 		
 		if (e.getSource() == bnComplete) {
@@ -298,28 +288,47 @@ public class SAMJDialog extends JPanel implements ActionListener {
 			display.notifyNetToClose();
 	}
 
-	/**
-	 * TODO
-	 * TODO
-	 * TODO
-	 * TODO
-	 * TODO
 	@Override
-	public void windowOpened(WindowEvent windowEvent) {}
-	@Override
-	public void windowClosing(WindowEvent windowEvent) {
-		if (display != null)
-			display.notifyNetToClose();
+	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 	}
+
 	@Override
-	public void windowClosed(WindowEvent windowEvent) {}
+	public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+		System.out.println("event");
+		ComboBoxItem item = (ComboBoxItem) this.cmbImage.getSelectedItem();
+        int newSelectedImageId = item.getId();
+        if (newSelectedImageId == -1) {selectedID = newSelectedImageId; this.bnStart.setEnabled(false); return;}
+        if (selectedID != null && selectedID == newSelectedImageId) return;
+    	selectedID = newSelectedImageId;
+    	this.bnStart.setEnabled(true);
+	}
+
 	@Override
-	public void windowIconified(WindowEvent windowEvent) {}
+	public void popupMenuCanceled(PopupMenuEvent e) {
+	}
+
 	@Override
-	public void windowDeiconified(WindowEvent windowEvent) {}
+	public void mouseClicked(MouseEvent e) {
+        List<ComboBoxItem> openSeqs = softwareMethods.getListOfOpenImages();
+        ComboBoxItem[] objects = new ComboBoxItem[openSeqs.size()];
+        for (int i = 1; i < objects.length; i ++) objects[i] = openSeqs.get(i);
+        DefaultComboBoxModel<ComboBoxItem> comboBoxModel = new DefaultComboBoxModel<ComboBoxItem>(objects);
+        this.cmbImage.setModel(comboBoxModel);
+	}
+
 	@Override
-	public void windowActivated(WindowEvent windowEvent) {}
+	public void mousePressed(MouseEvent e) {
+	}
+
 	@Override
-	public void windowDeactivated(WindowEvent windowEvent) {}
-	**/
+	public void mouseReleased(MouseEvent e) {
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+	}
 }

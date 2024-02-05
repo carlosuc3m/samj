@@ -232,7 +232,7 @@ public class SamEnvManager {
 	public void installPython(boolean force) throws IOException, InterruptedException, MambaInstallException {
 		if (!checkMambaInstalled())
 			throw new IllegalArgumentException("Unable to install Python without first installing Mamba. ");
-		Thread thread = reportProgress(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- CREATING THE PYTHON ENVIRONMENT WIHT ITS DEPENDENCIES");
+		Thread thread = reportProgress(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- CREATING THE PYTHON ENVIRONMENT WITH ITS DEPENDENCIES");
 		String[] pythonArgs = new String[] {"-c", "conda-forge", "python=3.11", "-c", "pytorch"};
 		String[] args = new String[pythonArgs.length + INSTALL_CONDA_DEPS.size()];
 		int c = 0;
@@ -500,7 +500,7 @@ public class SamEnvManager {
 		Thread thread = new Thread (() -> {
 			consumer.accept(startStr);
 			while (!Thread.interrupted()) {
-				try {Thread.sleep(300);} catch (InterruptedException e) {}
+				try {Thread.sleep(300);} catch (InterruptedException e) {break;}
 				consumer.accept("");
 			}
 		});

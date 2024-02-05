@@ -105,13 +105,15 @@
 			<artifactId>ij</artifactId>
 		</dependency>
 		-->
-		<!---
+		<dependency>
+			<groupId>io.bioimage</groupId>
+			<artifactId>dl-modelrunner</artifactId>
+			<version>0.5.5-SNAPSHOT</version>
+		</dependency>
 		<dependency>
 			<groupId>io.bioimage</groupId>
 			<artifactId>samj</artifactId>
-			<version>0.0.1</version>
-			<scope>compile</scope>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
-		-->
 	</dependencies>
 </project>

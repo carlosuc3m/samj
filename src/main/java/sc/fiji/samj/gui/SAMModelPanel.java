@@ -46,7 +46,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	
 	public SAMModelPanel(SAMModels models) {
 		super();
-		manager = SamEnvManager.create();
+		manager = SamEnvManager.create((str) -> addHtml(str));
 		this.models = models;
 		JToolBar pnToolbarModel = new JToolBar();
 		pnToolbarModel.setFloatable(false);
@@ -114,7 +114,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		Thread installThread = new Thread(() -> {
 			try {
 				SwingUtilities.invokeLater(() -> installationInProcess(true));
-				//this.manager.installEfficientSAMSmall();
+				this.manager.installEfficientSAMSmall();
 				SwingUtilities.invokeLater(() -> installationInProcess(false));
 				this.progressInstallation.setValue(100);
 			} catch (Exception e1) {

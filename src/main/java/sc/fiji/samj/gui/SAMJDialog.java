@@ -235,12 +235,20 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			bnRoi2Mask.setEnabled(false);
 			this.chkROIManager.setEnabled(false);
 			encodingDone = false;
-		} else {
+		} else if (this.panelModel.isSelectedModelInstalled() 
+				&& this.cmbImage.getSelectedItem() != null 
+				&& ((ComboBoxItem) this.cmbImage.getSelectedItem()).getId() != -1) {
 			this.bnStart.setEnabled(true);
 			this.cmbImage.setEnabled(true);
 			bnComplete.setEnabled(true);
 			bnRoi2Mask.setEnabled(true);
 			this.chkROIManager.setEnabled(true);
+		} else if (this.panelModel.isSelectedModelInstalled()) {
+			this.bnStart.setEnabled(false);
+			this.cmbImage.setEnabled(true);
+			bnComplete.setEnabled(false);
+			bnRoi2Mask.setEnabled(false);
+			this.chkROIManager.setEnabled(false);
 		}
 		bnRect.setEnabled(encodingDone);
 		bnPoints.setEnabled(encodingDone);
@@ -294,13 +302,17 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 
 	@Override
 	public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-		System.out.println("event");
 		ComboBoxItem item = (ComboBoxItem) this.cmbImage.getSelectedItem();
+		if (item == null) {
+			selectedID = null;
+			this.bnStart.setEnabled(false);
+			return;
+		}
         int newSelectedImageId = item.getId();
         if (newSelectedImageId == -1) {selectedID = newSelectedImageId; this.bnStart.setEnabled(false); return;}
         if (selectedID != null && selectedID == newSelectedImageId) return;
     	selectedID = newSelectedImageId;
-    	this.bnStart.setEnabled(true);
+    	this.updateInterface();
 	}
 
 	@Override
@@ -311,7 +323,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	public void mouseClicked(MouseEvent e) {
         List<ComboBoxItem> openSeqs = softwareMethods.getListOfOpenImages();
         ComboBoxItem[] objects = new ComboBoxItem[openSeqs.size()];
-        for (int i = 1; i < objects.length; i ++) objects[i] = openSeqs.get(i);
+        for (int i = 0; i < objects.length; i ++) objects[i] = openSeqs.get(i);
         DefaultComboBoxModel<ComboBoxItem> comboBoxModel = new DefaultComboBoxModel<ComboBoxItem>(objects);
         this.cmbImage.setModel(comboBoxModel);
 	}

@@ -9,22 +9,22 @@
 		<relativePath />
 	</parent>
 
-	<groupId>sc.fiji</groupId>
-	<artifactId>SAMJ</artifactId>
+	<groupId>ai.nets</groupId>
+	<artifactId>samj-gui</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
-	<name>SAM network inside Fiji</name>
-	<description>A Fiji plugin for interactive segmentation using the SAM network</description>
+	<name>GUI/UI for samj</name>
+	<description>A software agnostic GUI/UI to interact with Segment Anything Models (SAMs) in Java</description>
 	<url>TBA</url>
-	<inceptionYear>2023</inceptionYear>
+	<inceptionYear>2024</inceptionYear>
 	<organization>
-		<name>Fiji</name>
-		<url>https://fiji.sc/</url>
+		<name>DeepImageJ-hackaton</name>
+		<url>https://github.com/DeepImageJ-Hackaton</url>
 	</organization>
 	<licenses>
-		<license> <!-- change later to BSD-2...? -->
-			<name>GNU General Public License v2+</name>
-			<url>https://www.gnu.org/licenses/gpl.html</url>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
@@ -33,9 +33,9 @@
 	<!-- TBA !!! -->
 	<developers>
 		<developer>
-			<id>ctrueden</id>
-			<name>Curtis Rueden</name>
-			<url>https://imagej.net/people/ctrueden</url>
+			<id>null</id>
+			<name>null</name>
+			<url>null</url>
 			<roles>
 				<role>maintainer</role>
 			</roles>
@@ -43,10 +43,10 @@
 	</developers>
 	<contributors>
 		<contributor>
-			<name>Albert Cardona</name>
-			<url>https://imagej.net/people/acardona</url>
-			<roles><role>founder</role></roles>
-			<properties><id>acardona</id></properties>
+			<name>null</name>
+			<url>null</url>
+			<roles><role>null</role></roles>
+			<properties><id>null</id></properties>
 		</contributor>
 	</contributors>
 
@@ -59,25 +59,24 @@
 
 	<!-- TBA !!! -->
 	<scm>
-		<connection>scm:git:https://github.com/fiji/Fiji_Plugins</connection>
-		<developerConnection>scm:git:git@github.com:fiji/Fiji_Plugins</developerConnection>
+		<connection>scm:git:https://github.com/carlosuc3m/SAMJ-core</connection>
+		<developerConnection>scm:git:git@github.com:carlosuc3m/SAMJ-core</developerConnection>
 		<tag>HEAD</tag>
-		<url>https://github.com/fiji/Fiji_Plugins</url>
+		<url>https://github.com/carlosuc3m/SAMJ-core</url>
 	</scm>
 	<issueManagement>
 		<system>GitHub Issues</system>
-		<url>https://github.com/fiji/Fiji_Plugins/issues</url>
+		<url>https://github.com/carlosuc3m/SAMJ-core/issues</url>
 	</issueManagement>
 	<ciManagement>
 		<system>GitHub Actions</system>
-		<url>https://github.com/fiji/Fiji_Plugins/actions</url>
+		<url>https://github.com/carlosuc3m/SAMJ-core/actions</url>
 	</ciManagement>
 
 	<properties>
-		<package-name>sc.fiji.samj</package-name>
-		<license.licenseName>gpl_v2</license.licenseName>
-		<license.copyrightOwners>Fiji developers.</license.copyrightOwners>
-		<license.projectName>Fiji distribution of ImageJ for the life sciences.</license.projectName>
+		<package-name>io.nets.samj</package-name>
+		<license.licenseName>apache_v2</license.licenseName>
+		<license.copyrightOwners>SAMJ developers.</license.copyrightOwners>
 
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
@@ -111,7 +110,7 @@
 			<version>0.5.5-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>io.bioimage</groupId>
+			<groupId>ai.nets</groupId>
 			<artifactId>samj</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>

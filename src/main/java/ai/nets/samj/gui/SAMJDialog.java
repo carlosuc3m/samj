@@ -10,8 +10,6 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -37,11 +35,12 @@ import ai.nets.samj.ui.PromptsResultsDisplay;
 import ai.nets.samj.ui.SAMJLogger;
 import ai.nets.samj.SamEnvManager;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.view.Views;
 
 public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListener {
 
 	private static final long serialVersionUID = -4362794696325316195L;
+	
+	private static final String RESOURCES_FOLDER = "icons/";
 	
 	private JButton bnClose = new JButton("Close");
 	private JButton bnHelp = new JButton("Help");
@@ -53,10 +52,10 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 
 	private RandomAccessibleInterval<?> mask;
 	
-	private ButtonIcon bnRect = new ButtonIcon("Rect", "rect.png");
-	private ButtonIcon bnPoints = new ButtonIcon("Points", "edit.png");
-	private ButtonIcon bnBrush = new ButtonIcon("Brush", "github.png");
-	private ButtonIcon bnMask = new ButtonIcon("Mask", "help.png");
+	private ButtonIcon bnRect = new ButtonIcon("Rect", RESOURCES_FOLDER + "rect.png");
+	private ButtonIcon bnPoints = new ButtonIcon("Points", RESOURCES_FOLDER + "edit.png");
+	private ButtonIcon bnBrush = new ButtonIcon("Brush", RESOURCES_FOLDER + "github.png");
+	private ButtonIcon bnMask = new ButtonIcon("Mask", RESOURCES_FOLDER + "help.png");
 	private JCheckBox chkROIManager = new JCheckBox("Add to ROI Manager", true);
 
 	private JComboBox<ComboBoxItem> cmbImage = new JComboBox<ComboBoxItem>();

@@ -200,7 +200,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		this.script = "";
 		processPointsWithSAM(pointsList.size());
 		HashMap<String, Object> inputs = new HashMap<String, Object>();
-		inputs.put("input_box", pointsList);
+		inputs.put("input_points", pointsList);
 		printScript(script, "Rectangle inference");
 		List<Polygon> polys = processAndRetrieveContours(inputs);
 		debugPrinter.printText("processPoints() obtained " + polys.size() + " polygons");

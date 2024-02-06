@@ -28,9 +28,8 @@ import ai.nets.samj.communication.model.SAMModels;
 import ai.nets.samj.communication.model.SAMViTHuge;
 import ai.nets.samj.gui.components.GridPanel;
 import ai.nets.samj.gui.components.HTMLPane;
-import ai.nets.samj.ui.PromptsResultsDisplay;
 import io.bioimage.modelrunner.apposed.appose.Mamba;
-import io.bioimage.samj.SamEnvManager;
+import ai.nets.samj.SamEnvManager;
 
 public class SAMModelPanel extends JPanel implements ActionListener {
 	

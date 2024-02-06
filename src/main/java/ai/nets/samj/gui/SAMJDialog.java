@@ -35,7 +35,7 @@ import ai.nets.samj.gui.tools.Tools;
 import ai.nets.samj.ui.ExternalMethodsInterface;
 import ai.nets.samj.ui.PromptsResultsDisplay;
 import ai.nets.samj.ui.SAMJLogger;
-import io.bioimage.samj.SamEnvManager;
+import ai.nets.samj.SamEnvManager;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.view.Views;
 

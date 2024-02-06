@@ -52,7 +52,6 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	private JTextField txtStatus = new JTextField("(c) SAMJ team 2024");
 
 	private RandomAccessibleInterval<?> mask;
-	private PromptsResultsDisplay display;
 	
 	private ButtonIcon bnRect = new ButtonIcon("Rect", "rect.png");
 	private ButtonIcon bnPoints = new ButtonIcon("Points", "edit.png");
@@ -70,6 +69,10 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	private Integer selectedID = null;
 
 	private boolean encodingDone = false;
+	
+	public interface PromptsFunctionalInterface { PromptsResultsDisplay getPrompts(Object image); }
+	private PromptsFunctionalInterface displayInterface;
+	private PromptsResultsDisplay display;
 
 	public SAMJDialog(final SAMModels availableModel,
 	                  final ExternalMethodsInterface softwareMethods) {
@@ -171,8 +174,8 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		updateInterface();
 	}
 	
-	public void setPromptsProvider(PromptsResultsDisplay pp) {
-		this.display = pp;
+	public void setPromptsProvider(PromptsFunctionalInterface pp) {
+		this.displayInterface = pp;
 	}
 	
 	public SamEnvManager getModelInstallationManager() {
@@ -209,9 +212,10 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 				GUIsOwnLog.warn("Not starting encoding as the selected model is not installed.");
 
 			GUIsOwnLog.warn("TO DO Start the encoding");
+			display = displayInterface.getPrompts(((ComboBoxItem) this.cmbImage.getSelectedItem()).getValue());
 			PromptsToNetAdapter netAdapter = panelModel
 					.getSelectedModel()
-					.instantiate(Views.permute(display.giveProcessedSubImage(),0,1), logForNetworks);
+					.instantiate(display.giveProcessedSubImage(), logForNetworks);
 			//TODO: if this netAdapter has already encoded, we don't do it again
 			display.switchToThisNet(netAdapter);
 			GUIsOwnLog.warn("TO DO End the encoding");
@@ -220,7 +224,8 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		}
 
 		if (e.getSource() == chkROIManager) {
-			display.enableAddingToRoiManager(chkROIManager.isSelected());
+			if (display != null)
+				display.enableAddingToRoiManager(chkROIManager.isSelected());
 		}
 
 		updateInterface();

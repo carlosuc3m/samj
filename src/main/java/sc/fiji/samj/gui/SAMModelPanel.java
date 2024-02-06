@@ -30,6 +30,7 @@ import sc.fiji.samj.communication.model.SAMModels;
 import sc.fiji.samj.communication.model.SAMViTHuge;
 import sc.fiji.samj.gui.components.GridPanel;
 import sc.fiji.samj.gui.components.HTMLPane;
+import sc.fiji.samj.ui.PromptsResultsDisplay;
 
 public class SAMModelPanel extends JPanel implements ActionListener {
 	

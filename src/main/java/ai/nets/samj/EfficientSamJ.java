@@ -97,15 +97,27 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	              RandomAccessibleInterval<T> image,
 	              final DebugTextPrinter debugPrinter,
 	              final boolean printPythonCode) throws IOException, RuntimeException, InterruptedException {
-		EfficientSamJ sam = new EfficientSamJ(manager, debugPrinter, printPythonCode);
-		sam.addImage(image);
+		EfficientSamJ sam = null;
+		try{
+			sam = new EfficientSamJ(manager, debugPrinter, printPythonCode);
+			sam.addImage(image);
+		} catch (IOException | RuntimeException | InterruptedException ex) {
+			if (sam != null) sam.close();
+			throw ex;
+		}
 		return sam;
 	}
 
 	public static <T extends RealType<T> & NativeType<T>> EfficientSamJ
 	initializeSam(SamEnvManager manager, RandomAccessibleInterval<T> image) throws IOException, RuntimeException, InterruptedException {
-		EfficientSamJ sam = new EfficientSamJ(manager);
-		sam.addImage(image);
+		EfficientSamJ sam = null;
+		try{
+			sam = new EfficientSamJ(manager);
+			sam.addImage(image);
+		} catch (IOException | RuntimeException | InterruptedException ex) {
+			if (sam != null) sam.close();
+			throw ex;
+		}
 		return sam;
 	}
 	

@@ -11,6 +11,7 @@ import java.awt.Polygon;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import ai.nets.samj.ui.SAMJLogger;
 
@@ -43,10 +44,17 @@ public class PromptsToEfficientSamJ implements PromptsToNetAdapter {
 
 	@Override
 	public List<Polygon> fetch2dSegmentation(List<Localizable> listOfPoints2D) {
-		log.info(LONG_NAME+": NOT SUPPORTED YET");
-		List<Polygon> retList = new ArrayList<>(1);
-		retList.add( EMPTY_POLYGON );
-		return retList;
+		try {
+			return efficientSamJ.processPoints(listOfPoints2D.stream()
+					.map(i -> new int[] {(int) i.positionAsDoubleArray()[0], (int) i.positionAsDoubleArray()[1]})
+					.collect(Collectors.toList()));
+		} catch (IOException | RuntimeException | InterruptedException e) {
+			log.error(LONG_NAME+", providing empty result because of some trouble: "+e.getMessage());
+			e.printStackTrace();
+			List<Polygon> retList = new ArrayList<>(1);
+			retList.add( EMPTY_POLYGON );
+			return retList;
+		}
 	}
 
 	@Override

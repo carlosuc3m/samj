@@ -1,4 +1,4 @@
-package io.bioimage.samj;
+package ai.nets.samj;
 
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccessibleInterval;

@@ -9,7 +9,7 @@
 		<relativePath />
 	</parent>
 
-	<groupId>io.bioimage</groupId>
+	<groupId>ai.nets</groupId>
 	<artifactId>samj</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 

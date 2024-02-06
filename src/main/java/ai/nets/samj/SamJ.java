@@ -1,4 +1,4 @@
-package io.bioimage.samj;
+package ai.nets.samj;
 
 import java.lang.AutoCloseable;
 import java.util.ArrayList;

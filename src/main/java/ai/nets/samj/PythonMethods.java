@@ -1,4 +1,4 @@
-package io.bioimage.samj;
+package ai.nets.samj;
 
 /**
  * Class that declares the Python methods that can be used then in the script for several tasks

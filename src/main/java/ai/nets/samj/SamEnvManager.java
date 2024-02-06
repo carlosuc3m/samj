@@ -1,4 +1,4 @@
-package io.bioimage.samj;
+package ai.nets.samj;
 
 import java.io.File;
 import java.io.IOException;

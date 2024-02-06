@@ -39,7 +39,7 @@ import sc.fiji.samj.ui.ExternalMethodsInterface;
 import sc.fiji.samj.ui.PromptsResultsDisplay;
 import sc.fiji.samj.ui.SAMJLogger;
 
-public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListener, MouseListener {
+public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListener {
 
 	private static final long serialVersionUID = -4362794696325316195L;
 	
@@ -139,7 +139,6 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		for(ComboBoxItem item : listImages)
 			cmbImage.addItem(item);
 		cmbImage.addPopupMenuListener(this);
-		cmbImage.addMouseListener(this);
 	
 		GridPanel panelImage = new GridPanel(true);
 		panelImage.place(1, 1, 1, 1, bnStart);
@@ -298,6 +297,11 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 
 	@Override
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+        List<ComboBoxItem> openSeqs = softwareMethods.getListOfOpenImages();
+        ComboBoxItem[] objects = new ComboBoxItem[openSeqs.size()];
+        for (int i = 0; i < objects.length; i ++) objects[i] = openSeqs.get(i);
+        DefaultComboBoxModel<ComboBoxItem> comboBoxModel = new DefaultComboBoxModel<ComboBoxItem>(objects);
+        this.cmbImage.setModel(comboBoxModel);
 	}
 
 	@Override
@@ -316,31 +320,6 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	}
 
 	@Override
-	public void popupMenuCanceled(PopupMenuEvent e) {
-	}
-
-	@Override
-	public void mouseClicked(MouseEvent e) {
-        List<ComboBoxItem> openSeqs = softwareMethods.getListOfOpenImages();
-        ComboBoxItem[] objects = new ComboBoxItem[openSeqs.size()];
-        for (int i = 0; i < objects.length; i ++) objects[i] = openSeqs.get(i);
-        DefaultComboBoxModel<ComboBoxItem> comboBoxModel = new DefaultComboBoxModel<ComboBoxItem>(objects);
-        this.cmbImage.setModel(comboBoxModel);
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
+	public void popupMenuCanceled(PopupMenuEvent e) {	
 	}
 }

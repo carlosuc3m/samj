@@ -35,7 +35,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	
 	private static final long serialVersionUID = 7623385356575804931L;
 
-	private HTMLPane info = new HTMLPane(450, 120);
+	private HTMLPane info = new HTMLPane(450, 135);
     private int waitingIter = 0;
 	
 	private JButton bnInstall = new JButton("Install");
@@ -148,7 +148,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 				this.manager.installEfficientSAMSmall();
 				getSelectedModel().setInstalled(true);
 				SwingUtilities.invokeLater(() -> {
-					installationInProcess(false); 
+					installationInProcess(false);
 					this.updateParent.task();});
 			} catch (Exception e1) {
 				e1.printStackTrace();
@@ -190,8 +190,10 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		this.bnInstall.setEnabled(inProcess ? false : !getSelectedModel().isInstalled());
 		this.rbModels.stream().forEach(btn -> btn.setEnabled(!inProcess));
 		this.progressInstallation.setIndeterminate(inProcess);
-		if (!inProcess)
+		if (!inProcess) {
 			this.progressInstallation.setValue(this.getSelectedModel().isInstalled() ? 100 : 0);
+			this.updateInterface();
+		}
 	}
 
     /**

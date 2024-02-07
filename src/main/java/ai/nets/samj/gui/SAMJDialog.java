@@ -184,29 +184,24 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	@Override
 	public void actionPerformed(ActionEvent e) {
 
-		if (e.getSource() == bnRect) {
+		if (e.getSource() == bnRect && !bnRect.isSelected()) {
 			display.switchToUsingRectangles();
-		}
-		if (e.getSource() == bnPoints) {
+			bnRect.setSelected(true); bnPoints.setSelected(false); bnBrush.setSelected(false);
+		} else if (e.getSource() == bnPoints && !bnRect.isSelected()) {
 			display.switchToUsingPoints();
-		}
-		if (e.getSource() == bnBrush) {
+			bnRect.setSelected(false); bnPoints.setSelected(true); bnBrush.setSelected(false);
+		} else if (e.getSource() == bnBrush && !bnRect.isSelected()) {
 			display.switchToUsingLines();
-		}
-
-		if (e.getSource() == bnHelp) {
+			bnRect.setSelected(false); bnPoints.setSelected(false); bnBrush.setSelected(true);
+		} else if (e.getSource() == bnRect || e.getSource() == bnPoints || e.getSource() == bnBrush) {
+			display.switchToUsingPoints();
+		} else if (e.getSource() == bnHelp) {
 			Tools.help();
-		}
-		
-		if (e.getSource() == bnClose) {
+		} else if (e.getSource() == bnClose) {
 			display.notifyNetToClose();
-		}
-		
-		if (e.getSource() == bnComplete) {
+		} else if (e.getSource() == bnComplete) {
 			GUIsOwnLog.warn("TO DO call Auto-complete");
-		}
-
-		if (e.getSource() == bnStart) {
+		} else if (e.getSource() == bnStart) {
 			if (!panelModel.getSelectedModel().isInstalled())
 				GUIsOwnLog.warn("Not starting encoding as the selected model is not installed.");
 
@@ -220,9 +215,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			GUIsOwnLog.warn("TO DO End the encoding");
 			//TODO: encoding should be a property of a model
 			encodingDone = true;
-		}
-
-		if (e.getSource() == chkROIManager) {
+		} else if (e.getSource() == chkROIManager) {
 			if (display != null)
 				display.enableAddingToRoiManager(chkROIManager.isSelected());
 		}

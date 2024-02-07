@@ -36,4 +36,5 @@ public interface PromptsResultsDisplay {
 	void switchToUsingRectangles();
 	void switchToUsingLines();
 	void switchToUsingPoints();
+	void switchToNone();
 }

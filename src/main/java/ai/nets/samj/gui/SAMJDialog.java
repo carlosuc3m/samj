@@ -33,7 +33,6 @@ import ai.nets.samj.communication.PromptsToNetAdapter;
 import ai.nets.samj.communication.model.SAMModels;
 import ai.nets.samj.gui.components.ComboBoxItem;
 import ai.nets.samj.gui.components.GridPanel;
-import ai.nets.samj.gui.components.CustomComboBoxDropDownMenu;
 import ai.nets.samj.gui.icons.ButtonIcon;
 import ai.nets.samj.gui.tools.Tools;
 import ai.nets.samj.ui.ExternalMethodsInterface;
@@ -147,7 +146,6 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		for(ComboBoxItem item : listImages)
 			cmbImage.addItem(item);
 		cmbImage.addPopupMenuListener(this);
-		cmbImage.setRenderer(new CustomComboBoxDropDownMenu(cmbImage));
 		
 		GridBagLayout middleLayout = new GridBagLayout();
 		//middleLayout.columnWidths = new int[] {1, 5};
@@ -322,7 +320,6 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
         for (int i = 0; i < objects.length; i ++) objects[i] = openSeqs.get(i);
         DefaultComboBoxModel<ComboBoxItem> comboBoxModel = new DefaultComboBoxModel<ComboBoxItem>(objects);
         this.cmbImage.setModel(comboBoxModel);
-        ((CustomComboBoxDropDownMenu) cmbImage.getRenderer()).updatePreferredSize();
 	}
 
 	@Override

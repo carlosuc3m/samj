@@ -16,7 +16,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -247,26 +249,26 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		if (!this.panelModel.isSelectedModelInstalled()) {
 			this.bnStart.setEnabled(false);
 			this.cmbImage.setEnabled(false);
-			bnComplete.setEnabled(false);
-			bnRoi2Mask.setEnabled(false);
-			this.chkROIManager.setEnabled(false);
-			encodingDone = false;
+			this.encodingDone = false;
 		} else if (this.panelModel.isSelectedModelInstalled()
 				&& !this.encodingDone
 				&& this.cmbImage.getSelectedItem() != null 
 				&& ((ComboBoxItem) this.cmbImage.getSelectedItem()).getId() != -1) {
 			this.bnStart.setEnabled(true);
 			this.cmbImage.setEnabled(true);
-			bnComplete.setEnabled(true);
-			bnRoi2Mask.setEnabled(true);
 			this.chkROIManager.setEnabled(true);
+		} else if (this.panelModel.isSelectedModelInstalled()
+				&& this.cmbImage.getSelectedItem() != null 
+				&& ((ComboBoxItem) this.cmbImage.getSelectedItem()).getId() != -1) {
+			this.bnStart.setEnabled(false);
+			this.cmbImage.setEnabled(true);
 		} else if (this.panelModel.isSelectedModelInstalled()) {
 			this.bnStart.setEnabled(false);
 			this.cmbImage.setEnabled(true);
-			bnComplete.setEnabled(false);
-			bnRoi2Mask.setEnabled(false);
-			this.chkROIManager.setEnabled(false);
 		}
+		bnComplete.setEnabled(encodingDone);
+		bnRoi2Mask.setEnabled(encodingDone);
+		chkROIManager.setEnabled(encodingDone);
 		bnRect.setEnabled(encodingDone);
 		bnPoints.setEnabled(encodingDone);
 		bnBrush.setEnabled(encodingDone);
@@ -315,23 +317,28 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 
 	@Override
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+		Object item = this.cmbImage.getSelectedItem();
         List<ComboBoxItem> openSeqs = softwareMethods.getListOfOpenImages();
         ComboBoxItem[] objects = new ComboBoxItem[openSeqs.size()];
         for (int i = 0; i < objects.length; i ++) objects[i] = openSeqs.get(i);
         DefaultComboBoxModel<ComboBoxItem> comboBoxModel = new DefaultComboBoxModel<ComboBoxItem>(objects);
         this.cmbImage.setModel(comboBoxModel);
+        if (item != null) 
+        	this.cmbImage.setSelectedIndex(
+        			IntStream.range(0, objects.length).filter(i -> objects[i].getId() == ((ComboBoxItem) item).getId()).findFirst().orElse(0)
+        			);
 	}
 
 	@Override
 	public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
 		ComboBoxItem item = (ComboBoxItem) this.cmbImage.getSelectedItem();
-        this.encodingDone = false;
-		if (item == null)
+		if ( item == null || (item != null && item.getId() == -1) ) {
+	        this.encodingDone = false;
 			selectedID = null;
-		else if (selectedID != null && selectedID == item.getId())
-        	this.encodingDone = true;
-        else
+		} else if (selectedID == null || (selectedID != null && selectedID != item.getId())) {
+        	this.encodingDone = false;
         	selectedID = item.getId();
+		}
     	this.updateInterface();
 	}
 

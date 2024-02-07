@@ -1,7 +1,11 @@
 package ai.nets.samj.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -14,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -28,6 +33,7 @@ import ai.nets.samj.communication.PromptsToNetAdapter;
 import ai.nets.samj.communication.model.SAMModels;
 import ai.nets.samj.gui.components.ComboBoxItem;
 import ai.nets.samj.gui.components.GridPanel;
+import ai.nets.samj.gui.components.CustomComboBoxDropDownMenu;
 import ai.nets.samj.gui.icons.ButtonIcon;
 import ai.nets.samj.gui.tools.Tools;
 import ai.nets.samj.ui.ExternalMethodsInterface;
@@ -141,10 +147,26 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		for(ComboBoxItem item : listImages)
 			cmbImage.addItem(item);
 		cmbImage.addPopupMenuListener(this);
-	
-		GridPanel panelImage = new GridPanel(true);
-		panelImage.place(1, 1, 1, 1, bnStart);
-		panelImage.place(1, 2, 1, 1, cmbImage);
+		cmbImage.setRenderer(new CustomComboBoxDropDownMenu(cmbImage));
+		
+		GridBagLayout middleLayout = new GridBagLayout();
+		//middleLayout.columnWidths = new int[] {1, 5};
+		middleLayout.columnWeights = new double[] {1.0, 10.0};
+		middleLayout.rowHeights = new int[] {1};
+		JPanel panelImage = new JPanel(middleLayout);
+		panelImage.setBorder(BorderFactory.createEtchedBorder());
+		
+		GridBagConstraints gbc0 = new GridBagConstraints();
+		gbc0.fill = GridBagConstraints.HORIZONTAL;
+		gbc0.gridx = 0;
+		gbc0.insets = new Insets(5, 5, 5, 0);
+		panelImage.add(bnStart, gbc0);
+		GridBagConstraints gbc1 = new GridBagConstraints();
+		gbc1.fill = GridBagConstraints.HORIZONTAL;
+		gbc1.gridx = 1;
+		gbc1.insets = new Insets(5, 5, 5, 6);
+		panelImage.add(cmbImage, gbc1);
+		cmbImage.setPreferredSize(new Dimension(panelModel.getWidth(), 25));
 		
 		GridPanel pn = new GridPanel();
 		pn.place(1, 1, panelModel);
@@ -300,6 +322,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
         for (int i = 0; i < objects.length; i ++) objects[i] = openSeqs.get(i);
         DefaultComboBoxModel<ComboBoxItem> comboBoxModel = new DefaultComboBoxModel<ComboBoxItem>(objects);
         this.cmbImage.setModel(comboBoxModel);
+        ((CustomComboBoxDropDownMenu) cmbImage.getRenderer()).updatePreferredSize();
 	}
 
 	@Override

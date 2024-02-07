@@ -1,6 +1,5 @@
 package ai.nets.samj.gui.components;
 
-import java.io.File;
 
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;

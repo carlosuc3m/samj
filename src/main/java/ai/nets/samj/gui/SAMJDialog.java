@@ -52,10 +52,10 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 
 	private RandomAccessibleInterval<?> mask;
 	
-	private ButtonIcon bnRect = new ButtonIcon("Rect", RESOURCES_FOLDER + "rect.png");
-	private ButtonIcon bnPoints = new ButtonIcon("Points", RESOURCES_FOLDER + "edit.png");
-	private ButtonIcon bnBrush = new ButtonIcon("Brush", RESOURCES_FOLDER + "github.png");
-	private ButtonIcon bnMask = new ButtonIcon("Mask", RESOURCES_FOLDER + "help.png");
+	private ButtonIcon bnRect = new ButtonIcon("Rect", RESOURCES_FOLDER, "rect.png");
+	private ButtonIcon bnPoints = new ButtonIcon("Points", RESOURCES_FOLDER, "edit.png");
+	private ButtonIcon bnBrush = new ButtonIcon("Brush", RESOURCES_FOLDER, "github.png");
+	private ButtonIcon bnMask = new ButtonIcon("Mask", RESOURCES_FOLDER, "help.png");
 	private JCheckBox chkROIManager = new JCheckBox("Add to ROI Manager", true);
 
 	private JComboBox<ComboBoxItem> cmbImage = new JComboBox<ComboBoxItem>();
@@ -186,15 +186,16 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 
 		if (e.getSource() == bnRect && !bnRect.isSelected()) {
 			display.switchToUsingRectangles();
-			bnRect.setSelected(true); bnPoints.setSelected(false); bnBrush.setSelected(false);
-		} else if (e.getSource() == bnPoints && !bnRect.isSelected()) {
+			bnRect.setPressed(true); bnPoints.setPressed(false); bnBrush.setPressed(false);
+		} else if (e.getSource() == bnPoints && !bnPoints.isSelected()) {
 			display.switchToUsingPoints();
-			bnRect.setSelected(false); bnPoints.setSelected(true); bnBrush.setSelected(false);
-		} else if (e.getSource() == bnBrush && !bnRect.isSelected()) {
+			bnRect.setPressed(false); bnPoints.setPressed(true); bnBrush.setPressed(false);
+		} else if (e.getSource() == bnBrush && !bnBrush.isSelected()) {
 			display.switchToUsingLines();
-			bnRect.setSelected(false); bnPoints.setSelected(false); bnBrush.setSelected(true);
+			bnRect.setPressed(false); bnPoints.setPressed(false); bnBrush.setPressed(true);
 		} else if (e.getSource() == bnRect || e.getSource() == bnPoints || e.getSource() == bnBrush) {
-			display.switchToUsingPoints();
+			display.switchToNone();
+			bnRect.setPressed(false); bnPoints.setPressed(false); bnBrush.setPressed(false);
 		} else if (e.getSource() == bnHelp) {
 			Tools.help();
 		} else if (e.getSource() == bnClose) {

@@ -206,14 +206,13 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			if (!panelModel.getSelectedModel().isInstalled())
 				GUIsOwnLog.warn("Not starting encoding as the selected model is not installed.");
 
-			GUIsOwnLog.warn("TO DO Start the encoding");
+			GUIsOwnLog.warn("Start the encoding");
 			display = displayInterface.getPrompts(((ComboBoxItem) this.cmbImage.getSelectedItem()).getValue());
 			PromptsToNetAdapter netAdapter = panelModel
 					.getSelectedModel()
 					.instantiate(display.giveProcessedSubImage(), logForNetworks);
-			//TODO: if this netAdapter has already encoded, we don't do it again
 			display.switchToThisNet(netAdapter);
-			GUIsOwnLog.warn("TO DO End the encoding");
+			GUIsOwnLog.warn("Finished the encoding");
 			//TODO: encoding should be a property of a model
 			encodingDone = true;
 		} else if (e.getSource() == chkROIManager) {
@@ -232,7 +231,8 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			bnRoi2Mask.setEnabled(false);
 			this.chkROIManager.setEnabled(false);
 			encodingDone = false;
-		} else if (this.panelModel.isSelectedModelInstalled() 
+		} else if (this.panelModel.isSelectedModelInstalled()
+				&& !this.encodingDone
 				&& this.cmbImage.getSelectedItem() != null 
 				&& ((ComboBoxItem) this.cmbImage.getSelectedItem()).getId() != -1) {
 			this.bnStart.setEnabled(true);
@@ -305,15 +305,13 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	@Override
 	public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
 		ComboBoxItem item = (ComboBoxItem) this.cmbImage.getSelectedItem();
-		if (item == null) {
+        this.encodingDone = false;
+		if (item == null)
 			selectedID = null;
-			this.bnStart.setEnabled(false);
-			return;
-		}
-        int newSelectedImageId = item.getId();
-        if (newSelectedImageId == -1) {selectedID = newSelectedImageId; this.bnStart.setEnabled(false); return;}
-        if (selectedID != null && selectedID == newSelectedImageId) return;
-    	selectedID = newSelectedImageId;
+		else if (selectedID != null && selectedID == item.getId())
+        	this.encodingDone = true;
+        else
+        	selectedID = item.getId();
     	this.updateInterface();
 	}
 

@@ -274,6 +274,13 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		bnBrush.setEnabled(encodingDone);
 		bnMask.setEnabled(encodingDone);
 	}
+	
+	private void setEncodingsDone(boolean isDone) {
+		if (!isDone && this.encodingDone) {
+			
+		}
+		this.encodingDone = isDone;
+	}
 
 	public class LocalDropTarget extends DropTarget {
 

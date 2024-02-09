@@ -13,6 +13,8 @@ public interface PromptsToNetAdapter {
 
 	List<Polygon> fetch2dSegmentation(Interval boundingBox2D);
 
+	void closeProcess();
+
 	String getNetName();
 
 	void notifyUiHasBeenClosed();

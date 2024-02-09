@@ -88,6 +88,12 @@ public class PromptsToEfficientSamJ implements PromptsToNetAdapter {
 	@Override
 	public void notifyUiHasBeenClosed() {
 		log.info(LONG_NAME+": OKAY, I'm closing myself...");
+		closeProcess();
+	}
+
+	@Override
+	public void closeProcess() {
 		efficientSamJ.close();
+		
 	}
 }

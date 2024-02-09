@@ -103,4 +103,8 @@ public class PromptsToFakeSamJ implements PromptsToNetAdapter {
 	public void notifyUiHasBeenClosed() {
 		log.info("FAKE SAM "+fakeNetworkName+": OKAY, I'm closing myself...");
 	}
+
+	@Override
+	public void closeProcess() {		
+	}
 }

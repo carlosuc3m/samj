@@ -16,7 +16,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -249,7 +248,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		if (!this.panelModel.isSelectedModelInstalled()) {
 			this.bnStart.setEnabled(false);
 			this.cmbImage.setEnabled(false);
-			this.encodingDone = false;
+			setEncodingsDone(false);
 		} else if (this.panelModel.isSelectedModelInstalled()
 				&& !this.encodingDone
 				&& this.cmbImage.getSelectedItem() != null 
@@ -277,7 +276,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	
 	private void setEncodingsDone(boolean isDone) {
 		if (!isDone && this.encodingDone) {
-			
+			display.notifyNetToClose();
 		}
 		this.encodingDone = isDone;
 	}
@@ -340,10 +339,10 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
 		ComboBoxItem item = (ComboBoxItem) this.cmbImage.getSelectedItem();
 		if ( item == null || (item != null && item.getId() == -1) ) {
-	        this.encodingDone = false;
+			setEncodingsDone(false);
 			selectedID = null;
 		} else if (selectedID == null || (selectedID != null && selectedID != item.getId())) {
-        	this.encodingDone = false;
+			setEncodingsDone(false);
         	selectedID = item.getId();
 		}
     	this.updateInterface();

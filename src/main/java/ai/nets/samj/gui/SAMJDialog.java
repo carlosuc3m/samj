@@ -277,6 +277,10 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	private void setEncodingsDone(boolean isDone) {
 		if (!isDone && this.encodingDone) {
 			display.notifyNetToClose();
+			this.bnRect.setPressed(false);
+			this.bnPoints.setPressed(false);
+			this.bnBrush.setPressed(false);
+			this.bnMask.setPressed(false);
 		}
 		this.encodingDone = isDone;
 	}

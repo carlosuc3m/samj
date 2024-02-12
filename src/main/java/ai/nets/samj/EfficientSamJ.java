@@ -16,7 +16,6 @@ import io.bioimage.modelrunner.apposed.appose.Service.Task;
 import io.bioimage.modelrunner.apposed.appose.Service.TaskStatus;
 
 import io.bioimage.modelrunner.tensor.shm.SharedMemoryArray;
-import io.bioimage.modelrunner.utils.CommonUtils;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.RealTypeConverters;
 import net.imglib2.img.array.ArrayImgs;

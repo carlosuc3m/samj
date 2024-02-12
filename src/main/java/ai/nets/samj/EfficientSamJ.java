@@ -240,13 +240,11 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 							+ ")" + System.lineSeparator();
 		int size = 1;
 		for (long l : targetDims) {size *= l;}
-		code += "im = np.ndarray(" + size + ", dtype='" 
-				+ CommonUtils.getDataType(targetImg) + "', buffer=im_shm.buf).reshape([";
+		code += "im = np.ndarray(" + size + ", dtype='float32', buffer=im_shm.buf).reshape([";
 		for (long ll : targetDims)
 			code += ll + ", ";
 		code = code.substring(0, code.length() - 2);
 		code += "])" + System.lineSeparator();
-		code += "np.save('/home/carlos/git/aa.npy', im)" + System.lineSeparator();
 		code += "input_h = im.shape[0]" + System.lineSeparator();
 		code += "input_w = im.shape[1]" + System.lineSeparator();
 		code += "globals()['input_h'] = input_h" + System.lineSeparator();
@@ -332,12 +330,11 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	private <T extends RealType<T> & NativeType<T>>
 	void adaptImageToModel(final RandomAccessibleInterval<T> ogImg, RandomAccessibleInterval<FloatType> targetImg) {
 		if (ogImg.numDimensions() == 3 && ogImg.dimensionsAsLongArray()[2] == 3) {
-			for (int i = 0; i < 3; i ++) normalizedView(Views.hyperSlice(ogImg, 2, i));
-			RealTypeConverters.copyFromTo( ogImg, targetImg );
+			for (int i = 0; i < 3; i ++) 
+				RealTypeConverters.copyFromTo( normalizedView(Views.hyperSlice(ogImg, 2, i)), Views.hyperSlice(targetImg, 2, i) );
 		} else if (ogImg.numDimensions() == 3 && ogImg.dimensionsAsLongArray()[2] == 1) {
-			normalizedView(ogImg);
 			debugPrinter.printText("CONVERTED 1 CHANNEL IMAGE INTO 3 TO BE FEEDED TO SAMJ");
-			IntervalView<T> resIm = Views.interval( Views.expandMirrorDouble(ogImg, new long[] {0, 0, 2}), 
+			IntervalView<T> resIm = Views.interval( Views.expandMirrorDouble(normalizedView(ogImg), new long[] {0, 0, 2}), 
 					Intervals.createMinMax(new long[] {0, 0, 0, ogImg.dimensionsAsLongArray()[0], ogImg.dimensionsAsLongArray()[1], 2}) );
 			RealTypeConverters.copyFromTo( resIm, targetImg );
 		} else if (ogImg.numDimensions() == 2) {

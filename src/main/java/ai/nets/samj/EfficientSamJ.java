@@ -38,6 +38,8 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	
 	private SharedMemoryArray shma;
 	
+	private long[] targetDims;
+	
 	private SamEnvManager manager;
 	
 	public static final String IMPORTS = ""
@@ -237,14 +239,14 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 							+ shma.getNameForPython() + "', size=" + shma.getSize() 
 							+ ")" + System.lineSeparator();
 		int size = 1;
-		long[] dims = targetImg.dimensionsAsLongArray();
-		for (long l : dims) {size *= l;}
+		for (long l : targetDims) {size *= l;}
 		code += "im = np.ndarray(" + size + ", dtype='" 
 				+ CommonUtils.getDataType(targetImg) + "', buffer=im_shm.buf).reshape([";
-		for (long ll : dims)
+		for (long ll : targetDims)
 			code += ll + ", ";
 		code = code.substring(0, code.length() - 2);
 		code += "])" + System.lineSeparator();
+		code += "np.save('/home/carlos/git/aa.npy', im)" + System.lineSeparator();
 		code += "input_h = im.shape[0]" + System.lineSeparator();
 		code += "input_w = im.shape[1]" + System.lineSeparator();
 		code += "globals()['input_h'] = input_h" + System.lineSeparator();
@@ -344,6 +346,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 			throw new IllegalArgumentException("Currently SAMJ only supports 1-channel (grayscale) or 3-channel (RGB, BGR, ...) 2D images."
 					+ "The image dimensions order should be 'yxc', first dimension height, second width and third channels.");
 		}
+		this.targetDims = targetImg.dimensionsAsLongArray();
 	}
 	
 	public static void main(String[] args) throws IOException, RuntimeException, InterruptedException {

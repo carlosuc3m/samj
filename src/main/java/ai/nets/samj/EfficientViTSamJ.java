@@ -23,6 +23,7 @@ import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
@@ -67,7 +68,11 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "task.update('imported')" + System.lineSeparator()
 			+ "" + System.lineSeparator()
 			+ "predictor = %s({}).cpu().eval()" + System.lineSeparator()
-			+ "set_norm_eps(predictor, 1e-6)" + System.lineSeparator()
+			+ "eps = 1e-6" + System.lineSeparator()
+			+ "for m in predictor.modules():" + System.lineSeparator()
+			+ "  if isinstance(m, (torch.nn.GroupNorm, torch.nn.LayerNorm, torch.nn.modules.batchnorm._BatchNorm)):" + System.lineSeparator()
+			+ "    if eps is not None:" + System.lineSeparator()
+			+ "      m.eps = eps" + System.lineSeparator()
 			+ "file = os.path.realpath(os.path.expanduser(%S))" + System.lineSeparator()
 			+ "weight = torch.load(file, map_location='cpu')" + System.lineSeparator()
 			+ "if \"state_dict\" in weight:" + System.lineSeparator()
@@ -364,15 +369,15 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 	private static <T extends RealType<T> & NativeType<T>>
 	SharedMemoryArray  createEfficientSAMInputSHM(final RandomAccessibleInterval<T> inImg) {
 		long[] dims = inImg.dimensionsAsLongArray();
-		if ((dims.length != 3 && dims.length != 2) || (dims.length == 3 && dims[2] != 3 && dims[2] != 1)){
-			throw new IllegalArgumentException("Currently SAMJ only supports 1-channel (grayscale) or 3-channel (RGB, BGR, ...) 2D images."
-					+ "The image dimensions order should be 'yxc', first dimension height, second width and third channels.");
+		if ((dims.length != 3 && dims.length != 2) || (dims.length == 3 && dims[2] != 3 && dims[2] != 1)) {
+			throw new IllegalArgumentException("Currently SAMJ only supports 1-channel (grayscale) or 3-channel (RGB, BGR, float32, ...) 2D images."
+					+ "The image dimensions order should be 'xyc', first dimension height, second width and third channels.");
 		}
-		return SharedMemoryArray.buildMemorySegmentForImage(new long[] {dims[0], dims[1], 3}, new FloatType());
+		return SharedMemoryArray.buildMemorySegmentForImage(new long[] {dims[0], dims[1], 3}, new UnsignedIntType());
 	}
 	
 	private <T extends RealType<T> & NativeType<T>>
-	void adaptImageToModel(final RandomAccessibleInterval<T> ogImg, RandomAccessibleInterval<FloatType> targetImg) {
+	void adaptImageToModel(final RandomAccessibleInterval<T> ogImg, RandomAccessibleInterval<UnsignedIntType> targetImg) {
 		if (ogImg.numDimensions() == 3 && ogImg.dimensionsAsLongArray()[2] == 3) {
 			for (int i = 0; i < 3; i ++) 
 				RealTypeConverters.copyFromTo( normalizedView(Views.hyperSlice(ogImg, 2, i)), Views.hyperSlice(targetImg, 2, i) );

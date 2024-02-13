@@ -7,6 +7,8 @@ import net.imglib2.converter.Converters;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.util.Cast;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 
@@ -94,5 +96,32 @@ public class AbstractSamJ {
 			debugPrinter.printText("MIN VALUE="+minMax[0]+", MAX VALUE="+minMax[1]+", IMAGE IS _NOT_ NORMALIZED, returning Converted view");
 			return normalizedView(inImg, minMax);
 		}
+	}
+
+	public static <T extends RealType<T> & NativeType<T>>
+	RandomAccessibleInterval<UnsignedByteType> convertViewToRGB(final RandomAccessibleInterval<T> inImg, final double[] inMinMax) {
+		final double min = inMinMax[0];
+		final double range = inMinMax[1] - min;
+		return Converters.convert(inImg, (i, o) -> o.setReal((i.getRealDouble() - min) / range), new UnsignedByteType());
+	}
+
+	/**
+	 * Checks the input RAI if its min and max pixel values are between [0,1].
+	 * If they are not, the RAI will be subject to {@link Converters#convert(RandomAccessibleInterval, Converter, Type)}
+	 * with here-created Converter that knows how to bring the pixel values into the interval [0,1].
+	 *
+	 * @param inImg RAI to be potentially normalized.
+	 * @return The input image itself or a View of it.
+	 */
+	public <T extends RealType<T> & NativeType<T>>
+	RandomAccessibleInterval<UnsignedByteType> convertViewToRGB(final RandomAccessibleInterval<T> inImg) {
+		if (Util.getTypeFromInterval(inImg) instanceof UnsignedByteType) {
+			debugPrinter.printText("IMAGE IS RGB, returning directly itself");
+			return Cast.unchecked(inImg);
+		}
+		final double[] minMax = new double[2];
+		debugPrinter.printText("MIN VALUE="+minMax[0]+", MAX VALUE="+minMax[1]+", IMAGE IS _NOT_ RGB, returning Converted view");
+		getMinMaxPixelValue(Views.iterable(inImg), minMax);
+		return convertViewToRGB(inImg, minMax);
 	}
 }

@@ -67,7 +67,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "from efficientvit.models.efficientvit.sam import EfficientViTSamPredictor" + System.lineSeparator()
 			+ "task.update('imported')" + System.lineSeparator()
 			+ "" + System.lineSeparator()
-			+ "predictor = %s({}).cpu().eval()" + System.lineSeparator()
+			+ "predictor = %s().cpu().eval()" + System.lineSeparator()
 			+ "eps = 1e-6" + System.lineSeparator()
 			+ "for m in predictor.modules():" + System.lineSeparator()
 			+ "  if isinstance(m, (torch.nn.GroupNorm, torch.nn.LayerNorm, torch.nn.modules.batchnorm._BatchNorm)):" + System.lineSeparator()
@@ -171,7 +171,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		sendImgLib2AsNp(rai);
 		this.script += ""
 				+ "task.update(str(im.shape))" + System.lineSeparator()
-				+ "predictor.set_image(im[None, ...])";
+				+ "predictor.set_image(im)";
 		try {
 			printScript(script, "Creation of initial embeddings");
 			Task task = python.task(script);
@@ -289,16 +289,11 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 							+ ")" + System.lineSeparator();
 		int size = 1;
 		for (long l : targetDims) {size *= l;}
-		code += "im = np.ndarray(" + size + ", dtype='float32', buffer=im_shm.buf).reshape([";
+		code += "im = np.ndarray(" + size + ", dtype='uint8', buffer=im_shm.buf).reshape([";
 		for (long ll : targetDims)
 			code += ll + ", ";
 		code = code.substring(0, code.length() - 2);
 		code += "])" + System.lineSeparator();
-		code += "input_h = im.shape[0]" + System.lineSeparator();
-		code += "input_w = im.shape[1]" + System.lineSeparator();
-		code += "globals()['input_h'] = input_h" + System.lineSeparator();
-		code += "globals()['input_w'] = input_w" + System.lineSeparator();
-		code += "im = torch.from_numpy(np.transpose(im.astype('float32'), (2, 0, 1)))" + System.lineSeparator();
 		code += "im_shm.unlink()" + System.lineSeparator();
 		//code += "box_shm.close()" + System.lineSeparator();
 		this.script += code;
@@ -317,10 +312,8 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 				+ "input_points = np.concatenate("
 						+ "(np.array(input_points_list).reshape(" + nPoints + ", 2), np.array(input_neg_points_list).reshape(" + nNegPoints + ", 2))"
 						+ ", axis=0)" + System.lineSeparator()
-				+ "input_points = torch.reshape(torch.tensor(input_points), [1, 1, -1, 2])" + System.lineSeparator()
 				+ "input_label = np.array([1] * " + (nPoints + nNegPoints) + ")" + System.lineSeparator()
 				+ "input_label[" + nPoints + ":] *= 2" + System.lineSeparator()
-				+ "input_label = torch.reshape(torch.tensor(input_label), [1, 1, -1])" + System.lineSeparator()
 				+ "predicted_logits, _ = predictor.predict(" + System.lineSeparator()
 				+ "    point_coords=input_points," + System.lineSeparator()
 				+ "    point_labels=input_label," + System.lineSeparator()
@@ -344,9 +337,6 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		String code = "" + System.lineSeparator()
 				+ "task.update('start predict')" + System.lineSeparator()
 				+ "input_box = np.array([[input_box[0], input_box[1]], [input_box[2], input_box[3]]])" + System.lineSeparator()
-				+ "input_box = torch.reshape(torch.tensor(input_box), [1, 1, -1, 2])" + System.lineSeparator()
-				+ "input_label = np.array([2,3])" + System.lineSeparator()
-				+ "input_label = torch.reshape(torch.tensor(input_label), [1, 1, -1])" + System.lineSeparator()
 				+ "predicted_logits, _ = predictor.predict(" + System.lineSeparator()
 				+ "    point_coords=None," + System.lineSeparator()
 				+ "    point_labels=None," + System.lineSeparator()

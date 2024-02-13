@@ -102,7 +102,7 @@ public class AbstractSamJ {
 	RandomAccessibleInterval<UnsignedByteType> convertViewToRGB(final RandomAccessibleInterval<T> inImg, final double[] inMinMax) {
 		final double min = inMinMax[0];
 		final double range = inMinMax[1] - min;
-		return Converters.convert(inImg, (i, o) -> o.setReal((i.getRealDouble() - min) / range), new UnsignedByteType());
+		return Converters.convert(inImg, (i, o) -> o.setReal(255 * (i.getRealDouble() - min) / range), new UnsignedByteType());
 	}
 
 	/**

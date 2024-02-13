@@ -392,4 +392,8 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			sam.processBox(new int[] {0, 5, 10, 26});
 		}
 	}
+	
+	public static List<String> getListOfSupportedEfficientViTSAM(){
+		return MODELS_DICT.keySet().stream().collect(Collectors.toList());
+	}
 }

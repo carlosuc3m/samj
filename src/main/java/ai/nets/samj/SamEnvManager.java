@@ -36,7 +36,6 @@ import io.bioimage.modelrunner.apposed.appose.MambaInstallException;
 public class SamEnvManager {
 	final public static String SAM_WEIGHTS_NAME = "sam_vit_h_4b8939.pth";
 	final public static String ESAM_SMALL_WEIGHTS_NAME ="efficient_sam_vits.pt";
-	final public static String ESAM_TINY_WEIGHTS_NAME ="efficient_sam_vitt.pt";
 	final public static String SAM_MODEL_TYPE = "vit_b";
 	
 	final public static List<String> CHECK_DEPS = Arrays.asList(new String[] {"appose", "torch", "torchvision", "skimage"});
@@ -50,8 +49,10 @@ public class SamEnvManager {
 	
 	final static public String COMMON_ENV_NAME = "sam_common_env";
 	final static public String ESAM_ENV_NAME = "efficient_sam_env";
+	final static public String EVITSAM_ENV_NAME = "efficientvit_sam_env";
 	final static public String SAM_ENV_NAME = "sam_env";
 	final static public String ESAM_NAME = "EfficientSAM";
+	final static public String EVITSAM_NAME = "EfficientViTSAM";
 	final static public String SAM_NAME = "SAM";
 	
 	final static public String ESAMS_URL = "https://raw.githubusercontent.com/yformer/EfficientSAM/main/weights/efficient_sam_vits.pt.zip";
@@ -122,13 +123,23 @@ public class SamEnvManager {
 		return true;
 	}
 	
+	public boolean checkEfficientVitSAMPackageInstalled() {
+		if (!checkMambaInstalled()) return false;
+		File pythonEnv = Paths.get(this.path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME).toFile();
+		if (!pythonEnv.exists() || pythonEnv.list().length <= 1) return false;
+		return true;
+	}
+	
 	public boolean checkEfficientSAMSmallWeightsDownloaded() {
 		File weigthsFile = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_SMALL_WEIGHTS_NAME).toFile();
 		return weigthsFile.isFile();
 	}
 	
-	public boolean checkEfficientSAMTinyWeightsDownloaded() {
-		File weigthsFile = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_TINY_WEIGHTS_NAME, ESAM_TINY_WEIGHTS_NAME).toFile();
+	public boolean checkEfficientViTSAMWeightsDownloaded(String modelType) {
+		if (!EfficientViTSamJ.getListOfSupportedEfficientViTSAM().contains(modelType))
+			throw new IllegalArgumentException("The provided model is not one of the supported EfficientViT models: " 
+												+ EfficientViTSamJ.getListOfSupportedEfficientViTSAM());
+		File weigthsFile = Paths.get(this.path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME, "weights", modelType).toFile();
 		return weigthsFile.isFile();
 	}
 	
@@ -213,16 +224,6 @@ public class SamEnvManager {
 	
 	public void downloadESAMSmall() throws IOException, InterruptedException {
 		downloadESAMSmall(false);
-	}
-	
-	public void downloadESAMTiny() {
-		downloadESAMTiny(false);
-	}
-	
-	public void downloadESAMTiny(boolean force) {
-		if (!force && checkEfficientSAMTinyWeightsDownloaded())
-			return;
-		
 	}
 	
 	public void installPython() throws IOException, InterruptedException, ArchiveException, URISyntaxException, MambaInstallException {
@@ -402,25 +403,8 @@ public class SamEnvManager {
 		if (!this.checkEfficientSAMSmallWeightsDownloaded()) this.downloadESAMSmall(false);
 	}
 	
-	public void installEfficientSAMTiny() throws IOException, InterruptedException, 
-													ArchiveException, URISyntaxException, MambaInstallException {
-		if (!this.checkMambaInstalled()) this.installMambaPython();
-		
-		if (!this.checkCommonPythonInstalled()) this.installPython();
-		
-		if (!this.checkEfficientSAMPackageInstalled()) this.installEfficientSAMPackage();
-		
-		if (!this.checkEfficientSAMTinyWeightsDownloaded()) this.downloadESAMTiny(false);
-	}
-	
 	public String getEfficientSAMSmallWeightsPath() {
 		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_SMALL_WEIGHTS_NAME).toFile();
-		if (!file.isFile()) return null;
-		return file.getAbsolutePath();
-	}
-	
-	public String getEfficientSAMTinyWeightsPath() {
-		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_TINY_WEIGHTS_NAME).toFile();
 		if (!file.isFile()) return null;
 		return file.getAbsolutePath();
 	}
@@ -449,10 +433,6 @@ public class SamEnvManager {
 	
 	public static String getEfficientSAMSmallWeightsName() {
 		return ESAM_SMALL_WEIGHTS_NAME;
-	}
-	
-	public static String getEfficientSAMTinyWeightsName() {
-		return ESAM_TINY_WEIGHTS_NAME;
 	}
 	
 	/**

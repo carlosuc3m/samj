@@ -199,10 +199,23 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	public List<Polygon> processPoints(List<int[]> pointsList)
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";
-		processPointsWithSAM(pointsList.size());
+		processPointsWithSAM(pointsList.size(), 0);
 		HashMap<String, Object> inputs = new HashMap<String, Object>();
 		inputs.put("input_points", pointsList);
-		printScript(script, "Rectangle inference");
+		printScript(script, "Points inference");
+		List<Polygon> polys = processAndRetrieveContours(inputs);
+		debugPrinter.printText("processPoints() obtained " + polys.size() + " polygons");
+		return polys;
+	}
+	
+	public List<Polygon> processPoints(List<int[]> pointsList, List<int[]> pointsNegList)
+			throws IOException, RuntimeException, InterruptedException{
+		this.script = "";
+		processPointsWithSAM(pointsList.size(), pointsNegList.size());
+		HashMap<String, Object> inputs = new HashMap<String, Object>();
+		inputs.put("input_points", pointsList);
+		inputs.put("input_neg_points", pointsNegList);
+		printScript(script, "Points and negative points inference");
 		List<Polygon> polys = processAndRetrieveContours(inputs);
 		debugPrinter.printText("processPoints() obtained " + polys.size() + " polygons");
 		return polys;
@@ -254,16 +267,20 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		this.script += code;
 	}
 	
-	private void processPointsWithSAM(int nPoints) {
+	private void processPointsWithSAM(int nPoints, int nNegPoints) {
 		String code = "" + System.lineSeparator()
 				+ "task.update('start predict')" + System.lineSeparator()
-				+ "input_points_list = []" + System.lineSeparator();
+				+ "input_points_list = []" + System.lineSeparator()
+				+ "input_neg_points_list = []" + System.lineSeparator();
 		for (int n = 0; n < nPoints; n ++)
 			code += "input_points_list.append([input_points[" + n + "][0], input_points[" + n + "][1]])" + System.lineSeparator();
+		for (int n = 0; n < nNegPoints; n ++)
+			code += "input_neg_points_list.append([input_neg_points[" + n + "][0], input_neg_points[" + n + "][1]])" + System.lineSeparator();
 		code += ""
-				+ "input_points = np.array(input_points_list)" + System.lineSeparator()
+				+ "input_points = np.concatenate((np.array(input_points_list), np.array(input_neg_points_list)), axis=0)" + System.lineSeparator()
 				+ "input_points = torch.reshape(torch.tensor(input_points), [1, 1, -1, 2])" + System.lineSeparator()
-				+ "input_label = np.array([1] * " + nPoints + ")" + System.lineSeparator()
+				+ "input_label = np.array([1] * " + (nPoints + nNegPoints) + ")" + System.lineSeparator()
+				+ "input_label[" + nPoints + ":] *= 2" + System.lineSeparator()
 				+ "input_label = torch.reshape(torch.tensor(input_label), [1, 1, -1])" + System.lineSeparator()
 				+ "predicted_logits, predicted_iou = predictor.predict_masks(predictor.encoded_images," + System.lineSeparator()
 				+ "    input_points," + System.lineSeparator()

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.awt.Polygon;
 import java.io.File;
 import java.io.IOException;
@@ -41,20 +42,37 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 	
 	private SamEnvManager manager;
 	
+	private static final HashMap<String, String> MODELS_DICT = new HashMap<String, String>();
+	static {
+		MODELS_DICT.put("l0", "efficientvit_sam_l0");
+		MODELS_DICT.put("l1", "efficientvit_sam_l1");
+		MODELS_DICT.put("l2", "efficientvit_sam_l2");
+		MODELS_DICT.put("xl0", "efficientvit_sam_xl0");
+		MODELS_DICT.put("xl1", "efficientvit_sam_xl1");
+	}
+	
 	public static final String IMPORTS = ""
 			+ "task.update('start')" + System.lineSeparator()
 			+ "from skimage import measure" + System.lineSeparator()
 			+ "import numpy as np" + System.lineSeparator()
 			+ "import torch" + System.lineSeparator()
 			+ "import sys" + System.lineSeparator()
+			+ "import os" + System.lineSeparator()
 			+ "sys.path.append('%s')" + System.lineSeparator()
 			+ "from multiprocessing import shared_memory" + System.lineSeparator()
 			+ "task.update('import sam')" + System.lineSeparator()
-			+ "from efficientvit.sam_model_zoo import create_sam_model" + System.lineSeparator()
+			+ "from efficientvit.models.nn.norm import set_norm_eps" + System.lineSeparator()
+			+ "from efficientvit.models.efficientvit import EfficientViTSam, %s" + System.lineSeparator()
 			+ "from efficientvit.models.efficientvit.sam import EfficientViTSamPredictor" + System.lineSeparator()
 			+ "task.update('imported')" + System.lineSeparator()
 			+ "" + System.lineSeparator()
-			+ "predictor = EfficientViTSamPredictor(efficientvit_sam).cpu().eval()" + System.lineSeparator()
+			+ "predictor = %s({}).cpu().eval()" + System.lineSeparator()
+			+ "set_norm_eps(predictor, 1e-6)" + System.lineSeparator()
+			+ "file = os.path.realpath(os.path.expanduser(%S))" + System.lineSeparator()
+			+ "weight = torch.load(file, map_location='cpu')" + System.lineSeparator()
+			+ "if \"state_dict\" in weight:" + System.lineSeparator()
+			+ "  weight = weight[\"state_dict\"]" + System.lineSeparator()
+			+ "predictor.load_state_dict(weight)" + System.lineSeparator()
 			+ "task.update('created predictor')" + System.lineSeparator()
 			+ "globals()['shared_memory'] = shared_memory" + System.lineSeparator()
 			+ "globals()['measure'] = measure" + System.lineSeparator()
@@ -64,13 +82,26 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 	private String IMPORTS_FORMATED;
 
 	private EfficientViTSamJ(SamEnvManager manager) throws IOException, RuntimeException, InterruptedException {
-		this(manager, (t) -> {}, false);
+		this(manager, "l0", (t) -> {}, false);
+	}
+
+	private EfficientViTSamJ(SamEnvManager manager, String type) throws IOException, RuntimeException, InterruptedException {
+		this(manager, type, (t) -> {}, false);
 	}
 
 	private EfficientViTSamJ(SamEnvManager manager,
 	                      final DebugTextPrinter debugPrinter,
 	                      final boolean printPythonCode) throws IOException, RuntimeException, InterruptedException {
+		this(manager, "l0", (t) -> {}, false);
+	}
 
+	private EfficientViTSamJ(SamEnvManager manager, String type,
+	                      final DebugTextPrinter debugPrinter,
+	                      final boolean printPythonCode) throws IOException, RuntimeException, InterruptedException {
+
+		if (!MODELS_DICT.keySet().contains(type))
+			throw new IllegalArgumentException("The model type should be one of hte following: " 
+							+ MODELS_DICT.keySet().stream().collect(Collectors.toList()));
 		this.debugPrinter = debugPrinter;
 		this.isDebugging = printPythonCode;
 

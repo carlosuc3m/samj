@@ -43,11 +43,14 @@ public class PromptsToEfficientSamJ implements PromptsToNetAdapter {
 	}
 
 	@Override
-	public List<Polygon> fetch2dSegmentation(List<Localizable> listOfPoints2D) {
+	public List<Polygon> fetch2dSegmentation(List<Localizable> listOfPoints2D, List<Localizable> listOfNegPoints2D) {
 		try {
-			return efficientSamJ.processPoints(listOfPoints2D.stream()
-					.map(i -> new int[] {(int) i.positionAsDoubleArray()[0], (int) i.positionAsDoubleArray()[1]})
-					.collect(Collectors.toList()));
+			List<int[]> list = listOfPoints2D.stream()
+					.map(i -> new int[] {(int) i.positionAsDoubleArray()[0], (int) i.positionAsDoubleArray()[1]}).collect(Collectors.toList());
+			List<int[]> negList = listOfNegPoints2D.stream()
+					.map(i -> new int[] {(int) i.positionAsDoubleArray()[0], (int) i.positionAsDoubleArray()[1]}).collect(Collectors.toList());
+			if (negList.size() == 0) return efficientSamJ.processPoints(list);
+			else return efficientSamJ.processPoints(list, negList);
 		} catch (IOException | RuntimeException | InterruptedException e) {
 			log.error(LONG_NAME+", providing empty result because of some trouble: "+e.getMessage());
 			e.printStackTrace();

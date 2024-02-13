@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface PromptsToNetAdapter {
 
-	List<Polygon> fetch2dSegmentation(List<Localizable> listOfPoints2D);
+	List<Polygon> fetch2dSegmentation(List<Localizable> listOfPoints2D, List<Localizable> listOfNegPoints2D);
 
 	List<Polygon> fetch2dSegmentation(Localizable lineStartPoint2D, Localizable lineEndPoint2D);
 

@@ -1,17 +1,20 @@
 package ai.nets.samj.communication.model;
 
-import ai.nets.samj.communication.PromptsToFakeSamJ;
+import java.io.IOException;
+
+import ai.nets.samj.communication.PromptsToEfficientSamJ;
 import ai.nets.samj.communication.PromptsToNetAdapter;
 import ai.nets.samj.ui.SAMJLogger;
 import net.imglib2.RandomAccessibleInterval;
 
 public class SAMViTLarge implements SAMModel {
+	public static final String FULL_NAME = "SAM Large";
 
 	private boolean installed = false;
 	
 	@Override
 	public String getName() {
-		return "ViT Large";
+		return FULL_NAME;
 	}
 
 	@Override
@@ -26,7 +29,13 @@ public class SAMViTLarge implements SAMModel {
 
 	@Override
 	public PromptsToNetAdapter instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt) {
-		return new PromptsToFakeSamJ(useThisLoggerForIt, "Official_ViT");
+		try {
+			return new PromptsToEfficientSamJ(image,useThisLoggerForIt);
+		} catch (IOException | InterruptedException | RuntimeException e) {
+			useThisLoggerForIt.error(FULL_NAME+" experienced an error: "+e.getMessage());
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@Override

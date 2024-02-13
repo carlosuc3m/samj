@@ -27,7 +27,7 @@ import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
-public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
+public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 
 	private final Environment env;
 	
@@ -50,10 +50,11 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "sys.path.append('%s')" + System.lineSeparator()
 			+ "from multiprocessing import shared_memory" + System.lineSeparator()
 			+ "task.update('import sam')" + System.lineSeparator()
-			+ "from efficient_sam.efficient_sam import build_efficient_sam" + System.lineSeparator()
+			+ "from efficientvit.sam_model_zoo import create_sam_model" + System.lineSeparator()
+			+ "from efficientvit.models.efficientvit.sam import EfficientViTSamPredictor" + System.lineSeparator()
 			+ "task.update('imported')" + System.lineSeparator()
 			+ "" + System.lineSeparator()
-			+ "predictor = build_efficient_sam(encoder_patch_embed_dim=384,encoder_num_heads=6,checkpoint='%s',).eval()" + System.lineSeparator()
+			+ "predictor = EfficientViTSamPredictor(efficientvit_sam).cpu().eval()" + System.lineSeparator()
 			+ "task.update('created predictor')" + System.lineSeparator()
 			+ "globals()['shared_memory'] = shared_memory" + System.lineSeparator()
 			+ "globals()['measure'] = measure" + System.lineSeparator()
@@ -62,11 +63,11 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "globals()['predictor'] = predictor" + System.lineSeparator();
 	private String IMPORTS_FORMATED;
 
-	private EfficientSamJ(SamEnvManager manager) throws IOException, RuntimeException, InterruptedException {
+	private EfficientViTSamJ(SamEnvManager manager) throws IOException, RuntimeException, InterruptedException {
 		this(manager, (t) -> {}, false);
 	}
 
-	private EfficientSamJ(SamEnvManager manager,
+	private EfficientViTSamJ(SamEnvManager manager,
 	                      final DebugTextPrinter debugPrinter,
 	                      final boolean printPythonCode) throws IOException, RuntimeException, InterruptedException {
 
@@ -93,14 +94,14 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 			throw new RuntimeException();
 	}
 
-	public static <T extends RealType<T> & NativeType<T>> EfficientSamJ
+	public static <T extends RealType<T> & NativeType<T>> EfficientViTSamJ
 	initializeSam(SamEnvManager manager,
 	              RandomAccessibleInterval<T> image,
 	              final DebugTextPrinter debugPrinter,
 	              final boolean printPythonCode) throws IOException, RuntimeException, InterruptedException {
-		EfficientSamJ sam = null;
+		EfficientViTSamJ sam = null;
 		try{
-			sam = new EfficientSamJ(manager, debugPrinter, printPythonCode);
+			sam = new EfficientViTSamJ(manager, debugPrinter, printPythonCode);
 			sam.addImage(image);
 		} catch (IOException | RuntimeException | InterruptedException ex) {
 			if (sam != null) sam.close();
@@ -109,11 +110,11 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		return sam;
 	}
 
-	public static <T extends RealType<T> & NativeType<T>> EfficientSamJ
+	public static <T extends RealType<T> & NativeType<T>> EfficientViTSamJ
 	initializeSam(SamEnvManager manager, RandomAccessibleInterval<T> image) throws IOException, RuntimeException, InterruptedException {
-		EfficientSamJ sam = null;
+		EfficientViTSamJ sam = null;
 		try{
-			sam = new EfficientSamJ(manager);
+			sam = new EfficientViTSamJ(manager);
 			sam.addImage(image);
 		} catch (IOException | RuntimeException | InterruptedException ex) {
 			if (sam != null) sam.close();
@@ -134,7 +135,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		sendImgLib2AsNp(rai);
 		this.script += ""
 				+ "task.update(str(im.shape))" + System.lineSeparator()
-				+ "aa = predictor.get_image_embeddings(im[None, ...])";
+				+ "predictor.set_image(im[None, ...])";
 		try {
 			printScript(script, "Creation of initial embeddings");
 			Task task = python.task(script);
@@ -284,14 +285,11 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 				+ "input_label = np.array([1] * " + (nPoints + nNegPoints) + ")" + System.lineSeparator()
 				+ "input_label[" + nPoints + ":] *= 2" + System.lineSeparator()
 				+ "input_label = torch.reshape(torch.tensor(input_label), [1, 1, -1])" + System.lineSeparator()
-				+ "predicted_logits, predicted_iou = predictor.predict_masks(predictor.encoded_images," + System.lineSeparator()
-				+ "    input_points," + System.lineSeparator()
-				+ "    input_label," + System.lineSeparator()
-				+ "    multimask_output=True," + System.lineSeparator()
-				+ "    input_h=input_h," + System.lineSeparator()
-				+ "    input_w=input_w," + System.lineSeparator()
-				+ "    output_h=input_h," + System.lineSeparator()
-				+ "    output_w=input_w,)" + System.lineSeparator()
+				+ "predicted_logits, _ = predictor.predict(" + System.lineSeparator()
+				+ "    point_coords=input_points," + System.lineSeparator()
+				+ "    point_labels=input_label," + System.lineSeparator()
+				+ "    multimask_output=False," + System.lineSeparator()
+				+ "    box=None,)" + System.lineSeparator()
 				+ "sorted_ids = torch.argsort(predicted_iou, dim=-1, descending=True)" + System.lineSeparator()
 				+ "predicted_iou = torch.take_along_dim(predicted_iou, sorted_ids, dim=2)" + System.lineSeparator()
 				+ "predicted_logits = torch.take_along_dim(predicted_logits, sorted_ids[..., None, None], dim=2)" + System.lineSeparator()
@@ -313,14 +311,11 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 				+ "input_box = torch.reshape(torch.tensor(input_box), [1, 1, -1, 2])" + System.lineSeparator()
 				+ "input_label = np.array([2,3])" + System.lineSeparator()
 				+ "input_label = torch.reshape(torch.tensor(input_label), [1, 1, -1])" + System.lineSeparator()
-				+ "predicted_logits, predicted_iou = predictor.predict_masks(predictor.encoded_images," + System.lineSeparator()
-				+ "    input_box," + System.lineSeparator()
-				+ "    input_label," + System.lineSeparator()
-				+ "    multimask_output=True," + System.lineSeparator()
-				+ "    input_h=input_h," + System.lineSeparator()
-				+ "    input_w=input_w," + System.lineSeparator()
-				+ "    output_h=input_h," + System.lineSeparator()
-				+ "    output_w=input_w,)" + System.lineSeparator()
+				+ "predicted_logits, _ = predictor.predict(" + System.lineSeparator()
+				+ "    point_coords=None," + System.lineSeparator()
+				+ "    point_labels=None," + System.lineSeparator()
+				+ "    multimask_output=False," + System.lineSeparator()
+				+ "    box=input_box,)" + System.lineSeparator()
 				+ "sorted_ids = torch.argsort(predicted_iou, dim=-1, descending=True)" + System.lineSeparator()
 				+ "predicted_iou = torch.take_along_dim(predicted_iou, sorted_ids, dim=2)" + System.lineSeparator()
 				+ "predicted_logits = torch.take_along_dim(predicted_logits, sorted_ids[..., None, None], dim=2)" + System.lineSeparator()
@@ -367,7 +362,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	public static void main(String[] args) throws IOException, RuntimeException, InterruptedException {
 		RandomAccessibleInterval<UnsignedByteType> img = ArrayImgs.unsignedBytes(new long[] {50, 50, 3});
 		img = Views.addDimension(img, 1, 2);
-		try (EfficientSamJ sam = initializeSam(SamEnvManager.create(), img)) {
+		try (EfficientViTSamJ sam = initializeSam(SamEnvManager.create(), img)) {
 			sam.processBox(new int[] {0, 5, 10, 26});
 		}
 	}

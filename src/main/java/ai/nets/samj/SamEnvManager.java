@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import io.bioimage.modelrunner.bioimageio.download.DownloadModel;
 import io.bioimage.modelrunner.bioimageio.download.DownloadTracker;
 import io.bioimage.modelrunner.engine.installation.FileDownloader;
 import io.bioimage.modelrunner.system.PlatformDetection;
@@ -266,7 +267,7 @@ public class SamEnvManager {
 	}
 	
 	public void downloadEfficientViTSAM(String modelType, boolean force, 
-			DownloadTracker.TwoParameterConsumer<String, Double> consumer2) throws IOException {
+			DownloadTracker.TwoParameterConsumer<String, Double> consumer2) throws IOException, InterruptedException {
 		if (modelType.equals(DEFAULT_EVITSAM)) {
 			downloadEfficientViTSAML0(force, consumer2); return;
 		}
@@ -276,23 +277,18 @@ public class SamEnvManager {
 		if (!force && checkEfficientSAMSmallWeightsDownloaded())
 			return;
 		Thread thread = reportProgress(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- INSTALLING EFFICIENTVITSAM WEIGHTS (" + modelType + ")");
-		String zipResourcePath = "efficient_sam_vits.pt.zip";
-        String outputDirectory = Paths.get(path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME, "weights").toFile().getAbsolutePath();
-        try (
-        	InputStream zipInputStream = SamEnvManager.class.getClassLoader().getResourceAsStream(zipResourcePath);
-        	ZipInputStream zipInput = new ZipInputStream(zipInputStream);
-        		) {
-    		File file = Paths.get(path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME, "weights", DownloadModel.getFileNameFromURLString(ESAMS_URL)).toFile();
+        try {
+    		File file = Paths.get(path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME, "weights", DownloadModel.getFileNameFromURLString(String.format(EVITSAM_URL, modelType))).toFile();
     		file.getParentFile().mkdirs();
     		Thread downloadThread = new Thread(() -> {
     			try {
-    				downloadFile(ESAMS_URL, file);
+    				downloadFile(String.format(EVITSAM_URL, modelType), file);
     			} catch (IOException | URISyntaxException e) {
     				e.printStackTrace();
     			}
             });
     		DownloadTracker tracker = DownloadTracker.getFilesDownloadTracker(Paths.get(path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME, "weights").toFile().toString(),
-    				consumer, Arrays.asList(new String[] {ESAMS_URL}), downloadThread);
+    				consumer2, Arrays.asList(new String[] {String.format(EVITSAM_URL, modelType)}), downloadThread);
     		downloadThread.start();
     		Thread trackerThread = new Thread(() -> {
                 try {
@@ -302,10 +298,8 @@ public class SamEnvManager {
     			}
             });
     		trackerThread.start();
-    		try { DownloadTracker.printProgress(downloadThread, consumer); } 
-    		catch (InterruptedException ex) { throw new InterruptedException("Model download interrupted."); }
-    		ZipUtils.unzipFolder(file.getAbsolutePath(), file.getAbsolutePath().substring(0, file.getAbsolutePath().length() - 4));
-        } catch (IOException ex) {
+    		DownloadTracker.printProgress(downloadThread, consumer2);
+        } catch (IOException | InterruptedException ex) {
             thread.interrupt();
             consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED EFFICIENTVITSAM WEIGHTS INSTALLATION");
             throw ex;

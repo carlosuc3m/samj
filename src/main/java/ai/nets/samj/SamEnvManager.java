@@ -28,6 +28,7 @@ import io.bioimage.modelrunner.system.PlatformDetection;
 import org.apache.commons.compress.archivers.ArchiveException;
 import io.bioimage.modelrunner.apposed.appose.Mamba;
 import io.bioimage.modelrunner.apposed.appose.MambaInstallException;
+import io.bioimage.modelrunner.apposed.appose.MambaInstallerUtils;
 
 /*
  * Class that is manages the installation of SAM and EfficientSAM together with Python, their corresponding environments
@@ -263,22 +264,23 @@ public class SamEnvManager {
         try {
     		File file = Paths.get(path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME, "weights", DownloadModel.getFileNameFromURLString(String.format(EVITSAM_URL, modelType))).toFile();
     		file.getParentFile().mkdirs();
+    		URL url = MambaInstallerUtils.redirectedURL(new URL(String.format(EVITSAM_URL, modelType)));
     		Thread downloadThread = new Thread(() -> {
     			try {
-    				downloadFile(String.format(EVITSAM_URL, modelType), file);
+    				downloadFile(url.toString(), file);
     			} catch (IOException | URISyntaxException e) {
     				e.printStackTrace();
     			}
             });
-    		DownloadTracker tracker = DownloadTracker.getFilesDownloadTracker(Paths.get(path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME, "weights").toFile().toString(),
-    				consumer2, Arrays.asList(new String[] {String.format(EVITSAM_URL, modelType)}), downloadThread);
     		downloadThread.start();
     		Thread trackerThread = new Thread(() -> {
-                try {
-                	tracker.track();
-    			} catch (IOException | InterruptedException e) {
-    				e.printStackTrace();
-    			}
+                	long size = DownloadModel.getFileSize(url);
+                	while (downloadThread.isAlive()) {
+                		try {Thread.sleep(280);} catch (InterruptedException e) {break;}
+                		double progress = Math.round( (double) 100 * file.length() / size ); 
+                		if (progress < 0 || progress > 1) passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTVITSAM WEIGHTS DOWNLOAD: UNKNOWN%");
+                		else passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTVITSAM WEIGHTS DOWNLOAD: " + progress + "%");
+                	}
             });
     		trackerThread.start();
     		DownloadTracker.printProgress(downloadThread, consumer2);
@@ -286,7 +288,11 @@ public class SamEnvManager {
             thread.interrupt();
             passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED EFFICIENTVITSAM WEIGHTS INSTALLATION");
             throw ex;
-        }
+        } catch (URISyntaxException e1) {
+            passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED EFFICIENTVITSAM WEIGHTS INSTALLATION");
+            throw new IOException("Unable to find the download URL for EfficientViTSAM " + modelType + ": " + String.format(EVITSAM_URL, modelType));
+
+		}
         thread.interrupt();
         passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTVITSAM WEIGHTS INSTALLED");
 	}

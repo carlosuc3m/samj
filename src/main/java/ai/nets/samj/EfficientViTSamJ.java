@@ -24,7 +24,6 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
-import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
@@ -86,18 +85,8 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "globals()['predictor'] = predictor" + System.lineSeparator();
 	private String IMPORTS_FORMATED;
 
-	private EfficientViTSamJ(SamEnvManager manager) throws IOException, RuntimeException, InterruptedException {
-		this(manager, "l0", (t) -> {}, false);
-	}
-
 	private EfficientViTSamJ(SamEnvManager manager, String type) throws IOException, RuntimeException, InterruptedException {
 		this(manager, type, (t) -> {}, false);
-	}
-
-	private EfficientViTSamJ(SamEnvManager manager,
-	                      final DebugTextPrinter debugPrinter,
-	                      final boolean printPythonCode) throws IOException, RuntimeException, InterruptedException {
-		this(manager, "l0", (t) -> {}, false);
 	}
 
 	private EfficientViTSamJ(SamEnvManager manager, String type,
@@ -131,13 +120,13 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 	}
 
 	public static <T extends RealType<T> & NativeType<T>> EfficientViTSamJ
-	initializeSam(SamEnvManager manager,
+	initializeSam(String modelType, SamEnvManager manager,
 	              RandomAccessibleInterval<T> image,
 	              final DebugTextPrinter debugPrinter,
 	              final boolean printPythonCode) throws IOException, RuntimeException, InterruptedException {
 		EfficientViTSamJ sam = null;
 		try{
-			sam = new EfficientViTSamJ(manager, debugPrinter, printPythonCode);
+			sam = new EfficientViTSamJ(manager, modelType, debugPrinter, printPythonCode);
 			sam.addImage(image);
 		} catch (IOException | RuntimeException | InterruptedException ex) {
 			if (sam != null) sam.close();
@@ -147,16 +136,30 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 	}
 
 	public static <T extends RealType<T> & NativeType<T>> EfficientViTSamJ
-	initializeSam(SamEnvManager manager, RandomAccessibleInterval<T> image) throws IOException, RuntimeException, InterruptedException {
+	initializeSam(String modelType, SamEnvManager manager, RandomAccessibleInterval<T> image) 
+				throws IOException, RuntimeException, InterruptedException {
 		EfficientViTSamJ sam = null;
 		try{
-			sam = new EfficientViTSamJ(manager);
+			sam = new EfficientViTSamJ(manager, modelType);
 			sam.addImage(image);
 		} catch (IOException | RuntimeException | InterruptedException ex) {
 			if (sam != null) sam.close();
 			throw ex;
 		}
 		return sam;
+	}
+
+	public static <T extends RealType<T> & NativeType<T>> EfficientViTSamJ
+	initializeSam(SamEnvManager manager,
+	              RandomAccessibleInterval<T> image,
+	              final DebugTextPrinter debugPrinter,
+	              final boolean printPythonCode) throws IOException, RuntimeException, InterruptedException {
+		return initializeSam(SamEnvManager.DEFAULT_EVITSAM, manager, image, debugPrinter, printPythonCode);
+	}
+
+	public static <T extends RealType<T> & NativeType<T>> EfficientViTSamJ
+	initializeSam(SamEnvManager manager, RandomAccessibleInterval<T> image) throws IOException, RuntimeException, InterruptedException {
+		return initializeSam(SamEnvManager.DEFAULT_EVITSAM, manager, image);
 	}
 	
 	public <T extends RealType<T> & NativeType<T>>

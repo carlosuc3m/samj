@@ -40,7 +40,7 @@ public class SamEnvManager {
 	final public static String SAM_WEIGHTS_NAME = "sam_vit_h_4b8939.pth";
 	final public static String ESAM_SMALL_WEIGHTS_NAME ="efficient_sam_vits.pt";
 	final public static String SAM_MODEL_TYPE = "vit_b";
-	final private static String DEFAULT_EVITSAM = "l0";
+	final public static String DEFAULT_EVITSAM = "l0";
 	
 	final public static List<String> CHECK_DEPS = Arrays.asList(new String[] {"appose", "torch", "torchvision", "skimage"});
 	

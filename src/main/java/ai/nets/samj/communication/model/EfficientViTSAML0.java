@@ -7,8 +7,8 @@ import ai.nets.samj.communication.PromptsToNetAdapter;
 import ai.nets.samj.ui.SAMJLogger;
 import net.imglib2.RandomAccessibleInterval;
 
-public class SAMViTLarge implements SAMModel {
-	public static final String FULL_NAME = "SAM Large";
+public class EfficientViTSAML0 implements SAMModel {
+	public static final String FULL_NAME = "EfficientViTSAM l0";
 
 	private boolean installed = false;
 	
@@ -32,7 +32,7 @@ public class SAMViTLarge implements SAMModel {
 		try {
 			return new PromptsToEfficientSamJ(image,useThisLoggerForIt);
 		} catch (IOException | InterruptedException | RuntimeException e) {
-			useThisLoggerForIt.error(FULL_NAME+" experienced an error: "+e.getMessage());
+			useThisLoggerForIt.error(FULL_NAME + " experienced an error: " + e.getMessage());
 			e.printStackTrace();
 		}
 		return null;

@@ -1,17 +1,17 @@
 package ai.nets.samj.communication.model;
 
-import net.imglib2.RandomAccessibleInterval;
-
 import java.io.IOException;
 
 import ai.nets.samj.communication.PromptsToEfficientSamJ;
 import ai.nets.samj.communication.PromptsToNetAdapter;
 import ai.nets.samj.ui.SAMJLogger;
+import net.imglib2.RandomAccessibleInterval;
 
-public class EfficientSAM implements SAMModel {
-	private Boolean installed = false;
-	public static final String FULL_NAME = "EfficientSAM";
+public class EfficientViTSAML2 implements SAMModel {
+	public static final String FULL_NAME = "EfficientViTSAM l2";
 
+	private boolean installed = false;
+	
 	@Override
 	public String getName() {
 		return FULL_NAME;
@@ -19,7 +19,7 @@ public class EfficientSAM implements SAMModel {
 
 	@Override
 	public String getDescription() {
-		return "Bla bla Efficient SAM";
+		return "Bla bla SAM Official ViT";
 	}
 
 	@Override

@@ -30,7 +30,7 @@ import javax.swing.JToolBar;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-import ai.nets.samj.communication.PromptsToNetAdapter;
+import ai.nets.samj.communication.model.SAMModel;
 import ai.nets.samj.communication.model.SAMModels;
 import ai.nets.samj.gui.components.ComboBoxItem;
 import ai.nets.samj.gui.components.GridPanel;
@@ -229,7 +229,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 
 			GUIsOwnLog.warn("Start the encoding");
 			display = displayInterface.getPrompts(((ComboBoxItem) this.cmbImage.getSelectedItem()).getValue());
-			PromptsToNetAdapter netAdapter = panelModel
+			SAMModel netAdapter = panelModel
 					.getSelectedModel()
 					.instantiate(display.giveProcessedSubImage(), logForNetworks);
 			display.switchToThisNet(netAdapter);

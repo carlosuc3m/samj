@@ -1,7 +1,12 @@
 package ai.nets.samj.communication.model;
 
+import java.awt.Polygon;
+import java.util.List;
+
 import ai.nets.samj.communication.PromptsToNetAdapter;
 import ai.nets.samj.ui.SAMJLogger;
+import net.imglib2.Interval;
+import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
 
 /**
@@ -20,7 +25,19 @@ public interface SAMModel {
 	void setInstalled(boolean installed);
 
 	/** Returns null if it is no installed. */
-	PromptsToNetAdapter instantiate(
+	SAMModel instantiate(
 			final RandomAccessibleInterval<?> image,
 			final SAMJLogger useThisLoggerForIt);
+
+	List<Polygon> fetch2dSegmentation(List<Localizable> listOfPoints2D, List<Localizable> listOfNegPoints2D);
+
+	List<Polygon> fetch2dSegmentation(Localizable lineStartPoint2D, Localizable lineEndPoint2D);
+
+	List<Polygon> fetch2dSegmentation(Interval boundingBox2D);
+
+	void closeProcess();
+
+	String getNetName();
+
+	void notifyUiHasBeenClosed();
 }

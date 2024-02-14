@@ -4,7 +4,7 @@ import net.imglib2.RandomAccessibleInterval;
 
 import java.util.List;
 
-import ai.nets.samj.communication.PromptsToNetAdapter;
+import ai.nets.samj.communication.model.SAMModel;
 
 import java.awt.Polygon;
 
@@ -25,7 +25,7 @@ public interface PromptsResultsDisplay {
 	 */
 	RandomAccessibleInterval<?> giveProcessedSubImage();
 
-	void switchToThisNet(final PromptsToNetAdapter promptsToNetAdapter);
+	void switchToThisNet(final SAMModel promptsToNetAdapter);
 	void notifyNetToClose();
 
 	List<Polygon> getPolygonsFromRoiManager();

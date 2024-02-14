@@ -11,19 +11,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import ai.nets.samj.AbstractSamJ;
-import ai.nets.samj.EfficientSamJ;
+import ai.nets.samj.EfficientViTSamJ;
 import ai.nets.samj.SamEnvManager;
 import ai.nets.samj.ui.SAMJLogger;
 
 public class EfficientViTSAML2 implements SAMModel {
 
 	private static final Polygon EMPTY_POLYGON = new Polygon(new int[0], new int[0], 0);
-	private static final String LONG_NAME = "EfficientSamJ";
 
-	private final EfficientSamJ efficientSamJ;
-	private final SAMJLogger log;
+	private EfficientViTSamJ efficientSamJ;
+	private SAMJLogger log;
 	private Boolean installed = false;
-	public static final String FULL_NAME = "EfficientSAM";
+	public static final String FULL_NAME = "EfficientViTSAM-l2";
+	
+	public EfficientViTSAML2() {
+		
+	}
 
 	@Override
 	public String getName() {
@@ -65,7 +68,7 @@ public class EfficientViTSAML2 implements SAMModel {
 			if (idx > 0) this.log.info( text.substring(0,idx) );
 			else this.log.info( text );
 		};
-		efficientSamJ = EfficientSamJ.initializeSam(
+		efficientSamJ = EfficientViTSamJ.initializeSam("l2",
 				SamEnvManager.create(), (RandomAccessibleInterval)image,
 				filteringLogger, false);
 	}
@@ -80,7 +83,7 @@ public class EfficientViTSAML2 implements SAMModel {
 			if (negList.size() == 0) return efficientSamJ.processPoints(list);
 			else return efficientSamJ.processPoints(list, negList);
 		} catch (IOException | RuntimeException | InterruptedException e) {
-			log.error(LONG_NAME+", providing empty result because of some trouble: "+e.getMessage());
+			log.error(FULL_NAME+", providing empty result because of some trouble: "+e.getMessage());
 			e.printStackTrace();
 			List<Polygon> retList = new ArrayList<>(1);
 			retList.add( EMPTY_POLYGON );
@@ -90,7 +93,7 @@ public class EfficientViTSAML2 implements SAMModel {
 
 	@Override
 	public List<Polygon> fetch2dSegmentation(Localizable lineStartPoint2D, Localizable lineEndPoint2D) {
-		log.info(LONG_NAME+": NOT SUPPORTED YET");
+		log.info(FULL_NAME+": NOT SUPPORTED YET");
 		List<Polygon> retList = new ArrayList<>(1);
 		retList.add( EMPTY_POLYGON );
 		return retList;
@@ -108,7 +111,7 @@ public class EfficientViTSAML2 implements SAMModel {
 			};
 			return efficientSamJ.processBox(bbox);
 		} catch (IOException | InterruptedException | RuntimeException e) {
-			log.error(LONG_NAME+", providing empty result because of some trouble: "+e.getMessage());
+			log.error(FULL_NAME+", providing empty result because of some trouble: "+e.getMessage());
 			e.printStackTrace();
 			List<Polygon> retList = new ArrayList<>(1);
 			retList.add( EMPTY_POLYGON );
@@ -118,7 +121,7 @@ public class EfficientViTSAML2 implements SAMModel {
 
 	@Override
 	public void notifyUiHasBeenClosed() {
-		log.info(LONG_NAME+": OKAY, I'm closing myself...");
+		log.info(FULL_NAME+": OKAY, I'm closing myself...");
 		closeProcess();
 	}
 

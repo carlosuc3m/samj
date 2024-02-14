@@ -20,10 +20,12 @@ public class EfficientSAM implements SAMModel {
 	private static final Polygon EMPTY_POLYGON = new Polygon(new int[0], new int[0], 0);
 	private static final String LONG_NAME = "EfficientSamJ";
 
-	private final EfficientSamJ efficientSamJ;
-	private final SAMJLogger log;
+	private EfficientSamJ efficientSamJ;
+	private SAMJLogger log;
 	private Boolean installed = false;
 	public static final String FULL_NAME = "EfficientSAM";
+	
+	public EfficientSAM() {}
 
 	@Override
 	public String getName() {

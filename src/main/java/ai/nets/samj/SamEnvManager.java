@@ -37,6 +37,7 @@ public class SamEnvManager {
 	final public static String SAM_WEIGHTS_NAME = "sam_vit_h_4b8939.pth";
 	final public static String ESAM_SMALL_WEIGHTS_NAME ="efficient_sam_vits.pt";
 	final public static String SAM_MODEL_TYPE = "vit_b";
+	final private static String DEFAULT_EVITSAM = "l0";
 	
 	final public static List<String> CHECK_DEPS = Arrays.asList(new String[] {"appose", "torch", "torchvision", "skimage"});
 	
@@ -157,7 +158,7 @@ public class SamEnvManager {
 			return;
 	}
 	
-	public void downloadESAMSmall(DownloadTracker.TwoParameterConsumer<String, Double> consumer) throws IOException, InterruptedException {
+	public void downloadESAMSmall() throws IOException, InterruptedException {
 		downloadESAMSmall(false);
 	}
 	
@@ -222,8 +223,89 @@ public class SamEnvManager {
 		**/
 	}
 	
-	public void downloadESAMSmall() throws IOException, InterruptedException {
-		downloadESAMSmall(false);
+	public void downloadEfficientViTSAM() throws IOException, InterruptedException {
+		downloadEfficientViTSAM(DEFAULT_EVITSAM, false, null);
+	}
+	
+	public void downloadEfficientViTSAM(boolean force) throws IOException, InterruptedException {
+		downloadEfficientViTSAM(DEFAULT_EVITSAM, force, null);
+	}
+	
+	public void downloadEfficientViTSAM(String modelType) throws IOException, InterruptedException {
+		downloadEfficientViTSAM(modelType, false, null);
+	}
+	
+	public void downloadEfficientViTSAM(String modelType, boolean force) throws IOException, InterruptedException {
+		downloadEfficientViTSAM(modelType, force, null);
+	}
+
+	public void downloadEfficientViTSAM(String modelType, DownloadTracker.TwoParameterConsumer<String, Double> consumer) throws IOException, InterruptedException {
+		downloadEfficientViTSAM(modelType, false, consumer); 
+	}
+	
+	// TODO
+	public void downloadEfficientViTSAM(String modelType, boolean force, 
+			DownloadTracker.TwoParameterConsumer<String, Double> consumer2) throws IOException {
+		if (!EfficientViTSamJ.getListOfSupportedEfficientViTSAM().contains(modelType))
+			throw new IllegalArgumentException("The provided model is not one of the supported EfficientViT models: " 
+												+ EfficientViTSamJ.getListOfSupportedEfficientViTSAM());
+		if (!force && checkEfficientSAMSmallWeightsDownloaded())
+			return;
+		Thread thread = reportProgress(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- INSTALLING EFFICIENTSAM WEIGHTS");
+		String zipResourcePath = "efficient_sam_vits.pt.zip";
+        String outputDirectory = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights").toFile().getAbsolutePath();
+        try (
+        	InputStream zipInputStream = SamEnvManager.class.getClassLoader().getResourceAsStream(zipResourcePath);
+        	ZipInputStream zipInput = new ZipInputStream(zipInputStream);
+        		) {
+        	ZipEntry entry;
+        	while ((entry = zipInput.getNextEntry()) != null) {
+                File entryFile = new File(outputDirectory + File.separator + entry.getName());
+                if (entry.isDirectory()) {
+                	entryFile.mkdirs();
+                	continue;
+                }
+            	entryFile.getParentFile().mkdirs();
+                try (OutputStream entryOutput = new FileOutputStream(entryFile)) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = zipInput.read(buffer)) != -1) {
+                        entryOutput.write(buffer, 0, bytesRead);
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            thread.interrupt();
+            consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED EFFICIENTSAM WEIGHTS INSTALLATION");
+            throw ex;
+        }
+        thread.interrupt();
+        consumer.accept(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTSAM WEIGHTS INSTALLED");
+		/** TODO AVOID DOWONLOADING EFF SAM
+		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", DownloadModel.getFileNameFromURLString(ESAMS_URL)).toFile();
+		file.getParentFile().mkdirs();
+		Thread downloadThread = new Thread(() -> {
+			try {
+				downloadFile(ESAMS_URL, file);
+			} catch (IOException | URISyntaxException e) {
+				e.printStackTrace();
+			}
+        });
+		DownloadTracker tracker = DownloadTracker.getFilesDownloadTracker(Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights").toFile().toString(),
+				consumer, Arrays.asList(new String[] {ESAMS_URL}), downloadThread);
+		downloadThread.start();
+		Thread trackerThread = new Thread(() -> {
+            try {
+            	tracker.track();
+			} catch (IOException | InterruptedException e) {
+				e.printStackTrace();
+			}
+        });
+		trackerThread.start();
+		try { DownloadTracker.printProgress(downloadThread, consumer); } 
+		catch (InterruptedException ex) { throw new InterruptedException("Model download interrupted."); }
+		ZipUtils.unzipFolder(file.getAbsolutePath(), file.getAbsolutePath().substring(0, file.getAbsolutePath().length() - 4));
+		**/
 	}
 	
 	public void installPython() throws IOException, InterruptedException, ArchiveException, URISyntaxException, MambaInstallException {

@@ -72,8 +72,6 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	private final SAMJLogger logForNetworks;
 	
 	private Integer selectedID = null;
-
-	private boolean encodingDone = false;
 	
 	public interface PromptsFunctionalInterface { PromptsResultsDisplay getPrompts(Object image); }
 	private PromptsFunctionalInterface displayInterface;
@@ -235,7 +233,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			display.switchToThisNet(netAdapter);
 			GUIsOwnLog.warn("Finished the encoding");
 			//TODO: encoding should be a property of a model
-			encodingDone = true;
+			this.panelModel.setEncodingDone(true);
 		} else if (e.getSource() == chkROIManager) {
 			if (display != null)
 				display.enableAddingToRoiManager(chkROIManager.isSelected());
@@ -250,7 +248,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			this.cmbImage.setEnabled(false);
 			setEncodingsDone(false);
 		} else if (this.panelModel.isSelectedModelInstalled()
-				&& !this.encodingDone
+				&& !this.panelModel.getEncodingDone()
 				&& this.cmbImage.getSelectedItem() != null 
 				&& ((ComboBoxItem) this.cmbImage.getSelectedItem()).getId() != -1) {
 			this.bnStart.setEnabled(true);
@@ -265,24 +263,28 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			this.bnStart.setEnabled(false);
 			this.cmbImage.setEnabled(true);
 		}
-		bnComplete.setEnabled(encodingDone);
-		bnRoi2Mask.setEnabled(encodingDone);
-		chkROIManager.setEnabled(encodingDone);
-		bnRect.setEnabled(encodingDone);
-		bnPoints.setEnabled(encodingDone);
-		bnBrush.setEnabled(encodingDone);
-		bnMask.setEnabled(encodingDone);
+		bnComplete.setEnabled(this.panelModel.getEncodingDone());
+		bnRoi2Mask.setEnabled(this.panelModel.getEncodingDone());
+		chkROIManager.setEnabled(this.panelModel.getEncodingDone());
+		bnRect.setEnabled(this.panelModel.getEncodingDone());
+		bnPoints.setEnabled(this.panelModel.getEncodingDone());
+		bnBrush.setEnabled(this.panelModel.getEncodingDone());
+		bnMask.setEnabled(this.panelModel.getEncodingDone());
+		this.bnRect.setPressed(this.panelModel.getEncodingDone());
+		this.bnPoints.setPressed(this.panelModel.getEncodingDone());
+		this.bnBrush.setPressed(this.panelModel.getEncodingDone());
+		this.bnMask.setPressed(this.panelModel.getEncodingDone());
 	}
 	
 	private void setEncodingsDone(boolean isDone) {
-		if (!isDone && this.encodingDone) {
+		if (!isDone && this.panelModel.getEncodingDone()) {
 			display.notifyNetToClose();
 			this.bnRect.setPressed(false);
 			this.bnPoints.setPressed(false);
 			this.bnBrush.setPressed(false);
 			this.bnMask.setPressed(false);
 		}
-		this.encodingDone = isDone;
+		panelModel.setEncodingDone(isDone);
 	}
 
 	public class LocalDropTarget extends DropTarget {

@@ -38,6 +38,8 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 
 	private HTMLPane info = new HTMLPane(450, 135);
     private int waitingIter = 0;
+
+	private boolean encodingDone = false;
 	
 	private JButton bnInstall = new JButton("Install");
 	private JButton bnUninstall = new JButton("Uninstall");
@@ -317,6 +319,14 @@ public class SAMModelPanel extends JPanel implements ActionListener {
         	waitingIter += 1;
         }
     	return html;
+    }
+    
+    public void setEncodingDone(boolean enc) {
+    	this.encodingDone = enc;
+    }
+    
+    public boolean getEncodingDone() {
+    	return this.encodingDone;
     }
 }
 

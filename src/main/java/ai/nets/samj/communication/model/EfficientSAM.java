@@ -18,7 +18,6 @@ import ai.nets.samj.ui.SAMJLogger;
 public class EfficientSAM implements SAMModel {
 
 	private static final Polygon EMPTY_POLYGON = new Polygon(new int[0], new int[0], 0);
-	private static final String LONG_NAME = "EfficientSamJ";
 
 	private EfficientSamJ efficientSamJ;
 	private SAMJLogger log;
@@ -82,7 +81,7 @@ public class EfficientSAM implements SAMModel {
 			if (negList.size() == 0) return efficientSamJ.processPoints(list);
 			else return efficientSamJ.processPoints(list, negList);
 		} catch (IOException | RuntimeException | InterruptedException e) {
-			log.error(LONG_NAME+", providing empty result because of some trouble: "+e.getMessage());
+			log.error(FULL_NAME+", providing empty result because of some trouble: "+e.getMessage());
 			e.printStackTrace();
 			List<Polygon> retList = new ArrayList<>(1);
 			retList.add( EMPTY_POLYGON );
@@ -92,7 +91,7 @@ public class EfficientSAM implements SAMModel {
 
 	@Override
 	public List<Polygon> fetch2dSegmentation(Localizable lineStartPoint2D, Localizable lineEndPoint2D) {
-		log.info(LONG_NAME+": NOT SUPPORTED YET");
+		log.info(FULL_NAME+": NOT SUPPORTED YET");
 		List<Polygon> retList = new ArrayList<>(1);
 		retList.add( EMPTY_POLYGON );
 		return retList;
@@ -110,7 +109,7 @@ public class EfficientSAM implements SAMModel {
 			};
 			return efficientSamJ.processBox(bbox);
 		} catch (IOException | InterruptedException | RuntimeException e) {
-			log.error(LONG_NAME+", providing empty result because of some trouble: "+e.getMessage());
+			log.error(FULL_NAME+", providing empty result because of some trouble: "+e.getMessage());
 			e.printStackTrace();
 			List<Polygon> retList = new ArrayList<>(1);
 			retList.add( EMPTY_POLYGON );
@@ -120,13 +119,12 @@ public class EfficientSAM implements SAMModel {
 
 	@Override
 	public void notifyUiHasBeenClosed() {
-		log.info(LONG_NAME+": OKAY, I'm closing myself...");
+		log.info(FULL_NAME+": OKAY, I'm closing myself...");
 		closeProcess();
 	}
 
 	@Override
 	public void closeProcess() {
 		efficientSamJ.close();
-		
 	}
 }

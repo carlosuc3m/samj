@@ -3,6 +3,7 @@ package ai.nets.samj.communication.model;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.util.Cast;
 
 import java.awt.Polygon;
 import java.io.IOException;
@@ -69,7 +70,7 @@ public class EfficientViTSAML2 implements SAMModel {
 			else this.log.info( text );
 		};
 		efficientSamJ = EfficientViTSamJ.initializeSam("l2",
-				SamEnvManager.create(), (RandomAccessibleInterval)image,
+				SamEnvManager.create(), Cast.unchecked(image),
 				filteringLogger, false);
 	}
 
@@ -128,6 +129,5 @@ public class EfficientViTSAML2 implements SAMModel {
 	@Override
 	public void closeProcess() {
 		efficientSamJ.close();
-		
 	}
 }

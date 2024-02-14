@@ -3,7 +3,6 @@ package ai.nets.samj.communication.model;
 import java.awt.Polygon;
 import java.util.List;
 
-import ai.nets.samj.communication.PromptsToNetAdapter;
 import ai.nets.samj.ui.SAMJLogger;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
@@ -36,8 +35,6 @@ public interface SAMModel {
 	List<Polygon> fetch2dSegmentation(Interval boundingBox2D);
 
 	void closeProcess();
-
-	String getNetName();
 
 	void notifyUiHasBeenClosed();
 }

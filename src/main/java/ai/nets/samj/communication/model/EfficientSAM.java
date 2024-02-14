@@ -13,8 +13,6 @@ import java.util.stream.Collectors;
 import ai.nets.samj.AbstractSamJ;
 import ai.nets.samj.EfficientSamJ;
 import ai.nets.samj.SamEnvManager;
-import ai.nets.samj.communication.PromptsToEfficientSamJ;
-import ai.nets.samj.communication.PromptsToNetAdapter;
 import ai.nets.samj.ui.SAMJLogger;
 
 public class EfficientSAM implements SAMModel {
@@ -70,11 +68,6 @@ public class EfficientSAM implements SAMModel {
 		efficientSamJ = EfficientSamJ.initializeSam(
 				SamEnvManager.create(), (RandomAccessibleInterval)image,
 				filteringLogger, false);
-	}
-
-	@Override
-	public String getNetName() {
-		return "E.SAM";
 	}
 
 	@Override

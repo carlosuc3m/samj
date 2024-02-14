@@ -23,9 +23,9 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 
 import ai.nets.samj.communication.model.EfficientSAM;
+import ai.nets.samj.communication.model.EfficientViTSAML0;
 import ai.nets.samj.communication.model.SAMModel;
 import ai.nets.samj.communication.model.SAMModels;
-import ai.nets.samj.communication.model.SAMViTHuge;
 import ai.nets.samj.gui.components.GridPanel;
 import ai.nets.samj.gui.components.HTMLPane;
 import io.bioimage.modelrunner.apposed.appose.Mamba;
@@ -71,7 +71,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		for(SAMModel model : models) {
 			if (model.getName().equals(EfficientSAM.FULL_NAME)) 
 				model.setInstalled(manager.checkEfficientSAMSmallWeightsDownloaded() && manager.checkEfficientSAMPackageInstalled() && commonPython);
-			else if (model.getName().equals(SAMViTHuge.FULL_NAME))
+			else if (model.getName().equals(EfficientViTSAML0.FULL_NAME))
 				model.setInstalled(manager.checkSAMPackageInstalled() && manager.checkSAMWeightsDownloaded() && commonPython);
 			JRadioButton rb = new JRadioButton(model.getName(), model.isInstalled());
 			rbModels.add(rb);

@@ -252,9 +252,6 @@ public class SamEnvManager {
 	
 	public void downloadEfficientViTSAM(String modelType, boolean force, 
 			DownloadTracker.TwoParameterConsumer<String, Double> consumer2) throws IOException, InterruptedException {
-		if (modelType.equals(DEFAULT_EVITSAM)) {
-			downloadEfficientViTSAML0(force, consumer2); return;
-		}
 		if (!EfficientViTSamJ.getListOfSupportedEfficientViTSAM().contains(modelType))
 			throw new IllegalArgumentException("The provided model is not one of the supported EfficientViT models: " 
 												+ EfficientViTSamJ.getListOfSupportedEfficientViTSAM());
@@ -295,42 +292,6 @@ public class SamEnvManager {
 		}
         thread.interrupt();
         passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTVITSAM WEIGHTS INSTALLED");
-	}
-	
-	private void downloadEfficientViTSAML0(boolean force, 
-			DownloadTracker.TwoParameterConsumer<String, Double> consumer2) throws IOException {
-		if (!force && checkEfficientSAMSmallWeightsDownloaded())
-			return;
-		Thread thread = reportProgress(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- INSTALLING EFFICIENTVITSAM WEIGHTS (l0)");
-		String zipResourcePath = "efficient_vit_sam_l0.pt.zip";
-        String outputDirectory = Paths.get(path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME, "weights").toFile().getAbsolutePath();
-        try (
-        	InputStream zipInputStream = SamEnvManager.class.getClassLoader().getResourceAsStream(zipResourcePath);
-        	ZipInputStream zipInput = new ZipInputStream(zipInputStream);
-        		) {
-        	ZipEntry entry;
-        	while ((entry = zipInput.getNextEntry()) != null) {
-                File entryFile = new File(outputDirectory + File.separator + entry.getName());
-                if (entry.isDirectory()) {
-                	entryFile.mkdirs();
-                	continue;
-                }
-            	entryFile.getParentFile().mkdirs();
-                try (OutputStream entryOutput = new FileOutputStream(entryFile)) {
-                    byte[] buffer = new byte[1024];
-                    int bytesRead;
-                    while ((bytesRead = zipInput.read(buffer)) != -1) {
-                        entryOutput.write(buffer, 0, bytesRead);
-                    }
-                }
-            }
-        } catch (IOException ex) {
-            thread.interrupt();
-            passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED EFFICIENTVITSAM WEIGHTS (l0) INSTALLATION");
-            throw ex;
-        }
-        thread.interrupt();
-        passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTVITSAM WEIGHTS (l0) INSTALLED");
 	}
 	
 	public void installEfficientSAMPython() throws IOException, InterruptedException, ArchiveException, URISyntaxException, MambaInstallException {

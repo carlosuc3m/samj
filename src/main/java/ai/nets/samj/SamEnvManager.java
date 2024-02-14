@@ -668,9 +668,10 @@ public class SamEnvManager {
 	}
 	
 	private Thread reportProgress(String startStr) {
+		Thread currentThread = Thread.currentThread();
 		Thread thread = new Thread (() -> {
 			passToConsumer(startStr);
-			while (!Thread.interrupted()) {
+			while (currentThread.isAlive()) {
 				try {Thread.sleep(300);} catch (InterruptedException e) {break;}
 				if (System.currentTimeMillis() - millis > 300)
 					passToConsumer("");

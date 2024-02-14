@@ -24,6 +24,7 @@ import javax.swing.text.html.HTMLEditorKit;
 
 import ai.nets.samj.communication.model.EfficientSAM;
 import ai.nets.samj.communication.model.EfficientViTSAML0;
+import ai.nets.samj.communication.model.EfficientViTSAML2;
 import ai.nets.samj.communication.model.SAMModel;
 import ai.nets.samj.communication.model.SAMModels;
 import ai.nets.samj.gui.components.GridPanel;
@@ -67,12 +68,17 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		pnToolbarModel.add(bnUninstall);
 		
 		ButtonGroup group = new ButtonGroup();
-		boolean commonPython = manager.checkEfficientSAMPythonInstalled();
 		for(SAMModel model : models) {
 			if (model.getName().equals(EfficientSAM.FULL_NAME)) 
-				model.setInstalled(manager.checkEfficientSAMSmallWeightsDownloaded() && manager.checkEfficientSAMPackageInstalled() && commonPython);
+				model.setInstalled(manager.checkEfficientSAMPythonInstalled() 
+						&& manager.checkEfficientSAMSmallWeightsDownloaded() 
+						&& manager.checkEfficientSAMPackageInstalled());
 			else if (model.getName().equals(EfficientViTSAML0.FULL_NAME))
-				model.setInstalled(manager.checkSAMPackageInstalled() && manager.checkSAMWeightsDownloaded() && commonPython);
+				model.setInstalled(manager.checkEfficientViTSAMPythonInstalled() 
+						&& manager.checkEfficientViTSAMPackageInstalled() && manager.checkEfficientViTSAMWeightsDownloaded("l0"));
+			else if (model.getName().equals(EfficientViTSAML2.FULL_NAME))
+				model.setInstalled(manager.checkEfficientViTSAMPythonInstalled() 
+						&& manager.checkEfficientViTSAMPackageInstalled() && manager.checkEfficientViTSAMWeightsDownloaded("l2"));
 			JRadioButton rb = new JRadioButton(model.getName(), model.isInstalled());
 			rbModels.add(rb);
 			rb.addActionListener(this);
@@ -145,7 +151,14 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		Thread installThread = new Thread(() -> {
 			try {
 				SwingUtilities.invokeLater(() -> installationInProcess(true));
-				this.manager.installEfficientSAMSmall();
+				if (getSelectedModel().getName().equals(EfficientSAM.FULL_NAME))
+					this.manager.installEfficientSAMSmall();
+				else if (getSelectedModel().getName().equals(EfficientViTSAML0.FULL_NAME))
+					this.manager.installEfficientViTSAM("l0");
+				else if (getSelectedModel().getName().equals(EfficientViTSAML2.FULL_NAME))
+					this.manager.installEfficientViTSAM("l2");
+				else 
+					throw new RuntimeException();
 				getSelectedModel().setInstalled(true);
 				SwingUtilities.invokeLater(() -> {
 					installationInProcess(false);

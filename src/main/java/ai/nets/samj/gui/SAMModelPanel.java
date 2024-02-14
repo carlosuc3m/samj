@@ -67,7 +67,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		pnToolbarModel.add(bnUninstall);
 		
 		ButtonGroup group = new ButtonGroup();
-		boolean commonPython = manager.checkCommonPythonInstalled();
+		boolean commonPython = manager.checkEfficientSAMPythonInstalled();
 		for(SAMModel model : models) {
 			if (model.getName().equals(EfficientSAM.FULL_NAME)) 
 				model.setInstalled(manager.checkEfficientSAMSmallWeightsDownloaded() && manager.checkEfficientSAMPackageInstalled() && commonPython);

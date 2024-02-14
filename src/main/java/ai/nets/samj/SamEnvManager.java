@@ -194,7 +194,6 @@ public class SamEnvManager {
 		downloadESAMSmall(false);
 	}
 	
-	// TODO
 	public void downloadESAMSmall(boolean force) throws IOException {
 		if (!force && checkEfficientSAMSmallWeightsDownloaded())
 			return;
@@ -511,7 +510,7 @@ public class SamEnvManager {
 		if (!checkMambaInstalled())
 			throw new IllegalArgumentException("Unable to EfficientViTSAM without first installing Mamba. ");
 		Thread thread = reportProgress(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- INSTALLING 'EFFICIENTVITSAM' PYTHON PACKAGE");
-		String zipResourcePath = "EfficientViTSAM.zip";
+		String zipResourcePath = "efficientvit.zip";
         String outputDirectory = mamba.getEnvsDir() + File.separator + EVITSAM_ENV_NAME;
         try (
         	InputStream zipInputStream = SamEnvManager.class.getClassLoader().getResourceAsStream(zipResourcePath);

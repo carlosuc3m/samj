@@ -52,7 +52,7 @@ public class SamEnvManager {
 
 	final public static List<String> INSTALL_PIP_DEPS = Arrays.asList(new String[] {"appose"});
 
-	final public static List<String> INSTALL_EVSAM_PIP_DEPS = Arrays.asList(new String[] {"onnxsim, segment_anything"});
+	final public static List<String> INSTALL_EVSAM_PIP_DEPS = Arrays.asList(new String[] {"onnxsim", "segment_anything"});
 
 	final public static long SAM_BYTE_SIZE = 375042383;
 	
@@ -62,7 +62,7 @@ public class SamEnvManager {
 	final static public String EVITSAM_ENV_NAME = "efficientvit_sam_env";
 	final static public String SAM_ENV_NAME = "sam_env";
 	final static public String ESAM_NAME = "EfficientSAM";
-	final static public String EVITSAM_NAME = "EfficientViTSAM";
+	final static public String EVITSAM_NAME = "efficientvit";
 	final static public String SAM_NAME = "SAM";
 	
 	final static public String ESAMS_URL = "https://raw.githubusercontent.com/yformer/EfficientSAM/main/weights/efficient_sam_vits.pt.zip";
@@ -172,7 +172,7 @@ public class SamEnvManager {
 		if (!EfficientViTSamJ.getListOfSupportedEfficientViTSAM().contains(modelType))
 			throw new IllegalArgumentException("The provided model is not one of the supported EfficientViT models: " 
 												+ EfficientViTSamJ.getListOfSupportedEfficientViTSAM());
-		File weigthsFile = Paths.get(this.path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME, "weights", modelType).toFile();
+		File weigthsFile = Paths.get(this.path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME, "weights", modelType + ".pt").toFile();
 		return weigthsFile.isFile();
 	}
 	
@@ -254,7 +254,7 @@ public class SamEnvManager {
 		if (!EfficientViTSamJ.getListOfSupportedEfficientViTSAM().contains(modelType))
 			throw new IllegalArgumentException("The provided model is not one of the supported EfficientViT models: " 
 												+ EfficientViTSamJ.getListOfSupportedEfficientViTSAM());
-		if (!force && checkEfficientSAMSmallWeightsDownloaded())
+		if (!force && checkEfficientViTSAMWeightsDownloaded(modelType))
 			return;
 		Thread thread = reportProgress(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- INSTALLING EFFICIENTVITSAM WEIGHTS (" + modelType + ")");
         try {
@@ -269,18 +269,14 @@ public class SamEnvManager {
     			}
             });
     		downloadThread.start();
-    		Thread trackerThread = new Thread(() -> {
-                	long size = DownloadModel.getFileSize(url);
-                	while (downloadThread.isAlive()) {
-                		try {Thread.sleep(280);} catch (InterruptedException e) {break;}
-                		double progress = Math.round( (double) 100 * file.length() / size ); 
-                		if (progress < 0 || progress > 1) passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTVITSAM WEIGHTS DOWNLOAD: UNKNOWN%");
-                		else passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTVITSAM WEIGHTS DOWNLOAD: " + progress + "%");
-                	}
-            });
-    		trackerThread.start();
-    		DownloadTracker.printProgress(downloadThread, consumer2);
-        } catch (IOException | InterruptedException ex) {
+    		long size = DownloadModel.getFileSize(url);
+        	while (downloadThread.isAlive()) {
+        		try {Thread.sleep(280);} catch (InterruptedException e) {break;}
+        		double progress = Math.round( (double) 100 * file.length() / size ); 
+        		if (progress < 0 || progress > 100) passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTVITSAM WEIGHTS DOWNLOAD: UNKNOWN%");
+        		else passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTVITSAM WEIGHTS DOWNLOAD: " + progress + "%");
+        	}
+        } catch (IOException ex) {
             thread.interrupt();
             passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- FAILED EFFICIENTVITSAM WEIGHTS INSTALLATION");
             throw ex;
@@ -381,7 +377,7 @@ public class SamEnvManager {
 		cmd.addAll( INSTALL_PIP_DEPS );
 		cmd.addAll( INSTALL_EVSAM_PIP_DEPS );
 		final ProcessBuilder builder = new ProcessBuilder().directory( envFile );
-		builder.inheritIO();
+		//builder.inheritIO();
 		if ( PlatformDetection.isWindows() )
 		{
 			final Map< String, String > envs = builder.environment();
@@ -600,6 +596,16 @@ public class SamEnvManager {
 		return file.getAbsolutePath();
 	}
 	
+	public String getEfficientViTSAMWeightsPath() {
+		return getEfficientViTSAMWeightsPath(DEFAULT_EVITSAM);
+	}
+	
+	public String getEfficientViTSAMWeightsPath(String modelType) {
+		File file = Paths.get(path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME, "weights", modelType + ".pt").toFile();
+		if (!file.isFile()) return null;
+		return file.getAbsolutePath();
+	}
+	
 	public String getSAMWeightsPath() {
 		File file = Paths.get(path, "envs", SAM_ENV_NAME, SAM_NAME, "weights", SAM_WEIGHTS_NAME).toFile();
 		if (!file.isFile()) return null;
@@ -616,6 +622,16 @@ public class SamEnvManager {
 		File file = Paths.get(path, "envs", ESAM_ENV_NAME).toFile();
 		if (!file.isDirectory()) return null;
 		return file.getAbsolutePath();
+	}
+	
+	public String getEfficientViTSamEnv() {
+		File file = Paths.get(path, "envs", EVITSAM_ENV_NAME).toFile();
+		if (!file.isDirectory()) return null;
+		return file.getAbsolutePath();
+	}
+	
+	public String getEnvsPath() {
+		return Paths.get(path, "envs").toFile().getAbsolutePath();
 	}
 	
 	public static String getSAMWeightsName() {

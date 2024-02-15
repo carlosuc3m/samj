@@ -8,6 +8,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Cast;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
@@ -71,10 +72,10 @@ public class AbstractSamJ {
 	}
 
 	public static <T extends RealType<T> & NativeType<T>>
-	RandomAccessibleInterval<T> normalizedView(final RandomAccessibleInterval<T> inImg, final double[] inMinMax) {
+	RandomAccessibleInterval<FloatType> normalizedView(final RandomAccessibleInterval<T> inImg, final double[] inMinMax) {
 		final double min = inMinMax[0];
 		final double range = inMinMax[1] - min;
-		return Converters.convert(inImg, (i, o) -> o.setReal((i.getRealDouble() - min) / range), Util.getTypeFromInterval(inImg));
+		return Converters.convert(inImg, (i, o) -> o.setReal((i.getRealFloat() - min) / (range + 1e-9)), new FloatType());
 	}
 
 	/**
@@ -86,12 +87,17 @@ public class AbstractSamJ {
 	 * @return The input image itself or a View of it.
 	 */
 	public <T extends RealType<T> & NativeType<T>>
-	RandomAccessibleInterval<T> normalizedView(final RandomAccessibleInterval<T> inImg) {
+	RandomAccessibleInterval<FloatType> normalizedView(final RandomAccessibleInterval<T> inImg) {
 		final double[] minMax = new double[2];
 		getMinMaxPixelValue(Views.iterable(inImg), minMax);
-		if (isNormalizedInterval(minMax)) {
+		///debugPrinter.printText("MIN VALUE="+minMax[0]+", MAX VALUE="+minMax[1]+", IMAGE IS _NOT_ NORMALIZED, returning Converted view");
+		//return normalizedView(inImg, minMax);
+		if (isNormalizedInterval(minMax) && Util.getTypeFromInterval(inImg) instanceof FloatType) {
 			debugPrinter.printText("MIN VALUE="+minMax[0]+", MAX VALUE="+minMax[1]+", IMAGE IS NORMALIZED, returning directly itself");
-			return inImg;
+			return Cast.unchecked(inImg);
+		} else if (isNormalizedInterval(minMax)) {
+			debugPrinter.printText("MIN VALUE="+minMax[0]+", MAX VALUE="+minMax[1]+", IMAGE IS NORMALIZED, returning directly itself");
+			return  Converters.convert(inImg, (i, o) -> o.setReal(i.getRealFloat()), new FloatType());
 		} else {
 			debugPrinter.printText("MIN VALUE="+minMax[0]+", MAX VALUE="+minMax[1]+", IMAGE IS _NOT_ NORMALIZED, returning Converted view");
 			return normalizedView(inImg, minMax);

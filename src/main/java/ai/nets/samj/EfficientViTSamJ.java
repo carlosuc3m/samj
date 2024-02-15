@@ -23,7 +23,6 @@ import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
@@ -65,9 +64,14 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "from efficientvit.models.efficientvit.sam import EfficientViTSamPredictor" + System.lineSeparator()
 			+ "task.update('imported')" + System.lineSeparator()
 			+ "" + System.lineSeparator()
-			+ "predictor = %s().cpu().eval()" + System.lineSeparator()
+			+ "model = %s().cpu().eval()" + System.lineSeparator()
+			//+ "from efficientvit.models.nn.norm import set_norm_eps" + System.lineSeparator()
+			//+ "set_norm_eps(model, 1e-6)" + System.lineSeparator()
+			//+ "from efficientvit.models.utils import load_state_dict_from_file" + System.lineSeparator()
+			//+ "weight = load_state_dict_from_file('%s')" + System.lineSeparator()
+			//+ "model.load_state_dict(weight)" + System.lineSeparator()
 			+ "eps = 1e-6" + System.lineSeparator()
-			+ "for m in predictor.modules():" + System.lineSeparator()
+			+ "for m in model.modules():" + System.lineSeparator()
 			+ "  if isinstance(m, (torch.nn.GroupNorm, torch.nn.LayerNorm, torch.nn.modules.batchnorm._BatchNorm)):" + System.lineSeparator()
 			+ "    if eps is not None:" + System.lineSeparator()
 			+ "      m.eps = eps" + System.lineSeparator()
@@ -75,7 +79,8 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "weight = torch.load(f_name, map_location='cpu')" + System.lineSeparator()
 			+ "if \"state_dict\" in weight:" + System.lineSeparator()
 			+ "  weight = weight[\"state_dict\"]" + System.lineSeparator()
-			+ "predictor.load_state_dict(weight)" + System.lineSeparator()
+			+ "model.load_state_dict(weight)" + System.lineSeparator()
+			+ "predictor = EfficientViTSamPredictor(model)" + System.lineSeparator()
 			+ "task.update('created predictor')" + System.lineSeparator()
 			+ "globals()['shared_memory'] = shared_memory" + System.lineSeparator()
 			+ "globals()['measure'] = measure" + System.lineSeparator()
@@ -287,7 +292,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		// This line wants to recreate the original numpy array. Should look like:
 		// input0_appose_shm = shared_memory.SharedMemory(name=input0)
 		// input0 = np.ndarray(size, dtype="float64", buffer=input0_appose_shm.buf).reshape([64, 64])
-		code += IMPORTS_FORMATED+"im_shm = shared_memory.SharedMemory(name='"
+		code += "im_shm = shared_memory.SharedMemory(name='"
 							+ shma.getNameForPython() + "', size=" + shma.getSize() 
 							+ ")" + System.lineSeparator();
 		int size = 1;
@@ -297,6 +302,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			code += ll + ", ";
 		code = code.substring(0, code.length() - 2);
 		code += "])" + System.lineSeparator();
+		code += "np.save('/home/carlos/git/aa.npy', im)" + System.lineSeparator();
 		code += "im_shm.unlink()" + System.lineSeparator();
 		//code += "box_shm.close()" + System.lineSeparator();
 		this.script += code;
@@ -316,20 +322,20 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 						+ "(np.array(input_points_list).reshape(" + nPoints + ", 2), np.array(input_neg_points_list).reshape(" + nNegPoints + ", 2))"
 						+ ", axis=0)" + System.lineSeparator()
 				+ "input_label = np.array([1] * " + (nPoints + nNegPoints) + ")" + System.lineSeparator()
-				+ "input_label[" + nPoints + ":] *= 2" + System.lineSeparator()
-				+ "predicted_logits, _ = predictor.predict(" + System.lineSeparator()
+				+ "input_label[" + nPoints + ":] -= 1" + System.lineSeparator()
+				+ "print(input_points)" + System.lineSeparator()
+				+ "print(input_label)" + System.lineSeparator()
+				+ "np.save('/home/carlos/git/feats.npy', predictor.features.detach().numpy())" + System.lineSeparator()
+				+ "mask, _, _ = predictor.predict(" + System.lineSeparator()
 				+ "    point_coords=input_points," + System.lineSeparator()
 				+ "    point_labels=input_label," + System.lineSeparator()
 				+ "    multimask_output=False," + System.lineSeparator()
 				+ "    box=None,)" + System.lineSeparator()
-				+ "sorted_ids = torch.argsort(predicted_iou, dim=-1, descending=True)" + System.lineSeparator()
-				+ "predicted_iou = torch.take_along_dim(predicted_iou, sorted_ids, dim=2)" + System.lineSeparator()
-				+ "predicted_logits = torch.take_along_dim(predicted_logits, sorted_ids[..., None, None], dim=2)" + System.lineSeparator()
-				+ "mask = torch.ge(predicted_logits[0, 0, 0, :, :], 0).cpu().detach().numpy()" + System.lineSeparator()
 				+ "task.update('end predict')" + System.lineSeparator()
 				+ "task.update(str(mask.shape))" + System.lineSeparator()
+				+ "np.save('/home/carlos/git/mask.npy', mask)" + System.lineSeparator()
 				//+ "np.save('/temp/aa.npy', mask)" + System.lineSeparator()
-				+ "contours_x,contours_y = get_polygons_from_binary_mask(mask)" + System.lineSeparator()
+				+ "contours_x,contours_y = get_polygons_from_binary_mask(mask[0])" + System.lineSeparator()
 				+ "task.update('all contours traced')" + System.lineSeparator()
 				+ "task.outputs['contours_x'] = contours_x" + System.lineSeparator()
 				+ "task.outputs['contours_y'] = contours_y" + System.lineSeparator();
@@ -340,19 +346,15 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		String code = "" + System.lineSeparator()
 				+ "task.update('start predict')" + System.lineSeparator()
 				+ "input_box = np.array([[input_box[0], input_box[1]], [input_box[2], input_box[3]]])" + System.lineSeparator()
-				+ "predicted_logits, _ = predictor.predict(" + System.lineSeparator()
+				+ "mask, _, _ = predictor.predict(" + System.lineSeparator()
 				+ "    point_coords=None," + System.lineSeparator()
 				+ "    point_labels=None," + System.lineSeparator()
 				+ "    multimask_output=False," + System.lineSeparator()
 				+ "    box=input_box,)" + System.lineSeparator()
-				+ "sorted_ids = torch.argsort(predicted_iou, dim=-1, descending=True)" + System.lineSeparator()
-				+ "predicted_iou = torch.take_along_dim(predicted_iou, sorted_ids, dim=2)" + System.lineSeparator()
-				+ "predicted_logits = torch.take_along_dim(predicted_logits, sorted_ids[..., None, None], dim=2)" + System.lineSeparator()
-				+ "mask = torch.ge(predicted_logits[0, 0, 0, :, :], 0).cpu().detach().numpy()" + System.lineSeparator()
 				+ "task.update('end predict')" + System.lineSeparator()
 				+ "task.update(str(mask.shape))" + System.lineSeparator()
-				//+ "np.save('/temp/aa.npy', mask)" + System.lineSeparator()
-				+ "contours_x,contours_y = get_polygons_from_binary_mask(mask)" + System.lineSeparator()
+				+ "np.save('/home/carlos/git/mask.npy', mask)" + System.lineSeparator()
+				+ "contours_x,contours_y = get_polygons_from_binary_mask(mask[0])" + System.lineSeparator()
 				+ "task.update('all contours traced')" + System.lineSeparator()
 				+ "task.outputs['contours_x'] = contours_x" + System.lineSeparator()
 				+ "task.outputs['contours_y'] = contours_y" + System.lineSeparator();
@@ -366,17 +368,17 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			throw new IllegalArgumentException("Currently SAMJ only supports 1-channel (grayscale) or 3-channel (RGB, BGR, float32, ...) 2D images."
 					+ "The image dimensions order should be 'xyc', first dimension height, second width and third channels.");
 		}
-		return SharedMemoryArray.buildMemorySegmentForImage(new long[] {dims[0], dims[1], 3}, new UnsignedIntType());
+		return SharedMemoryArray.buildMemorySegmentForImage(new long[] {dims[0], dims[1], 3}, new UnsignedByteType());
 	}
 	
 	private <T extends RealType<T> & NativeType<T>>
-	void adaptImageToModel(final RandomAccessibleInterval<T> ogImg, RandomAccessibleInterval<UnsignedIntType> targetImg) {
+	void adaptImageToModel(final RandomAccessibleInterval<T> ogImg, RandomAccessibleInterval<UnsignedByteType> targetImg) {
 		if (ogImg.numDimensions() == 3 && ogImg.dimensionsAsLongArray()[2] == 3) {
 			for (int i = 0; i < 3; i ++) 
-				RealTypeConverters.copyFromTo( normalizedView(Views.hyperSlice(ogImg, 2, i)), Views.hyperSlice(targetImg, 2, i) );
+				RealTypeConverters.copyFromTo( convertViewToRGB(Views.hyperSlice(ogImg, 2, i)), Views.hyperSlice(targetImg, 2, i) );
 		} else if (ogImg.numDimensions() == 3 && ogImg.dimensionsAsLongArray()[2] == 1) {
 			debugPrinter.printText("CONVERTED 1 CHANNEL IMAGE INTO 3 TO BE FEEDED TO SAMJ");
-			IntervalView<T> resIm = Views.interval( Views.expandMirrorDouble(normalizedView(ogImg), new long[] {0, 0, 2}), 
+			IntervalView<UnsignedByteType> resIm = Views.interval( Views.expandMirrorDouble(convertViewToRGB(ogImg), new long[] {0, 0, 2}), 
 					Intervals.createMinMax(new long[] {0, 0, 0, ogImg.dimensionsAsLongArray()[0], ogImg.dimensionsAsLongArray()[1], 2}) );
 			RealTypeConverters.copyFromTo( resIm, targetImg );
 		} else if (ogImg.numDimensions() == 2) {

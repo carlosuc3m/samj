@@ -282,7 +282,9 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 						+ ", axis=0)" + System.lineSeparator()
 				+ "input_points = torch.reshape(torch.tensor(input_points), [1, 1, -1, 2])" + System.lineSeparator()
 				+ "input_label = np.array([1] * " + (nPoints + nNegPoints) + ")" + System.lineSeparator()
-				+ "input_label[" + nPoints + ":] *= 2" + System.lineSeparator()
+				+ "input_label[" + nPoints + ":] -= 1" + System.lineSeparator()
+				+ "print(input_label)" + System.lineSeparator()
+				+ "print(input_points)" + System.lineSeparator()
 				+ "input_label = torch.reshape(torch.tensor(input_label), [1, 1, -1])" + System.lineSeparator()
 				+ "predicted_logits, predicted_iou = predictor.predict_masks(predictor.encoded_images," + System.lineSeparator()
 				+ "    input_points," + System.lineSeparator()
@@ -348,10 +350,12 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	private <T extends RealType<T> & NativeType<T>>
 	void adaptImageToModel(final RandomAccessibleInterval<T> ogImg, RandomAccessibleInterval<FloatType> targetImg) {
 		if (ogImg.numDimensions() == 3 && ogImg.dimensionsAsLongArray()[2] == 3) {
-			RealTypeConverters.copyFromTo( normalizedView(ogImg), targetImg );
+			for (int i = 0; i < 3; i ++) 
+				RealTypeConverters.copyFromTo( normalizedView(Views.hyperSlice(ogImg, 2, i)), Views.hyperSlice(targetImg, 2, i) );
+			//RealTypeConverters.copyFromTo( normalizedView(ogImg), targetImg );
 		} else if (ogImg.numDimensions() == 3 && ogImg.dimensionsAsLongArray()[2] == 1) {
 			debugPrinter.printText("CONVERTED 1 CHANNEL IMAGE INTO 3 TO BE FEEDED TO SAMJ");
-			IntervalView<T> resIm = Views.interval( Views.expandMirrorDouble(normalizedView(ogImg), new long[] {0, 0, 2}), 
+			IntervalView<FloatType> resIm = Views.interval( Views.expandMirrorDouble(normalizedView(ogImg), new long[] {0, 0, 2}), 
 					Intervals.createMinMax(new long[] {0, 0, 0, ogImg.dimensionsAsLongArray()[0], ogImg.dimensionsAsLongArray()[1], 2}) );
 			RealTypeConverters.copyFromTo( resIm, targetImg );
 		} else if (ogImg.numDimensions() == 2) {

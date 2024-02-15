@@ -46,9 +46,9 @@ public class SamEnvManager {
 	
 	final public static List<String> CHECK_DEPS_EVSAM = Arrays.asList(new String[] {"onnxsim", "timm", "onnx", "segment_anything"});
 	
-	final public static List<String> INSTALL_CONDA_DEPS = Arrays.asList(new String[] {"scikit-image", "pytorch", "torchvision", "cpuonly"});
+	final public static List<String> INSTALL_CONDA_DEPS = Arrays.asList(new String[] {"libpng", "libjpeg-turbo", "scikit-image", "pytorch=2.0.1", "torchvision=0.15.2", "cpuonly"});
 	
-	final public static List<String> INSTALL_EVSAM_CONDA_DEPS = Arrays.asList(new String[] {"cmake", "onnx", "timm"});
+	final public static List<String> INSTALL_EVSAM_CONDA_DEPS = Arrays.asList(new String[] {"cmake", "onnx", "onnxruntime", "timm=0.6.13"});
 
 	final public static List<String> INSTALL_PIP_DEPS = Arrays.asList(new String[] {"appose"});
 
@@ -612,7 +612,7 @@ public class SamEnvManager {
 		return file.getAbsolutePath();
 	}
 	
-	public String getPythonEnv() {
+	public String getEfficientSAMPythonEnv() {
 		File file = Paths.get(path, "envs", COMMON_ENV_NAME).toFile();
 		if (!file.isDirectory()) return null;
 		return file.getAbsolutePath();

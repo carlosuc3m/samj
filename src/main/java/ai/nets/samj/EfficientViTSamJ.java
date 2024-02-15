@@ -58,10 +58,9 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "import torch" + System.lineSeparator()
 			+ "import sys" + System.lineSeparator()
 			+ "import os" + System.lineSeparator()
-			+ "sys.path.append('%s')" + System.lineSeparator()
+			+ "os.chdir('%s')" + System.lineSeparator()
 			+ "from multiprocessing import shared_memory" + System.lineSeparator()
 			+ "task.update('import sam')" + System.lineSeparator()
-			+ "from efficientvit.models.nn.norm import set_norm_eps" + System.lineSeparator()
 			+ "from efficientvit.models.efficientvit import EfficientViTSam, %s" + System.lineSeparator()
 			+ "from efficientvit.models.efficientvit.sam import EfficientViTSamPredictor" + System.lineSeparator()
 			+ "task.update('imported')" + System.lineSeparator()
@@ -72,7 +71,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "  if isinstance(m, (torch.nn.GroupNorm, torch.nn.LayerNorm, torch.nn.modules.batchnorm._BatchNorm)):" + System.lineSeparator()
 			+ "    if eps is not None:" + System.lineSeparator()
 			+ "      m.eps = eps" + System.lineSeparator()
-			+ "file = os.path.realpath(os.path.expanduser(%S))" + System.lineSeparator()
+			+ "file = os.path.realpath(os.path.expanduser(%s))" + System.lineSeparator()
 			+ "weight = torch.load(file, map_location='cpu')" + System.lineSeparator()
 			+ "if \"state_dict\" in weight:" + System.lineSeparator()
 			+ "  weight = weight[\"state_dict\"]" + System.lineSeparator()
@@ -106,8 +105,9 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		python = env.python();
 		python.debug(debugPrinter::printText);
 		IMPORTS_FORMATED = String.format(IMPORTS,
-				manager.getEfficientSamEnv() + File.separator + SamEnvManager.ESAM_NAME,
-				manager.getEfficientSAMSmallWeightsPath());
+									manager.getEfficientViTSamEnv() + File.separator + SamEnvManager.EVITSAM_NAME,
+									MODELS_DICT.get(type), MODELS_DICT.get(type), manager.getEfficientViTSAMWeightsPath(type));
+		
 		printScript(IMPORTS_FORMATED + PythonMethods.TRACE_EDGES, "Edges tracing code");
 		Task task = python.task(IMPORTS_FORMATED + PythonMethods.TRACE_EDGES);
 		task.waitFor();

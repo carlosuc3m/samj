@@ -19,6 +19,7 @@ import net.imglib2.RandomAccessibleInterval;
 public interface SAMModel {
 
 	String getName();
+	String getInputImageAxes();
 	String getDescription();
 	boolean isInstalled();
 	void setInstalled(boolean installed);

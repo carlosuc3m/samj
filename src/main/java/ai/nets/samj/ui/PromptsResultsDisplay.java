@@ -23,7 +23,7 @@ public interface PromptsResultsDisplay {
 	 * very well be only a portion of the originaly provided image, see
 	 * {@link PromptsResultsDisplay#switchToThisImg(RandomAccessibleInterval)}.
 	 */
-	RandomAccessibleInterval<?> giveProcessedSubImage();
+	RandomAccessibleInterval<?> giveProcessedSubImage(SAMModel selectedModel);
 
 	void switchToThisNet(final SAMModel promptsToNetAdapter);
 	void notifyNetToClose();

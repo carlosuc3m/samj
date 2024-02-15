@@ -227,9 +227,11 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 
 			GUIsOwnLog.warn("Start the encoding");
 			display = displayInterface.getPrompts(((ComboBoxItem) this.cmbImage.getSelectedItem()).getValue());
+			SAMModel selecetdSAMModel = this.panelModel.getSelectedModel()
 			SAMModel netAdapter = panelModel
 					.getSelectedModel()
-					.instantiate(display.giveProcessedSubImage(), logForNetworks);
+					.instantiate(display.giveProcessedSubImage(selecetdSAMModel), logForNetworks);
+			if (netAdapter == null) return;
 			display.switchToThisNet(netAdapter);
 			GUIsOwnLog.warn("Finished the encoding");
 			//TODO: encoding should be a property of a model
@@ -270,10 +272,12 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		bnPoints.setEnabled(this.panelModel.getEncodingDone());
 		bnBrush.setEnabled(this.panelModel.getEncodingDone());
 		bnMask.setEnabled(this.panelModel.getEncodingDone());
-		this.bnRect.setPressed(this.panelModel.getEncodingDone());
-		this.bnPoints.setPressed(this.panelModel.getEncodingDone());
-		this.bnBrush.setPressed(this.panelModel.getEncodingDone());
-		this.bnMask.setPressed(this.panelModel.getEncodingDone());
+		if (!this.panelModel.getEncodingDone()) {
+			this.bnRect.setPressed(false);
+			this.bnPoints.setPressed(false);
+			this.bnBrush.setPressed(false);
+			this.bnMask.setPressed(false);
+		}
 	}
 	
 	private void setEncodingsDone(boolean isDone) {

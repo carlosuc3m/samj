@@ -23,6 +23,7 @@ public class EfficientSAM implements SAMModel {
 	private SAMJLogger log;
 	private Boolean installed = false;
 	public static final String FULL_NAME = "EfficientSAM";
+	public static final String INPUT_IMAGE_AXES = "yxc";
 	
 	public EfficientSAM() {}
 
@@ -126,5 +127,10 @@ public class EfficientSAM implements SAMModel {
 	@Override
 	public void closeProcess() {
 		efficientSamJ.close();
+	}
+
+	@Override
+	public String getInputImageAxes() {
+		return INPUT_IMAGE_AXES;
 	}
 }

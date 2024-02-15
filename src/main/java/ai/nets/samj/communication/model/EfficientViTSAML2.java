@@ -24,6 +24,7 @@ public class EfficientViTSAML2 implements SAMModel {
 	private SAMJLogger log;
 	private Boolean installed = false;
 	public static final String FULL_NAME = "EfficientViTSAM-l2";
+	public static final String INPUT_IMAGE_AXES = "xyc";
 	
 	public EfficientViTSAML2() {
 		
@@ -129,5 +130,10 @@ public class EfficientViTSAML2 implements SAMModel {
 	@Override
 	public void closeProcess() {
 		efficientSamJ.close();
+	}
+
+	@Override
+	public String getInputImageAxes() {
+		return INPUT_IMAGE_AXES;
 	}
 }

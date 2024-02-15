@@ -227,7 +227,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 
 			GUIsOwnLog.warn("Start the encoding");
 			display = displayInterface.getPrompts(((ComboBoxItem) this.cmbImage.getSelectedItem()).getValue());
-			SAMModel selecetdSAMModel = this.panelModel.getSelectedModel()
+			SAMModel selecetdSAMModel = this.panelModel.getSelectedModel();
 			SAMModel netAdapter = panelModel
 					.getSelectedModel()
 					.instantiate(display.giveProcessedSubImage(selecetdSAMModel), logForNetworks);

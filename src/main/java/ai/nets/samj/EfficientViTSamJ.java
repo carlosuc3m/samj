@@ -71,8 +71,8 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "  if isinstance(m, (torch.nn.GroupNorm, torch.nn.LayerNorm, torch.nn.modules.batchnorm._BatchNorm)):" + System.lineSeparator()
 			+ "    if eps is not None:" + System.lineSeparator()
 			+ "      m.eps = eps" + System.lineSeparator()
-			+ "file = os.path.realpath(os.path.expanduser(%s))" + System.lineSeparator()
-			+ "weight = torch.load(file, map_location='cpu')" + System.lineSeparator()
+			+ "f_name = os.path.realpath(os.path.expanduser('%s'))" + System.lineSeparator()
+			+ "weight = torch.load(f_name, map_location='cpu')" + System.lineSeparator()
 			+ "if \"state_dict\" in weight:" + System.lineSeparator()
 			+ "  weight = weight[\"state_dict\"]" + System.lineSeparator()
 			+ "predictor.load_state_dict(weight)" + System.lineSeparator()
@@ -99,7 +99,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		this.isDebugging = printPythonCode;
 
 		this.env = new Environment() {
-			@Override public String base() { return manager.getPythonEnv(); }
+			@Override public String base() { return manager.getEfficientViTSamEnv(); }
 			@Override public boolean useSystemPath() { return false; }
 			};
 		python = env.python();

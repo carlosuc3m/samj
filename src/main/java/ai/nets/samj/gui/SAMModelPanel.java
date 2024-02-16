@@ -38,8 +38,6 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 
 	private HTMLPane info = new HTMLPane(450, 135);
     private int waitingIter = 0;
-
-	private boolean encodingDone = false;
 	
 	private JButton bnInstall = new JButton("Install");
 	private JButton bnUninstall = new JButton("Uninstall");
@@ -50,10 +48,14 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	private SAMModels models;
 	private final SamEnvManager manager;
 	
+	private int selectedModel = 0;
+	
+	private boolean modelChanged= false;
+	
 	private static DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
 	
 	interface CallParent {
-		public void task();
+		public void task(boolean bool);
 	}
 	
 	private CallParent updateParent;
@@ -112,6 +114,8 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	private void updateInterface() {
 		for(int i=0; i<rbModels.size(); i++) {
 			if (!rbModels.get(i).isSelected()) continue;
+			modelChanged = selectedModel != i;
+			selectedModel = 1;
 			info.clear();
 			info.append("p", models.get(i).getDescription());
 			bnInstall.setEnabled(!models.get(i).isInstalled());
@@ -164,10 +168,10 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 				getSelectedModel().setInstalled(true);
 				SwingUtilities.invokeLater(() -> {
 					installationInProcess(false);
-					this.updateParent.task();});
+					this.updateParent.task(false);});
 			} catch (Exception e1) {
 				e1.printStackTrace();
-				SwingUtilities.invokeLater(() -> {installationInProcess(false); this.updateParent.task();});
+				SwingUtilities.invokeLater(() -> {installationInProcess(false); this.updateParent.task(false);});
 			}
 		});
 		return installThread;
@@ -197,7 +201,8 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		}
 		
 		updateInterface();
-		this.updateParent.task();
+		this.updateParent.task(modelChanged);
+		modelChanged = false;
 	}
 	
 	private void installationInProcess(boolean inProcess) {
@@ -319,14 +324,6 @@ public class SAMModelPanel extends JPanel implements ActionListener {
         	waitingIter += 1;
         }
     	return html;
-    }
-    
-    public void setEncodingDone(boolean enc) {
-    	this.encodingDone = enc;
-    }
-    
-    public boolean getEncodingDone() {
-    	return this.encodingDone;
     }
 }
 

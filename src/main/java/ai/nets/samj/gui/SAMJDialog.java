@@ -76,6 +76,8 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	public interface PromptsFunctionalInterface { PromptsResultsDisplay getPrompts(Object image); }
 	private PromptsFunctionalInterface displayInterface;
 	private PromptsResultsDisplay display;
+	
+	private boolean encodingsDone = false;
 
 	public SAMJDialog(final SAMModels availableModel,
 	                  final ExternalMethodsInterface softwareMethods) {
@@ -119,7 +121,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		}
 		this.softwareMethods = softwareMethods;
 
-		panelModel = new SAMModelPanel(availableModel, () -> this.updateInterface());
+		panelModel = new SAMModelPanel(availableModel, (boolean bol) -> this.updateInterface(bol));
 		// Buttons
 		JPanel pnButtons = new JPanel(new FlowLayout());
 		pnButtons.add(bnRect);
@@ -235,7 +237,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			display.switchToThisNet(netAdapter);
 			GUIsOwnLog.warn("Finished the encoding");
 			//TODO: encoding should be a property of a model
-			this.panelModel.setEncodingDone(true);
+			this.setEncodingsDone(true);
 		} else if (e.getSource() == chkROIManager) {
 			if (display != null)
 				display.enableAddingToRoiManager(chkROIManager.isSelected());
@@ -245,12 +247,16 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	}
 
 	public void updateInterface() {
-		if (!this.panelModel.isSelectedModelInstalled()) {
+		updateInterface(false);
+	}
+
+	public void updateInterface(boolean deleteEncodings) {
+		if (!this.panelModel.isSelectedModelInstalled() || deleteEncodings) {
 			this.bnStart.setEnabled(false);
 			this.cmbImage.setEnabled(false);
 			setEncodingsDone(false);
 		} else if (this.panelModel.isSelectedModelInstalled()
-				&& !this.panelModel.getEncodingDone()
+				&& !this.encodingsDone
 				&& this.cmbImage.getSelectedItem() != null 
 				&& ((ComboBoxItem) this.cmbImage.getSelectedItem()).getId() != -1) {
 			this.bnStart.setEnabled(true);
@@ -265,14 +271,14 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			this.bnStart.setEnabled(false);
 			this.cmbImage.setEnabled(true);
 		}
-		bnComplete.setEnabled(this.panelModel.getEncodingDone());
-		bnRoi2Mask.setEnabled(this.panelModel.getEncodingDone());
-		chkROIManager.setEnabled(this.panelModel.getEncodingDone());
-		bnRect.setEnabled(this.panelModel.getEncodingDone());
-		bnPoints.setEnabled(this.panelModel.getEncodingDone());
-		bnBrush.setEnabled(this.panelModel.getEncodingDone());
-		bnMask.setEnabled(this.panelModel.getEncodingDone());
-		if (!this.panelModel.getEncodingDone()) {
+		bnComplete.setEnabled(this.encodingsDone);
+		bnRoi2Mask.setEnabled(this.encodingsDone);
+		chkROIManager.setEnabled(this.encodingsDone);
+		bnRect.setEnabled(this.encodingsDone);
+		bnPoints.setEnabled(this.encodingsDone);
+		bnBrush.setEnabled(this.encodingsDone);
+		bnMask.setEnabled(this.encodingsDone);
+		if (!encodingsDone) {
 			this.bnRect.setPressed(false);
 			this.bnPoints.setPressed(false);
 			this.bnBrush.setPressed(false);
@@ -281,14 +287,14 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	}
 	
 	private void setEncodingsDone(boolean isDone) {
-		if (!isDone && this.panelModel.getEncodingDone()) {
+		this.encodingsDone = isDone;
+		if (!isDone) {
 			display.notifyNetToClose();
 			this.bnRect.setPressed(false);
 			this.bnPoints.setPressed(false);
 			this.bnBrush.setPressed(false);
 			this.bnMask.setPressed(false);
 		}
-		panelModel.setEncodingDone(isDone);
 	}
 
 	public class LocalDropTarget extends DropTarget {

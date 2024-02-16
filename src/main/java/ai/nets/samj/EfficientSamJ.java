@@ -196,6 +196,15 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		return polys;
 	}
 	
+	public List<Polygon> processMask(SharedMemoryArray shmArr) {
+		this.script = "";
+		processMasksWithSam(shmArr);
+		printScript(script, "Pre-computed mask inference");
+		List<Polygon> polys = processAndRetrieveContours(null);
+		debugPrinter.printText("processMask() obtained " + polys.size() + " polygons");
+		return polys;
+	}
+	
 	public List<Polygon> processPoints(List<int[]> pointsList)
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";

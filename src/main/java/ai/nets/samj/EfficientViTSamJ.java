@@ -308,6 +308,15 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		this.script += code;
 	}
 	
+	public List<Polygon> processMask(SharedMemoryArray shmArr) {
+		this.script = "";
+		processMasksWithSam(shmArr);
+		printScript(script, "Pre-computed mask inference");
+		List<Polygon> polys = processAndRetrieveContours(null);
+		debugPrinter.printText("processMask() obtained " + polys.size() + " polygons");
+		return polys;
+	}
+	
 	private void processPointsWithSAM(int nPoints, int nNegPoints) {
 		String code = "" + System.lineSeparator()
 				+ "task.update('start predict')" + System.lineSeparator()

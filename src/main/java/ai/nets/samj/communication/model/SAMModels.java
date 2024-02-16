@@ -13,6 +13,9 @@ public class SAMModels extends ArrayList<SAMModel> {
 		super();
 		add(new EfficientSAM());
 		add(new EfficientViTSAML0());
+		add(new EfficientViTSAML1());
 		add(new EfficientViTSAML2());
+		add(new EfficientViTSAMXL0());
+		add(new EfficientViTSAMXL1());
 	}
 }

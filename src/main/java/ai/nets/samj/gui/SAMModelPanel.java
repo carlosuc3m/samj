@@ -24,7 +24,10 @@ import javax.swing.text.html.HTMLEditorKit;
 
 import ai.nets.samj.communication.model.EfficientSAM;
 import ai.nets.samj.communication.model.EfficientViTSAML0;
+import ai.nets.samj.communication.model.EfficientViTSAML1;
 import ai.nets.samj.communication.model.EfficientViTSAML2;
+import ai.nets.samj.communication.model.EfficientViTSAMXL0;
+import ai.nets.samj.communication.model.EfficientViTSAMXL1;
 import ai.nets.samj.communication.model.SAMModel;
 import ai.nets.samj.communication.model.SAMModels;
 import ai.nets.samj.gui.components.GridPanel;
@@ -161,8 +164,14 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 					this.manager.installEfficientSAMSmall();
 				else if (getSelectedModel().getName().equals(EfficientViTSAML0.FULL_NAME))
 					this.manager.installEfficientViTSAM("l0");
+				else if (getSelectedModel().getName().equals(EfficientViTSAML1.FULL_NAME))
+					this.manager.installEfficientViTSAM("l1");
 				else if (getSelectedModel().getName().equals(EfficientViTSAML2.FULL_NAME))
 					this.manager.installEfficientViTSAM("l2");
+				else if (getSelectedModel().getName().equals(EfficientViTSAMXL0.FULL_NAME))
+					this.manager.installEfficientViTSAM("xl0");
+				else if (getSelectedModel().getName().equals(EfficientViTSAMXL1.FULL_NAME))
+					this.manager.installEfficientViTSAM("xl1");
 				else 
 					throw new RuntimeException();
 				getSelectedModel().setInstalled(true);

@@ -281,7 +281,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 
 	@Override
 	public void close() {
-		python.close();
+		if (python != null) python.close();
 	}
 	
 	private <T extends RealType<T> & NativeType<T>> 

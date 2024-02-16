@@ -115,7 +115,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		for(int i=0; i<rbModels.size(); i++) {
 			if (!rbModels.get(i).isSelected()) continue;
 			modelChanged = selectedModel != i;
-			selectedModel = 1;
+			selectedModel = i;
 			info.clear();
 			info.append("p", models.get(i).getDescription());
 			bnInstall.setEnabled(!models.get(i).isInstalled());

@@ -228,7 +228,8 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 				GUIsOwnLog.warn("Not starting encoding as the selected model is not installed.");
 
 			GUIsOwnLog.warn("Start the encoding");
-			display = displayInterface.getPrompts(((ComboBoxItem) this.cmbImage.getSelectedItem()).getValue());
+			if (display == null || !display.getFocusedImage().equals(((ComboBoxItem) this.cmbImage.getSelectedItem()).getValue()))
+				display = displayInterface.getPrompts(((ComboBoxItem) this.cmbImage.getSelectedItem()).getValue());
 			SAMModel selecetdSAMModel = this.panelModel.getSelectedModel();
 			SAMModel netAdapter = panelModel
 					.getSelectedModel()
@@ -251,7 +252,8 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	}
 
 	public void updateInterface(boolean deleteEncodings) {
-		if (!this.panelModel.isSelectedModelInstalled() || deleteEncodings) {
+		if (deleteEncodings) this.setEncodingsDone(false);
+		if (!this.panelModel.isSelectedModelInstalled()) {
 			this.bnStart.setEnabled(false);
 			this.cmbImage.setEnabled(false);
 			setEncodingsDone(false);
@@ -289,7 +291,10 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	private void setEncodingsDone(boolean isDone) {
 		this.encodingsDone = isDone;
 		if (!isDone) {
-			display.notifyNetToClose();
+			if (display != null) {
+				display.notifyNetToClose();
+				display.switchToNone();
+			}
 			this.bnRect.setPressed(false);
 			this.bnPoints.setPressed(false);
 			this.bnBrush.setPressed(false);

@@ -37,4 +37,6 @@ public interface PromptsResultsDisplay {
 	void switchToUsingLines();
 	void switchToUsingPoints();
 	void switchToNone();
+	
+	Object getFocusedImage();
 }

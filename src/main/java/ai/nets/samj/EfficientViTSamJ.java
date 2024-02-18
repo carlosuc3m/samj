@@ -308,6 +308,22 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		this.script += code;
 	}
 	
+	public <T extends RealType<T> & NativeType<T>>
+	List<Polygon> processMask(RandomAccessibleInterval<T> img) throws IOException, RuntimeException, InterruptedException {
+		long[] dims = img.dimensionsAsLongArray();
+		if (dims.length != 2 && dims[0] != this.shma.getOriginalShape()[1] && dims[1] != this.shma.getOriginalShape()[0]) {
+			throw new IllegalArgumentException("The provided mask should be a 2d image with just one channel of width "
+					+ this.shma.getOriginalShape()[1] + " and height " + this.shma.getOriginalShape()[0]);
+		}
+		SharedMemoryArray maskShma = SharedMemoryArray.buildNumpyLikeSHMA(img);
+		try {
+			return processMask(maskShma);
+		} catch (IOException | RuntimeException | InterruptedException ex) {
+			maskShma.close();
+			throw ex;
+		}
+	}
+	
 	public List<Polygon> processMask(SharedMemoryArray shmArr) throws IOException, RuntimeException, InterruptedException {
 		this.script = "";
 		processMasksWithSam(shmArr);

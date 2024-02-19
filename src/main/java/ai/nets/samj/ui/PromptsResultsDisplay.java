@@ -7,6 +7,7 @@ import java.util.List;
 import ai.nets.samj.communication.model.SAMModel;
 
 import java.awt.Polygon;
+import java.io.File;
 
 public interface PromptsResultsDisplay {
 
@@ -29,6 +30,7 @@ public interface PromptsResultsDisplay {
 	void notifyNetToClose();
 
 	List<Polygon> getPolygonsFromRoiManager();
+	void improveExistingMask(File mask);
 
 	void enableAddingToRoiManager(boolean shouldBeAdding);
 	boolean isAddingToRoiManager();

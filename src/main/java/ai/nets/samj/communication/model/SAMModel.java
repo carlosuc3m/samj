@@ -7,6 +7,8 @@ import ai.nets.samj.ui.SAMJLogger;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
 
 /**
  * A common ground for various placeholder classes to inform
@@ -34,6 +36,8 @@ public interface SAMModel {
 	List<Polygon> fetch2dSegmentation(Localizable lineStartPoint2D, Localizable lineEndPoint2D);
 
 	List<Polygon> fetch2dSegmentation(Interval boundingBox2D);
+
+	public <T extends RealType<T> & NativeType<T>> List<Polygon> fetch2dSegmentation(RandomAccessibleInterval<T> rai);
 
 	void closeProcess();
 

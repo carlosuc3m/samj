@@ -24,6 +24,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
@@ -55,8 +56,6 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	private JButton bnComplete = new JButton("Auto-Complete");
 	private JButton bnRoi2Mask = new JButton("Create Mask");
 	private JTextField txtStatus = new JTextField("(c) SAMJ team 2024");
-
-	private RandomAccessibleInterval<?> mask;
 	
 	private ButtonIcon bnRect = new ButtonIcon("Rect", RESOURCES_FOLDER, "rect.png");
 	private ButtonIcon bnPoints = new ButtonIcon("Points", RESOURCES_FOLDER, "edit.png");
@@ -242,6 +241,12 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		} else if (e.getSource() == chkROIManager) {
 			if (display != null)
 				display.enableAddingToRoiManager(chkROIManager.isSelected());
+		} else if (e.getSource() == this.bnMask) {
+			JFileChooser fileChooser = new JFileChooser();
+            int returnValue = fileChooser.showOpenDialog(null);
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                this.softwareMethods.getImageMask(fileChooser.getSelectedFile());
+            }
 		}
 
 		updateInterface();
@@ -318,9 +323,11 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 						List<File> files = (List<File>) transferable.getTransferData(flavor);
 						for (File file : files) {
 							GUIsOwnLog.info("Taking mask from file " + file.getAbsolutePath());
-							mask = SAMJDialog.this.softwareMethods.getImageMask(file);
+							RandomAccessibleInterval<?> mask = SAMJDialog.this.softwareMethods.getImageMask(file);
 							if (mask != null) {
-								return;
+								throw new IllegalArgumentException("The selected file should be an image");
+							} else {
+								display.setPolygonsToRoiManager(null);
 							}
 						}
 					}

@@ -121,7 +121,7 @@ public class EfficientViTSAML0 implements SAMModel {
 	}
 
 	@Override
-	public <T extends RealType<T> & NativeType<T>> List<Polygon> fetch2dSegmentation(RandomAccessibleInterval<T> rai) {
+	public <T extends RealType<T> & NativeType<T>> List<Polygon> fetch2dSegmentationFromMask(RandomAccessibleInterval<T> rai) {
 		try {
 			return efficientSamJ.processMask(rai);
 		} catch (IOException | InterruptedException | RuntimeException e) {

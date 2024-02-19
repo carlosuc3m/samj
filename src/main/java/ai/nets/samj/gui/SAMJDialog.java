@@ -185,6 +185,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		bnRect.addActionListener(this);
 		bnPoints.addActionListener(this);
 		bnBrush.addActionListener(this);
+		bnMask.addActionListener(this);
 		bnMask.setDropTarget(new LocalDropTarget());
 		
 		add(pn);

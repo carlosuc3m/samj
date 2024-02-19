@@ -37,7 +37,7 @@ public interface SAMModel {
 
 	List<Polygon> fetch2dSegmentation(Interval boundingBox2D);
 
-	public <T extends RealType<T> & NativeType<T>> List<Polygon> fetch2dSegmentation(RandomAccessibleInterval<T> rai);
+	public <T extends RealType<T> & NativeType<T>> List<Polygon> fetch2dSegmentationFromMask(RandomAccessibleInterval<T> rai);
 
 	void closeProcess();
 

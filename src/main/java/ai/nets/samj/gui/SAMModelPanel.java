@@ -83,9 +83,18 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 			else if (model.getName().equals(EfficientViTSAML0.FULL_NAME))
 				model.setInstalled(manager.checkEfficientViTSAMPythonInstalled() 
 						&& manager.checkEfficientViTSAMPackageInstalled() && manager.checkEfficientViTSAMWeightsDownloaded("l0"));
+			else if (model.getName().equals(EfficientViTSAML1.FULL_NAME))
+				model.setInstalled(manager.checkEfficientViTSAMPythonInstalled() 
+						&& manager.checkEfficientViTSAMPackageInstalled() && manager.checkEfficientViTSAMWeightsDownloaded("l1"));
 			else if (model.getName().equals(EfficientViTSAML2.FULL_NAME))
 				model.setInstalled(manager.checkEfficientViTSAMPythonInstalled() 
 						&& manager.checkEfficientViTSAMPackageInstalled() && manager.checkEfficientViTSAMWeightsDownloaded("l2"));
+			else if (model.getName().equals(EfficientViTSAMXL0.FULL_NAME))
+				model.setInstalled(manager.checkEfficientViTSAMPythonInstalled() 
+						&& manager.checkEfficientViTSAMPackageInstalled() && manager.checkEfficientViTSAMWeightsDownloaded("xl0"));
+			else if (model.getName().equals(EfficientViTSAMXL1.FULL_NAME))
+				model.setInstalled(manager.checkEfficientViTSAMPythonInstalled() 
+						&& manager.checkEfficientViTSAMPackageInstalled() && manager.checkEfficientViTSAMWeightsDownloaded("xl1"));
 			JRadioButton rb = new JRadioButton(model.getName(), model.isInstalled());
 			rbModels.add(rb);
 			rb.addActionListener(this);

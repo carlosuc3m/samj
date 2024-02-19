@@ -39,8 +39,6 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	
 	private long[] targetDims;
 	
-	private SamEnvManager manager;
-	
 	public static final String IMPORTS = ""
 			+ "task.update('start')" + System.lineSeparator()
 			+ "from skimage import measure" + System.lineSeparator()
@@ -430,7 +428,6 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		if (ogImg.numDimensions() == 3 && ogImg.dimensionsAsLongArray()[2] == 3) {
 			for (int i = 0; i < 3; i ++) 
 				RealTypeConverters.copyFromTo( normalizedView(Views.hyperSlice(ogImg, 2, i)), Views.hyperSlice(targetImg, 2, i) );
-			//RealTypeConverters.copyFromTo( normalizedView(ogImg), targetImg );
 		} else if (ogImg.numDimensions() == 3 && ogImg.dimensionsAsLongArray()[2] == 1) {
 			debugPrinter.printText("CONVERTED 1 CHANNEL IMAGE INTO 3 TO BE FEEDED TO SAMJ");
 			IntervalView<FloatType> resIm = Views.interval( Views.expandMirrorDouble(normalizedView(ogImg), new long[] {0, 0, 2}), 

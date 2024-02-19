@@ -196,13 +196,83 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		return polys;
 	}
 	
-	public List<Polygon> processMask(SharedMemoryArray shmArr) {
+	public <T extends RealType<T> & NativeType<T>>
+	List<Polygon> processMask(RandomAccessibleInterval<T> img) throws IOException, RuntimeException, InterruptedException {
+		long[] dims = img.dimensionsAsLongArray();
+		if (dims.length == 2 && dims[1] != this.shma.getOriginalShape()[1] && dims[0] != this.shma.getOriginalShape()[0]) {
+			img = Views.permute(img, 0, 1);
+		} else if (dims.length != 2 && dims[0] != this.shma.getOriginalShape()[1] && dims[1] != this.shma.getOriginalShape()[0]) {
+			throw new IllegalArgumentException("The provided mask should be a 2d image with just one channel of width "
+					+ this.shma.getOriginalShape()[1] + " and height " + this.shma.getOriginalShape()[0]);
+		}
+		SharedMemoryArray maskShma = SharedMemoryArray.buildNumpyLikeSHMA(img);
+		try {
+			return processMask(maskShma);
+		} catch (IOException | RuntimeException | InterruptedException ex) {
+			maskShma.close();
+			throw ex;
+		}
+	}
+	
+	public List<Polygon> processMask(SharedMemoryArray shmArr) throws IOException, RuntimeException, InterruptedException {
 		this.script = "";
 		processMasksWithSam(shmArr);
 		printScript(script, "Pre-computed mask inference");
 		List<Polygon> polys = processAndRetrieveContours(null);
 		debugPrinter.printText("processMask() obtained " + polys.size() + " polygons");
 		return polys;
+	}
+	
+	private void processMasksWithSam(SharedMemoryArray shmArr) {
+		String code = "";
+		code += "shm_mask = shared_memory.SharedMemory(name='" + shmArr.getNameForPython() + "')" + System.lineSeparator();
+		code += "mask = np.frombuffer(buffer=shm_mask.buf, dtype='" + shmArr.getOriginalDataType() + "').reshape([";
+		for (long l : shmArr.getOriginalShape()) 
+			code += l + ",";
+		code += "])" + System.lineSeparator();
+		code += "different_mask_vals = np.unique(mask)" + System.lineSeparator();
+		code += "contours_x = []" + System.lineSeparator();
+		code += "contours_y = []" + System.lineSeparator();
+		code += "for val in different_mask_vals:" + System.lineSeparator()
+			  + "  if val < 1:" + System.lineSeparator()
+			  + "    continue" + System.lineSeparator()
+			  + "  locations = np.where(mask == val)" + System.lineSeparator()
+			  + "  input_points_pos = np.zeros((locations[0].shape[0], 2))" + System.lineSeparator()
+			  + "  input_labels_pos = np.ones((locations[0].shape[0]))" + System.lineSeparator()
+			  + "  locations_neg = np.where((mask != val) & (mask != 0))" + System.lineSeparator()
+			  + "  input_points_neg = np.zeros((locations_neg[0].shape[0], 2))" + System.lineSeparator()
+			  + "  input_labels_neg = np.zeros((locations_neg[0].shape[0]))" + System.lineSeparator()
+			  + "  input_points_pos[:, 0] = locations[1]" + System.lineSeparator()
+			  + "  input_points_pos[:, 1] = locations[0]" + System.lineSeparator()
+			  + "  input_points_neg[:, 0] = locations_neg[1]" + System.lineSeparator()
+			  + "  input_points_neg[:, 1] = locations_neg[0]" + System.lineSeparator()
+			  + "  input_points = np.concatenate((input_points_pos.reshape(-1, 2), input_points_neg.reshape(-1, 2)), axis=0)" + System.lineSeparator()
+			  + "  input_label = np.concatenate((input_labels_pos, input_labels_neg), axis=0)" + System.lineSeparator()
+			  + "  input_points = torch.reshape(torch.tensor(input_points), [1, 1, -1, 2])" + System.lineSeparator()
+			  + "  input_label = torch.reshape(torch.tensor(input_label), [1, 1, -1])" + System.lineSeparator()
+			  + "  predicted_logits, predicted_iou = predictor.predict_masks(predictor.encoded_images," + System.lineSeparator()
+			  + "    input_points," + System.lineSeparator()
+			  + "    input_label," + System.lineSeparator()
+			  + "    multimask_output=True," + System.lineSeparator()
+			  + "    input_h=input_h," + System.lineSeparator()
+			  + "    input_w=input_w," + System.lineSeparator()
+			  + "    output_h=input_h," + System.lineSeparator()
+			  + "    output_w=input_w,)" + System.lineSeparator()
+			  //+ "np.save('/temp/aa.npy', mask)" + System.lineSeparator()
+			  + "sorted_ids = torch.argsort(predicted_iou, dim=-1, descending=True)" + System.lineSeparator()
+			  + "predicted_iou = torch.take_along_dim(predicted_iou, sorted_ids, dim=2)" + System.lineSeparator()
+			  + "predicted_logits = torch.take_along_dim(predicted_logits, sorted_ids[..., None, None], dim=2)" + System.lineSeparator()
+			  + "mask_val = torch.ge(predicted_logits[0, 0, 0, :, :], 0).cpu().detach().numpy()" + System.lineSeparator()
+			  + "  contours_x_val,contours_y_val = get_polygons_from_binary_mask(mask_val)" + System.lineSeparator()
+			  + "  contours_x += contours_x_val" + System.lineSeparator()
+			  + "  contours_y += contours_y_val" + System.lineSeparator()
+			  + "task.update('all contours traced')" + System.lineSeparator()
+			  + "task.outputs['contours_x'] = contours_x" + System.lineSeparator()
+			  + "task.outputs['contours_y'] = contours_y" + System.lineSeparator();
+		code += "mask = 0" + System.lineSeparator();
+		code += "shm_mask.close()" + System.lineSeparator();
+		code += "shm_mask.unlink()" + System.lineSeparator();
+		this.script = code;
 	}
 	
 	public List<Polygon> processPoints(List<int[]> pointsList)
@@ -292,8 +362,6 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 				+ "input_points = torch.reshape(torch.tensor(input_points), [1, 1, -1, 2])" + System.lineSeparator()
 				+ "input_label = np.array([1] * " + (nPoints + nNegPoints) + ")" + System.lineSeparator()
 				+ "input_label[" + nPoints + ":] -= 1" + System.lineSeparator()
-				+ "print(input_label)" + System.lineSeparator()
-				+ "print(input_points)" + System.lineSeparator()
 				+ "input_label = torch.reshape(torch.tensor(input_label), [1, 1, -1])" + System.lineSeparator()
 				+ "predicted_logits, predicted_iou = predictor.predict_masks(predictor.encoded_images," + System.lineSeparator()
 				+ "    input_points," + System.lineSeparator()

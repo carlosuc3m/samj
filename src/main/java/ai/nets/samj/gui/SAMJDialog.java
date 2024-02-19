@@ -53,8 +53,10 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	private JButton bnHelp = new JButton("Help");
 	private JButton bnStart = new JButton("Start/Encode");
 	private JButton bnStop = new JButton("Stop");
-	private JButton bnComplete = new JButton("Auto-Complete (coming soon...)");
-	private JButton bnRoi2Mask = new JButton("Create Mask (coming soon...)");
+	// TODO private JButton bnComplete = new JButton("Auto-Complete (soon...)");
+	// TODO private JButton bnRoi2Mask = new JButton("Create Mask (soon...)");
+	private JButton bnComplete = new JButton("Coming soon...");
+	private JButton bnRoi2Mask = new JButton("Coming soon...");
 	private JTextField txtStatus = new JTextField("(c) SAMJ team 2024");
 	
 	private ButtonIcon bnRect = new ButtonIcon("Rect", RESOURCES_FOLDER, "rect.png");

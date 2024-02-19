@@ -302,7 +302,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			code += ll + ", ";
 		code = code.substring(0, code.length() - 2);
 		code += "])" + System.lineSeparator();
-		code += "np.save('/home/carlos/git/aa.npy', im)" + System.lineSeparator();
+		//code += "np.save('/home/carlos/git/aa.npy', im)" + System.lineSeparator();
 		code += "im_shm.unlink()" + System.lineSeparator();
 		//code += "box_shm.close()" + System.lineSeparator();
 		this.script += code;
@@ -311,7 +311,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 	public <T extends RealType<T> & NativeType<T>>
 	List<Polygon> processMask(RandomAccessibleInterval<T> img) throws IOException, RuntimeException, InterruptedException {
 		long[] dims = img.dimensionsAsLongArray();
-		if (dims.length == 2 && dims[1] != this.shma.getOriginalShape()[1] && dims[0] != this.shma.getOriginalShape()[0]) {
+		if (dims.length == 2 && dims[1] == this.shma.getOriginalShape()[1] && dims[0] == this.shma.getOriginalShape()[0]) {
 			img = Views.permute(img, 0, 1);
 		} else if (dims.length != 2 && dims[0] != this.shma.getOriginalShape()[1] && dims[1] != this.shma.getOriginalShape()[0]) {
 			throw new IllegalArgumentException("The provided mask should be a 2d image with just one channel of width "
@@ -354,10 +354,10 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			  + "  locations_neg = np.where((mask != val) & (mask != 0))" + System.lineSeparator()
 			  + "  input_points_neg = np.zeros((locations_neg[0].shape[0], 2))" + System.lineSeparator()
 			  + "  input_labels_neg = np.zeros((locations_neg[0].shape[0]))" + System.lineSeparator()
-			  + "  input_points_pos[:, 0] = locations[1]" + System.lineSeparator()
-			  + "  input_points_pos[:, 1] = locations[0]" + System.lineSeparator()
-			  + "  input_points_neg[:, 0] = locations_neg[1]" + System.lineSeparator()
-			  + "  input_points_neg[:, 1] = locations_neg[0]" + System.lineSeparator()
+			  + "  input_points_pos[:, 0] = locations[0]" + System.lineSeparator()
+			  + "  input_points_pos[:, 1] = locations[1]" + System.lineSeparator()
+			  + "  input_points_neg[:, 0] = locations_neg[0]" + System.lineSeparator()
+			  + "  input_points_neg[:, 1] = locations_neg[1]" + System.lineSeparator()
 			  + "  input_points = np.concatenate((input_points_pos.reshape(-1, 2), input_points_neg.reshape(-1, 2)), axis=0)" + System.lineSeparator()
 			  + "  input_label = np.concatenate((input_labels_pos, input_labels_neg), axis=0)" + System.lineSeparator()
 			  + "  mask_val, _, _ = predictor.predict(" + System.lineSeparator()
@@ -393,7 +393,6 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 						+ ", axis=0)" + System.lineSeparator()
 				+ "input_label = np.array([1] * " + (nPoints + nNegPoints) + ")" + System.lineSeparator()
 				+ "input_label[" + nPoints + ":] -= 1" + System.lineSeparator()
-				+ "np.save('/home/carlos/git/feats.npy', predictor.features.detach().numpy())" + System.lineSeparator()
 				+ "mask, _, _ = predictor.predict(" + System.lineSeparator()
 				+ "    point_coords=input_points," + System.lineSeparator()
 				+ "    point_labels=input_label," + System.lineSeparator()
@@ -401,7 +400,6 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 				+ "    box=None,)" + System.lineSeparator()
 				+ "task.update('end predict')" + System.lineSeparator()
 				+ "task.update(str(mask.shape))" + System.lineSeparator()
-				+ "np.save('/home/carlos/git/mask.npy', mask)" + System.lineSeparator()
 				//+ "np.save('/temp/aa.npy', mask)" + System.lineSeparator()
 				+ "contours_x,contours_y = get_polygons_from_binary_mask(mask[0])" + System.lineSeparator()
 				+ "task.update('all contours traced')" + System.lineSeparator()
@@ -421,7 +419,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 				+ "    box=input_box,)" + System.lineSeparator()
 				+ "task.update('end predict')" + System.lineSeparator()
 				+ "task.update(str(mask.shape))" + System.lineSeparator()
-				+ "np.save('/home/carlos/git/mask.npy', mask)" + System.lineSeparator()
+				//+ "np.save('/home/carlos/git/mask.npy', mask)" + System.lineSeparator()
 				+ "contours_x,contours_y = get_polygons_from_binary_mask(mask[0])" + System.lineSeparator()
 				+ "task.update('all contours traced')" + System.lineSeparator()
 				+ "task.outputs['contours_x'] = contours_x" + System.lineSeparator()

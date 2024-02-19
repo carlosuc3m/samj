@@ -311,7 +311,9 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 	public <T extends RealType<T> & NativeType<T>>
 	List<Polygon> processMask(RandomAccessibleInterval<T> img) throws IOException, RuntimeException, InterruptedException {
 		long[] dims = img.dimensionsAsLongArray();
-		if (dims.length != 2 && dims[0] != this.shma.getOriginalShape()[1] && dims[1] != this.shma.getOriginalShape()[0]) {
+		if (dims.length == 2 && dims[1] != this.shma.getOriginalShape()[1] && dims[0] != this.shma.getOriginalShape()[0]) {
+			img = Views.permute(img, 0, 1);
+		} else if (dims.length != 2 && dims[0] != this.shma.getOriginalShape()[1] && dims[1] != this.shma.getOriginalShape()[0]) {
 			throw new IllegalArgumentException("The provided mask should be a 2d image with just one channel of width "
 					+ this.shma.getOriginalShape()[1] + " and height " + this.shma.getOriginalShape()[0]);
 		}
@@ -367,8 +369,10 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			  + "  contours_y.append(contours_y_val)" + System.lineSeparator()
 			  + "task.update('all contours traced')" + System.lineSeparator()
 			  + "task.outputs['contours_x'] = contours_x" + System.lineSeparator()
-			  + "task.outputs['contours_y'] = contours_y" + System.lineSeparator();;
-		code += "mask = np.frombuffer(buffer=shm_mask.buf, dtype='" + shmArr.getOriginalDataType() + "')" + System.lineSeparator();
+			  + "task.outputs['contours_y'] = contours_y" + System.lineSeparator();
+		code += "mask = 0" + System.lineSeparator();
+		code += "shm_mask.close()" + System.lineSeparator();
+		code += "shm_mask.unlink()" + System.lineSeparator();
 		this.script = code;
 	}
 	

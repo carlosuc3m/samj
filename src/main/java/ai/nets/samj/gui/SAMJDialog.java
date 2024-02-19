@@ -53,8 +53,8 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	private JButton bnHelp = new JButton("Help");
 	private JButton bnStart = new JButton("Start/Encode");
 	private JButton bnStop = new JButton("Stop");
-	private JButton bnComplete = new JButton("Auto-Complete");
-	private JButton bnRoi2Mask = new JButton("Create Mask");
+	private JButton bnComplete = new JButton("Auto-Complete (coming soon...)");
+	private JButton bnRoi2Mask = new JButton("Create Mask (coming soon...)");
 	private JTextField txtStatus = new JTextField("(c) SAMJ team 2024");
 	
 	private ButtonIcon bnRect = new ButtonIcon("Rect", RESOURCES_FOLDER, "rect.png");
@@ -174,8 +174,10 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		add(pn, BorderLayout.NORTH);		
 		add(pnStatus, BorderLayout.SOUTH);		
 
-		bnRoi2Mask.addActionListener(this);		
-		bnComplete.addActionListener(this);
+		// TODO not ready yet bnRoi2Mask.addActionListener(this);		
+		// TODO not ready yet bnComplete.addActionListener(this);
+		bnRoi2Mask.setEnabled(false);
+		bnComplete.setEnabled(false);
 		bnClose.addActionListener(this);
 		bnHelp.addActionListener(this);
 		chkROIManager.addActionListener(this);
@@ -277,8 +279,8 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			this.bnStart.setEnabled(false);
 			this.cmbImage.setEnabled(true);
 		}
-		bnComplete.setEnabled(this.encodingsDone);
-		bnRoi2Mask.setEnabled(this.encodingsDone);
+		// TODO not ready yet bnComplete.setEnabled(this.encodingsDone);
+		// TODO not ready yet bnRoi2Mask.setEnabled(this.encodingsDone);
 		chkROIManager.setEnabled(this.encodingsDone);
 		bnRect.setEnabled(this.encodingsDone);
 		bnPoints.setEnabled(this.encodingsDone);

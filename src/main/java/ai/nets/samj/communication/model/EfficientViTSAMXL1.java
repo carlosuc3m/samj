@@ -3,6 +3,8 @@ package ai.nets.samj.communication.model;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Cast;
 
 import java.awt.Polygon;
@@ -112,6 +114,19 @@ public class EfficientViTSAMXL1 implements SAMModel {
 				(int)boundingBox2D.max(1)
 			};
 			return efficientSamJ.processBox(bbox);
+		} catch (IOException | InterruptedException | RuntimeException e) {
+			log.error(FULL_NAME+", providing empty result because of some trouble: "+e.getMessage());
+			e.printStackTrace();
+			List<Polygon> retList = new ArrayList<>(1);
+			retList.add( EMPTY_POLYGON );
+			return retList;
+		}
+	}
+
+	@Override
+	public <T extends RealType<T> & NativeType<T>> List<Polygon> fetch2dSegmentation(RandomAccessibleInterval<T> rai) {
+		try {
+			return efficientSamJ.processMask(rai);
 		} catch (IOException | InterruptedException | RuntimeException e) {
 			log.error(FULL_NAME+", providing empty result because of some trouble: "+e.getMessage());
 			e.printStackTrace();

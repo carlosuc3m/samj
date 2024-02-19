@@ -37,9 +37,9 @@ import ai.nets.samj.gui.components.ComboBoxItem;
 import ai.nets.samj.gui.components.GridPanel;
 import ai.nets.samj.gui.icons.ButtonIcon;
 import ai.nets.samj.gui.tools.Tools;
-import ai.nets.samj.ui.ExternalMethodsInterface;
 import ai.nets.samj.ui.PromptsResultsDisplay;
 import ai.nets.samj.ui.SAMJLogger;
+import ai.nets.samj.ui.UtilityMethods;
 import ai.nets.samj.SamEnvManager;
 import net.imglib2.RandomAccessibleInterval;
 
@@ -66,9 +66,9 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	private JComboBox<ComboBoxItem> cmbImage = new JComboBox<ComboBoxItem>();
 	
 	private final SAMModelPanel panelModel;
-	private final ExternalMethodsInterface softwareMethods;
 	private final SAMJLogger GUIsOwnLog;
 	private final SAMJLogger logForNetworks;
+	private final UtilityMethods consumerMethods;
 	
 	private Integer selectedID = null;
 	
@@ -78,19 +78,17 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	
 	private boolean encodingsDone = false;
 
-	public SAMJDialog(final SAMModels availableModel,
-	                  final ExternalMethodsInterface softwareMethods) {
-		this(availableModel, softwareMethods, null, null);
+	public SAMJDialog(final SAMModels availableModel, UtilityMethods consumerMethods) {
+		this(availableModel, consumerMethods, null, null);
 	}
 
 	public SAMJDialog(final SAMModels availableModel,
-	                  final ExternalMethodsInterface softwareMethods,
-	                  final SAMJLogger guilogger) {
-		this(availableModel, softwareMethods, guilogger, null);
+						UtilityMethods consumerMethods,
+	                    final SAMJLogger guilogger) {
+		this(availableModel, consumerMethods, guilogger, null);
 	}
 
-	public SAMJDialog(final SAMModels availableModel,
-	                  final ExternalMethodsInterface softwareMethods,
+	public SAMJDialog(final SAMModels availableModel, UtilityMethods consumerMethods,
 	                  final SAMJLogger guilogger,
 	                  final SAMJLogger networkLogger) {
 		// TODO super(new JFrame(), "SAMJ Annotator");
@@ -118,7 +116,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		} else {
 			this.logForNetworks = networkLogger;
 		}
-		this.softwareMethods = softwareMethods;
+		this.consumerMethods = consumerMethods;
 
 		panelModel = new SAMModelPanel(availableModel, (boolean bol) -> this.updateInterface(bol));
 		// Buttons
@@ -142,7 +140,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		pnActions.add(bnComplete);
 		pnActions.add(chkROIManager);
 		
-		List<ComboBoxItem> listImages = this.softwareMethods.getListOfOpenImages();
+		List<ComboBoxItem> listImages = this.consumerMethods.getListOfOpenImages();
 		for(ComboBoxItem item : listImages)
 			cmbImage.addItem(item);
 		cmbImage.addPopupMenuListener(this);
@@ -245,7 +243,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			JFileChooser fileChooser = new JFileChooser();
             int returnValue = fileChooser.showOpenDialog(null);
             if (returnValue == JFileChooser.APPROVE_OPTION) {
-                this.softwareMethods.getImageMask(fileChooser.getSelectedFile());
+                this.display.improveExistingMask(fileChooser.getSelectedFile());
             }
 		}
 
@@ -323,12 +321,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 						List<File> files = (List<File>) transferable.getTransferData(flavor);
 						for (File file : files) {
 							GUIsOwnLog.info("Taking mask from file " + file.getAbsolutePath());
-							RandomAccessibleInterval<?> mask = SAMJDialog.this.softwareMethods.getImageMask(file);
-							if (mask != null) {
-								throw new IllegalArgumentException("The selected file should be an image");
-							} else {
-								display.setPolygonsToRoiManager(null);
-							}
+							display.improveExistingMask(file);
 						}
 					}
 					catch (UnsupportedFlavorException ex) {
@@ -352,7 +345,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	@Override
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 		Object item = this.cmbImage.getSelectedItem();
-        List<ComboBoxItem> openSeqs = softwareMethods.getListOfOpenImages();
+        List<ComboBoxItem> openSeqs = consumerMethods.getListOfOpenImages();
         ComboBoxItem[] objects = new ComboBoxItem[openSeqs.size()];
         for (int i = 0; i < objects.length; i ++) objects[i] = openSeqs.get(i);
         DefaultComboBoxModel<ComboBoxItem> comboBoxModel = new DefaultComboBoxModel<ComboBoxItem>(objects);

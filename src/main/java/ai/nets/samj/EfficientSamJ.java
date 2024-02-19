@@ -199,13 +199,13 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	public <T extends RealType<T> & NativeType<T>>
 	List<Polygon> processMask(RandomAccessibleInterval<T> img) throws IOException, RuntimeException, InterruptedException {
 		long[] dims = img.dimensionsAsLongArray();
-		if (dims.length == 2 && dims[1] != this.shma.getOriginalShape()[1] && dims[0] != this.shma.getOriginalShape()[0]) {
+		if (dims.length == 2 && dims[1] == this.shma.getOriginalShape()[1] && dims[0] == this.shma.getOriginalShape()[0]) {
 			img = Views.permute(img, 0, 1);
 		} else if (dims.length != 2 && dims[0] != this.shma.getOriginalShape()[1] && dims[1] != this.shma.getOriginalShape()[0]) {
 			throw new IllegalArgumentException("The provided mask should be a 2d image with just one channel of width "
 					+ this.shma.getOriginalShape()[1] + " and height " + this.shma.getOriginalShape()[0]);
 		}
-		SharedMemoryArray maskShma = SharedMemoryArray.buildNumpyLikeSHMA(img);
+		SharedMemoryArray maskShma = SharedMemoryArray.buildSHMA(img);
 		try {
 			return processMask(maskShma);
 		} catch (IOException | RuntimeException | InterruptedException ex) {
@@ -231,8 +231,9 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 			code += l + ",";
 		code += "])" + System.lineSeparator();
 		code += "different_mask_vals = np.unique(mask)" + System.lineSeparator();
-		code += "contours_x = []" + System.lineSeparator();
-		code += "contours_y = []" + System.lineSeparator();
+		//code += "print(different_mask_vals)" + System.lineSeparator();
+		code += "cont_x = []" + System.lineSeparator();
+		code += "cont_y = []" + System.lineSeparator();
 		code += "for val in different_mask_vals:" + System.lineSeparator()
 			  + "  if val < 1:" + System.lineSeparator()
 			  + "    continue" + System.lineSeparator()
@@ -259,16 +260,16 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 			  + "    output_h=input_h," + System.lineSeparator()
 			  + "    output_w=input_w,)" + System.lineSeparator()
 			  //+ "np.save('/temp/aa.npy', mask)" + System.lineSeparator()
-			  + "sorted_ids = torch.argsort(predicted_iou, dim=-1, descending=True)" + System.lineSeparator()
-			  + "predicted_iou = torch.take_along_dim(predicted_iou, sorted_ids, dim=2)" + System.lineSeparator()
-			  + "predicted_logits = torch.take_along_dim(predicted_logits, sorted_ids[..., None, None], dim=2)" + System.lineSeparator()
-			  + "mask_val = torch.ge(predicted_logits[0, 0, 0, :, :], 0).cpu().detach().numpy()" + System.lineSeparator()
-			  + "  contours_x_val,contours_y_val = get_polygons_from_binary_mask(mask_val)" + System.lineSeparator()
-			  + "  contours_x += contours_x_val" + System.lineSeparator()
-			  + "  contours_y += contours_y_val" + System.lineSeparator()
+			  + "  sorted_ids = torch.argsort(predicted_iou, dim=-1, descending=True)" + System.lineSeparator()
+			  + "  predicted_iou = torch.take_along_dim(predicted_iou, sorted_ids, dim=2)" + System.lineSeparator()
+			  + "  predicted_logits = torch.take_along_dim(predicted_logits, sorted_ids[..., None, None], dim=2)" + System.lineSeparator()
+			  + "  mask_val = torch.ge(predicted_logits[0, 0, 0, :, :], 0).cpu().detach().numpy()" + System.lineSeparator()
+			  + "  cont_x_val,cont_y_val = get_polygons_from_binary_mask(mask_val)" + System.lineSeparator()
+			  + "  cont_x += cont_x_val" + System.lineSeparator()
+			  + "  cont_y += cont_y_val" + System.lineSeparator()
 			  + "task.update('all contours traced')" + System.lineSeparator()
-			  + "task.outputs['contours_x'] = contours_x" + System.lineSeparator()
-			  + "task.outputs['contours_y'] = contours_y" + System.lineSeparator();
+			  + "task.outputs['contours_x'] = cont_x" + System.lineSeparator()
+			  + "task.outputs['contours_y'] = cont_y" + System.lineSeparator();
 		code += "mask = 0" + System.lineSeparator();
 		code += "shm_mask.close()" + System.lineSeparator();
 		code += "shm_mask.unlink()" + System.lineSeparator();

@@ -317,7 +317,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			throw new IllegalArgumentException("The provided mask should be a 2d image with just one channel of width "
 					+ this.shma.getOriginalShape()[1] + " and height " + this.shma.getOriginalShape()[0]);
 		}
-		SharedMemoryArray maskShma = SharedMemoryArray.buildNumpyLikeSHMA(img);
+		SharedMemoryArray maskShma = SharedMemoryArray.buildSHMA(img);
 		try {
 			return processMask(maskShma);
 		} catch (IOException | RuntimeException | InterruptedException ex) {

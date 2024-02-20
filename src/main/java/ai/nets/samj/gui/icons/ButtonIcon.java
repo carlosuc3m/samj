@@ -4,8 +4,14 @@ import java.awt.Dimension;
 import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLClassLoader;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
 import java.util.Enumeration;
 
 import javax.swing.BorderFactory;
@@ -47,7 +53,17 @@ public class ButtonIcon extends JButton {
 	}
 	
 	private ImageIcon getIcon(String path) {
+		while (path.indexOf("//") != -1) path = path.replace("//", "/");
 		URL url = ButtonIcon.class.getClassLoader().getResource(path);
+		if (url == null) {
+			File f = findJarFile(ButtonIcon.class);
+			if (f.getName().endsWith(".jar")) {
+				try (URLClassLoader clsloader = new URLClassLoader(new URL[]{f.toURI().toURL()})){
+					url = clsloader.getResource(path);
+				} catch (IOException e) {
+				}
+			}
+		}
 		if (url != null) {
 			ImageIcon img = new ImageIcon(url, "") ;  
 			Image image = img.getImage();
@@ -56,6 +72,24 @@ public class ButtonIcon extends JButton {
 		}
 		return null;
 	}
+	
+	private static File findJarFile(Class<?> clazz) {
+        ProtectionDomain protectionDomain = clazz.getProtectionDomain();
+        if (protectionDomain != null) {
+            CodeSource codeSource = protectionDomain.getCodeSource();
+            if (codeSource != null) {
+                URL location = codeSource.getLocation();
+                if (location != null) {
+                    try {
+                        return new File(URI.create(location.toURI().getSchemeSpecificPart()).getPath());
+                    } catch (URISyntaxException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        return null;
+    }
 	
 	public void setPressed(boolean isPressed) {
 		if (isPressed) this.setIcon(pressedIcon);

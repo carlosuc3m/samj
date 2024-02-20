@@ -14,6 +14,8 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -28,6 +30,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
@@ -41,7 +44,6 @@ import ai.nets.samj.ui.PromptsResultsDisplay;
 import ai.nets.samj.ui.SAMJLogger;
 import ai.nets.samj.ui.UtilityMethods;
 import ai.nets.samj.SamEnvManager;
-import net.imglib2.RandomAccessibleInterval;
 
 public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListener {
 
@@ -222,7 +224,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		} else if (e.getSource() == bnHelp) {
 			Tools.help();
 		} else if (e.getSource() == bnClose) {
-			display.notifyNetToClose();
+			this.close();
 		} else if (e.getSource() == bnComplete) {
 			GUIsOwnLog.warn("TO DO call Auto-complete");
 		} else if (e.getSource() == bnStart) {
@@ -345,6 +347,8 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	public void close() {
 		if (display != null)
 			display.notifyNetToClose();
+		if (SwingUtilities.windowForComponent(this).isDisplayable())
+			SwingUtilities.windowForComponent(this).dispose();
 	}
 
 	@Override
@@ -375,6 +379,6 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	}
 
 	@Override
-	public void popupMenuCanceled(PopupMenuEvent e) {	
+	public void popupMenuCanceled(PopupMenuEvent e) {
 	}
 }

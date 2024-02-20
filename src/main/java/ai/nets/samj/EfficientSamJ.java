@@ -45,13 +45,13 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "import numpy as np" + System.lineSeparator()
 			+ "import torch" + System.lineSeparator()
 			+ "import sys" + System.lineSeparator()
-			+ "sys.path.append('%s')" + System.lineSeparator()
+			+ "sys.path.append(r'%s')" + System.lineSeparator()
 			+ "from multiprocessing import shared_memory" + System.lineSeparator()
 			+ "task.update('import sam')" + System.lineSeparator()
 			+ "from efficient_sam.efficient_sam import build_efficient_sam" + System.lineSeparator()
 			+ "task.update('imported')" + System.lineSeparator()
 			+ "" + System.lineSeparator()
-			+ "predictor = build_efficient_sam(encoder_patch_embed_dim=384,encoder_num_heads=6,checkpoint='%s',).eval()" + System.lineSeparator()
+			+ "predictor = build_efficient_sam(encoder_patch_embed_dim=384,encoder_num_heads=6,checkpoint=r'%s',).eval()" + System.lineSeparator()
 			+ "task.update('created predictor')" + System.lineSeparator()
 			+ "globals()['shared_memory'] = shared_memory" + System.lineSeparator()
 			+ "globals()['measure'] = measure" + System.lineSeparator()
@@ -82,6 +82,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 				manager.getEfficientSAMSmallWeightsPath());
 		printScript(IMPORTS_FORMATED + PythonMethods.TRACE_EDGES, "Edges tracing code");
 		Task task = python.task(IMPORTS_FORMATED + PythonMethods.TRACE_EDGES);
+		System.out.println(IMPORTS_FORMATED + PythonMethods.TRACE_EDGES);
 		task.waitFor();
 		if (task.status == TaskStatus.CANCELED)
 			throw new RuntimeException();

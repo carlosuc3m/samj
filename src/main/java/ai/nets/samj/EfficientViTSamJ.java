@@ -57,7 +57,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "import torch" + System.lineSeparator()
 			+ "import sys" + System.lineSeparator()
 			+ "import os" + System.lineSeparator()
-			+ "os.chdir('%s')" + System.lineSeparator()
+			+ "os.chdir(r'%s')" + System.lineSeparator()
 			+ "from multiprocessing import shared_memory" + System.lineSeparator()
 			+ "task.update('import sam')" + System.lineSeparator()
 			+ "from efficientvit.models.efficientvit import EfficientViTSam, %s" + System.lineSeparator()
@@ -75,7 +75,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "  if isinstance(m, (torch.nn.GroupNorm, torch.nn.LayerNorm, torch.nn.modules.batchnorm._BatchNorm)):" + System.lineSeparator()
 			+ "    if eps is not None:" + System.lineSeparator()
 			+ "      m.eps = eps" + System.lineSeparator()
-			+ "f_name = os.path.realpath(os.path.expanduser('%s'))" + System.lineSeparator()
+			+ "f_name = os.path.realpath(os.path.expanduser(r'%s'))" + System.lineSeparator()
 			+ "weight = torch.load(f_name, map_location='cpu')" + System.lineSeparator()
 			+ "if \"state_dict\" in weight:" + System.lineSeparator()
 			+ "  weight = weight[\"state_dict\"]" + System.lineSeparator()
@@ -115,6 +115,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		
 		printScript(IMPORTS_FORMATED + PythonMethods.TRACE_EDGES, "Edges tracing code");
 		Task task = python.task(IMPORTS_FORMATED + PythonMethods.TRACE_EDGES);
+		System.out.println(IMPORTS_FORMATED + PythonMethods.TRACE_EDGES);
 		task.waitFor();
 		if (task.status == TaskStatus.CANCELED)
 			throw new RuntimeException();

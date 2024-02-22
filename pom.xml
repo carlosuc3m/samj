@@ -57,6 +57,7 @@
 	</developers>
 	<contributors>
 		<contributor>
+
 			<name>null</name>
 			<url>null</url>
 			<properties><id>null</id></properties>
@@ -95,7 +96,6 @@
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 	</properties>
-	
 	<dependencies>
 		<dependency>
 			<groupId>net.imglib2</groupId>

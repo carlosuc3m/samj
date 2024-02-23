@@ -1,6 +1,3 @@
-package ai.nets.samj.gui.components;
-
-
 /*
  * Copyright 2010-2017 Biomedical Imaging Group at the EPFL.
  * 
@@ -18,6 +15,7 @@ package ai.nets.samj.gui.components;
  * You should have received a copy of the GNU General Public License along with
  * DL2. If not, see <http://www.gnu.org/licenses/>.
  */
+package ai.nets.samj.gui.components;
 
 import java.awt.Dimension;
 

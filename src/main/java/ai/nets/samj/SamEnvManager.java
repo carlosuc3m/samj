@@ -56,48 +56,118 @@ import io.bioimage.modelrunner.apposed.appose.MambaInstallerUtils;
  * @author Carlos Javier Garcia Lopez de Haro
  */
 public class SamEnvManager {
+	/**
+	 * Name of the file that contains the weights of SAM Huge
+	 */
 	final public static String SAM_WEIGHTS_NAME = "sam_vit_h_4b8939.pth";
+	/**
+	 * Name of the file that contains the weights for EfficientSAM small
+	 */
 	final public static String ESAM_SMALL_WEIGHTS_NAME ="efficient_sam_vits.pt";
-	final public static String SAM_MODEL_TYPE = "vit_b";
+	/**
+	 * Name of the encoder (ViT Huge) that is going to be used for SAM in SAMJ
+	 */
+	final public static String SAM_MODEL_TYPE = "vit_h";
+	/**
+	 * Default version for the family of EfficientViTSAM models
+	 */
 	final public static String DEFAULT_EVITSAM = "l0";
-	
+	/**
+	 * Dependencies to be checked to make sure that the environment is able to load a SAM based model. 
+	 * General for every supported model.
+	 */
 	final public static List<String> CHECK_DEPS = Arrays.asList(new String[] {"appose", "torch", "torchvision", "skimage"});
-	
+	/**
+	 * Dependencies to be checked to make sure that an environment can run an EfficientViTSAM model
+	 */
 	final public static List<String> CHECK_DEPS_EVSAM = Arrays.asList(new String[] {"onnxsim", "timm", "onnx", "segment_anything"});
-	
+	/**
+	 * Dependencies that have to be installed in any SAMJ created environment using Mamba or Conda
+	 */
 	final public static List<String> INSTALL_CONDA_DEPS = Arrays.asList(new String[] {"libpng", "libjpeg-turbo", "scikit-image", "pytorch=2.0.1", "torchvision=0.15.2", "cpuonly"});
-	
+	/**
+	 * Dependencies that have to be installed using Mamba or Conda in environments that are going
+	 * to be used to run EfficientViTSAM
+	 */
 	final public static List<String> INSTALL_EVSAM_CONDA_DEPS = Arrays.asList(new String[] {"cmake", "onnx", "onnxruntime", "timm=0.6.13"});
-
+	/**
+	 * Dependencies for every environment that need to be installed using PIP
+	 */
 	final public static List<String> INSTALL_PIP_DEPS = Arrays.asList(new String[] {"appose"});
-
+	/**
+	 * Dependencies for EfficientViTSAM environments that need to be installed using PIP
+	 */
 	final public static List<String> INSTALL_EVSAM_PIP_DEPS = Arrays.asList(new String[] {"onnxsim", "segment_anything"});
-
+	/**
+	 * Byte size of the weights of SAM Huge
+	 */
 	final public static long SAM_BYTE_SIZE = 375042383;
-	
-	
+	/**
+	 * Name that will be given to the environment that contains the dependencies needed to load EfficientSAM or SAM
+	 */
 	final static public String COMMON_ENV_NAME = "sam_common_env";
+	/**
+	 * Name of the environment that contains the code and weigths to run EfficientSAM models
+	 */
 	final static public String ESAM_ENV_NAME = "efficient_sam_env";
+	/**
+	 * Name of the environment that contains the code, dependencies and weigths to load EfficientViTSAM models
+	 */
 	final static public String EVITSAM_ENV_NAME = "efficientvit_sam_env";
+	/**
+	 * Name of the environment that contains the code and weights to load SAM
+	 */
 	final static public String SAM_ENV_NAME = "sam_env";
+	/**
+	 * Name of the folder that contains the code and weigths for EfficientSAM models
+	 */
 	final static public String ESAM_NAME = "EfficientSAM";
+	/**
+	 * Name of the folder that contains the code and weigths for EfficientViTSAM models
+	 */
 	final static public String EVITSAM_NAME = "efficientvit";
+	/**
+	 * Name of the folder that contains the code and weigths for SAM models
+	 */
 	final static public String SAM_NAME = "SAM";
-	
+	/**
+	 * URL to download the EfficientSAM model 
+	 */
 	final static public String ESAMS_URL = "https://raw.githubusercontent.com/yformer/EfficientSAM/main/weights/efficient_sam_vits.pt.zip";
+	/**
+	 * URL to download the EfficientViTSAM model. It needs to be used with String.format(EVITSAM_URL, "l0"), whre l0 could be any of 
+	 * the existing EfficientVitSAM model 
+	 */
 	final static private String EVITSAM_URL = "https://huggingface.co/han-cai/efficientvit-sam/resolve/main/%s.pt?download=true";
+	/**
+	 * Default directory where micromamba is installed and where all the environments are created
+	 */
 	final static public String DEFAULT_DIR = new File("appose_x86_64").getAbsolutePath();
-	
+	/**
+	 * Date format
+	 */
 	private static DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
-	
+	/**
+	 * Variable used to measer time intervals
+	 */
 	private static long millis = System.currentTimeMillis();
-	
+	/**
+	 * Relative path to the mamba executable from the appose folder
+	 */
 	private final static String MAMBA_RELATIVE_PATH = PlatformDetection.isWindows() ? 
 			 File.separator + "Library" + File.separator + "bin" + File.separator + "micromamba.exe" 
 			: File.separator + "bin" + File.separator + "micromamba";	
-
+	/**
+	 * Path where Micromamba is going to be installed
+	 */
 	private String path;
+	/**
+	 * {@link Mamba} instance used to create the environments
+	 */
 	private Mamba mamba;
+	/**
+	 * Consumer used to keep providing info in the case of several threads working
+	 */
 	private Consumer<String> consumer;
 	
 	public static SamEnvManager create(String path) {

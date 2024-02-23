@@ -14,12 +14,12 @@
 	<version>0.0.1-SNAPSHOT</version>
 
 	<name>SamJ</name>
-	<description>Segment Anything Model (SAM) wrapper for Java based software.</description>
-	<url>https://github.com/bioimage-io/JDLL</url>
-	<inceptionYear>2022</inceptionYear>
+	<description>Segment Anything Model (SAM), and similar models, wrapper for Java based software.</description>
+	<url>https://github.com/carlosuc3m/samj</url>
+	<inceptionYear>2024</inceptionYear>
 	<organization>
-		<name>BioImage.io</name>
-		<url>https://bioimage.io/</url>
+		<name>SAMJ</name>
+		<url>https://github.com/segment-anything-models-java</url>
 	</organization>
 	<licenses>
 		<license>
@@ -43,9 +43,9 @@
 			</roles>
 		</developer>
 		<developer>
-			<id>dasv74</id>
-			<name>Daniel Sage</name>
-			<url>https://github.com/dasv74</url>
+			<id>xulman</id>
+			<name>Vladimir Ulman</name>
+			<url>https://github.com/xulman</url>
 			<roles>
 				<role>developer</role>
 				<role>debugger</role>
@@ -54,13 +54,63 @@
 				<role>maintainer</role>
 			</roles>
 		</developer>
+		<developer>
+			<id>dasv74</id>
+			<name>Daniel Sage</name>
+			<url>https://github.com/dasv74</url>
+			<roles>
+				<role>developer</role>
+				<role>debugger</role>
+				<role>reviewer</role>
+				<role>support</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>joheras</id>
+			<name>DJonathan Heras</name>
+			<url>https://github.com/joheras</url>
+			<roles>
+				<role>support</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>joheras</id>
+			<name>Jonathan Heras</name>
+			<url>https://github.com/joheras</url>
+			<roles>
+				<role>support</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>cfusterbarcelo</id>
+			<name>Caterina Fuster-Barcelo</name>
+			<url>https://github.com/cfusterbarcelo</url>
+			<roles>
+				<role>support</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>adines</id>
+			<name>Adrian Ines</name>
+			<url>https://github.com/adines</url>
+			<roles>
+				<role>support</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>arrmunoz</id>
+			<name>Arrate Muñoz-Barrutia</name>
+			<url>https://github.com/arrmunoz</url>
+			<roles>
+				<role>support</role>
+			</roles>
+		</developer>
 	</developers>
 	<contributors>
 		<contributor>
-
-			<name>null</name>
-			<url>null</url>
-			<properties><id>null</id></properties>
+			<name>Carlos Garcia</name>
+			<url>https://github.com/carlosuc3m</url>
+			<properties><id>carlosuc3m</id></properties>
 		</contributor>
 		<contributor>
 		</contributor>
@@ -68,7 +118,7 @@
 	<mailingLists>
 		<mailingList>
 			<name>Image.sc Forum</name>
-			<archive>https://forum.image.sc/tag/bioimage-io</archive>
+			<archive>https://forum.image.sc/tag/samj</archive>
 		</mailingList>
 	</mailingLists>
 
@@ -88,9 +138,9 @@
 	</ciManagement>
 
 	<properties>
-		<package-name>io.bioimage.sam</package-name>
+		<package-name>ai.nets.samj</package-name>
 		<license.licenseName>apache_v2</license.licenseName>
-		<license.copyrightOwners>Institut Pasteur.</license.copyrightOwners>
+		<license.copyrightOwners>SAMJ developers</license.copyrightOwners>
 		<license.excludes>**/*.json</license.excludes>
 
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
@@ -105,12 +155,7 @@
 			<groupId>org.apposed</groupId>
 			<artifactId>appose</artifactId>
 			<version>0.1.1</version>
-		</dependency>
-		<dependency>
-            <groupId>org.msgpack</groupId>
-            <artifactId>jackson-dataformat-msgpack</artifactId>
-            <version>0.9.0</version>
-    	</dependency> -->
+		</dependency> -->
 		<dependency>
     			<groupId>io.bioimage</groupId>
     			<artifactId>dl-modelrunner</artifactId>

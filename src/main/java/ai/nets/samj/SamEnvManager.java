@@ -170,10 +170,28 @@ public class SamEnvManager {
 	 */
 	private Consumer<String> consumer;
 	
+	/**
+	 * Creates an instance of {@link SamEnvManager} that uses a micromamba installed at the argument
+	 * provided by 'path'.
+	 * Micromamba does not need to be installed as the code will install it automatically.
+	 * @param path
+	 * 	the path where the corresponding micromamba shuold be installed
+	 * @return an instance of {@link SamEnvManager}
+	 */
 	public static SamEnvManager create(String path) {
 		return create(path, (ss) -> {});
 	}
 	
+	/**
+	 * Creates an instance of {@link SamEnvManager} that uses a micromamba installed at the argument
+	 * provided by 'path'.
+	 * Micromamba does not need to be installed as the code will install it automatically.
+	 * @param path
+	 * 	the path where the corresponding micromamba shuold be installed
+	 * @param consumer
+	 * 	an specific consumer where info about the installation is going to be communicated
+	 * @return an instance of {@link SamEnvManager}
+	 */
 	public static SamEnvManager create(String path, Consumer<String> consumer) {
 		SamEnvManager installer = new SamEnvManager();
 		installer.path = path;
@@ -182,25 +200,54 @@ public class SamEnvManager {
 		return installer;
 	}
 	
+	/**
+	 * Creates an instance of {@link SamEnvManager} that uses a micromamba installed at the default
+	 * directory {@link #DEFAULT_DIR}.
+	 * Micromamba does not need to be installed as the code will install it automatically.
+	 * @return an instance of {@link SamEnvManager}
+	 */
 	public static SamEnvManager create() {
 		return create(DEFAULT_DIR);
 	}
 	
+	/**
+	 * Creates an instance of {@link SamEnvManager} that uses a micromamba installed at the default
+	 * directory {@link #DEFAULT_DIR}.
+	 * Micromamba does not need to be installed as the code will install it automatically.
+	 * @param consumer
+	 * 	an specific consumer where info about the installation is going to be communicated
+	 * @return an instance of {@link SamEnvManager}
+	 */
 	public static SamEnvManager create(Consumer<String> consumer) {
 		return create(DEFAULT_DIR, consumer);
 	}
 	
+	/**
+	 * Send information as Strings to the consumer
+	 * @param str
+	 * 	String that is going to be sent to the consumer
+	 */
 	private void passToConsumer(String str) {
 		consumer.accept(str);
 		millis = System.currentTimeMillis();
 	}
 	
+	/**
+	 * Check whether micromamba is installed or not in the directory of the {@link SamEnvManager} instance.
+	 * @return whether micromamba is installed or not in the directory of the {@link SamEnvManager} instance.
+	 */
 	public boolean checkMambaInstalled() {
 		File ff = new File(path + MAMBA_RELATIVE_PATH);
 		if (!ff.exists()) return false;
 		return mamba.checkMambaInstalled();
 	}
 	
+	/**
+	 * Check whether the Python environment with the corresponding packages needed to run EfficientSAM
+	 * has been installed or not. The environment folder should be named {@value #COMMON_ENV_NAME} 
+	 * @return whether the Python environment with the corresponding packages needed to run EfficientSAM
+	 * has been installed or not
+	 */
 	public boolean checkEfficientSAMPythonInstalled() {
 		if (!checkMambaInstalled()) return false;
 		File pythonEnv = Paths.get(this.path, "envs", COMMON_ENV_NAME).toFile();
@@ -216,6 +263,12 @@ public class SamEnvManager {
 		return uninstalled.size() == 0;
 	}
 	
+	/**
+	 * Check whether the Python environment with the corresponding packages needed to run an EfficientViTSAM
+	 * model has been installed or not. The environment folder should be named {@value #EVITSAM_ENV_NAME} 
+	 * @return whether the Python environment with the corresponding packages needed to run EfficientSAM
+	 * has been installed or not
+	 */
 	public boolean checkEfficientViTSAMPythonInstalled() {
 		if (!checkMambaInstalled()) return false;
 		File pythonEnv = Paths.get(this.path, "envs", EVITSAM_ENV_NAME).toFile();
@@ -231,6 +284,11 @@ public class SamEnvManager {
 		return uninstalled.size() == 0;
 	}
 	
+	/**
+	 * Check whether the Python package to run SAM has been installed. The package will be in the folder
+	 * {@value #SAM_ENV_NAME}. The Python executable and other dependencies will be at {@value #COMMON_ENV_NAME}
+	 * @return whether the Python package to run SAM has been installed.
+	 */
 	public boolean checkSAMPackageInstalled() {
 		if (!checkMambaInstalled()) return false;
 		File pythonEnv = Paths.get(this.path, "envs", SAM_ENV_NAME, SAM_NAME).toFile();
@@ -238,6 +296,11 @@ public class SamEnvManager {
 		return true;
 	}
 	
+	/**
+	 * Check whether the Python package to run EfficientSAM has been installed. The package will be in the folder
+	 * {@value #ESAM_ENV_NAME}. The Python executable and other dependencies will be at {@value #COMMON_ENV_NAME}
+	 * @return whether the Python package to run EfficientSAM has been installed.
+	 */
 	public boolean checkEfficientSAMPackageInstalled() {
 		if (!checkMambaInstalled()) return false;
 		File pythonEnv = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME).toFile();
@@ -245,6 +308,12 @@ public class SamEnvManager {
 		return true;
 	}
 	
+	/**
+	 * Check whether the Python package to run an EfficientViTSAM model has been installed. The package will be in the folder
+	 * {@value #EVITSAM_NAME} inside of {@value #EVITSAM_ENV_NAME}. The Python executable and other dependencies will be
+	 * in the same environment {@value #EVITSAM_ENV_NAME}
+	 * @return whether the Python package to run an EfficientViTSAM model has been installed.
+	 */
 	public boolean checkEfficientViTSAMPackageInstalled() {
 		if (!checkMambaInstalled()) return false;
 		File pythonEnv = Paths.get(this.path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME).toFile();
@@ -252,11 +321,24 @@ public class SamEnvManager {
 		return true;
 	}
 	
+	/**
+	 * 
+	 * @return whether the weights needed to run EfficientSAM Small (the standard EfficientSAM) have been 
+	 * downloaded and installed or not
+	 */
 	public boolean checkEfficientSAMSmallWeightsDownloaded() {
 		File weigthsFile = Paths.get(this.path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_SMALL_WEIGHTS_NAME).toFile();
 		return weigthsFile.isFile();
 	}
-	
+
+	/**
+	 * Check whether the weight file needed to run one of the pretrained EfficientViTSAM has been installed 
+	 * or not.
+	 * @param modelType
+	 * 	the model type. The available model types are "l0", "l1", "l2", "xl0" and "xl1"
+	 * @return whether the weight file needed to run one of the pretrained EfficientViTSAM has been installed 
+	 * or not.
+	 */
 	public boolean checkEfficientViTSAMWeightsDownloaded(String modelType) {
 		if (!EfficientViTSamJ.getListOfSupportedEfficientViTSAM().contains(modelType))
 			throw new IllegalArgumentException("The provided model is not one of the supported EfficientViT models: " 
@@ -265,25 +347,34 @@ public class SamEnvManager {
 		return weigthsFile.isFile();
 	}
 	
+	/**
+	 * 
+	 * @return whether the weights needed to run SAM Huge have been 
+	 * downloaded and installed or not
+	 */
 	public boolean checkSAMWeightsDownloaded() {
 		File weigthsFile = Paths.get(this.path, "envs", SAM_ENV_NAME, SAM_NAME, "weights", SAM_WEIGHTS_NAME).toFile();
 		return weigthsFile.isFile();
 	}
 	
-	public void downloadSAM() {
-		downloadSAM(false);
+	/**
+	 * Download and install all the things needed to run SAM. It checks whether micromamba is installed or not,
+	 * and installs it if not, checks whether the environemnt to run SAM is installed or not and installs it if not,
+	 * and checks whether the weigths for SAM have been installed or not and installs them if not.
+	 */
+	public void downloadSAMWeigths() {
+		downloadSAMWeigths(false);
 	}
-	
-	public void downloadSAM(boolean force) {
+	public void downloadSAMWeigths(boolean force) {
 		if (!force && checkSAMWeightsDownloaded())
 			return;
 	}
 	
-	public void downloadESAMSmall() throws IOException, InterruptedException {
-		downloadESAMSmall(false);
+	public void downloadESAMSmallWeights() throws IOException, InterruptedException {
+		downloadESAMSmallWeights(false);
 	}
 	
-	public void downloadESAMSmall(boolean force) throws IOException {
+	public void downloadESAMSmallWeights(boolean force) throws IOException {
 		if (!force && checkEfficientSAMSmallWeightsDownloaded())
 			return;
 		Thread thread = reportProgress(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- INSTALLING EFFICIENTSAM WEIGHTS");
@@ -318,27 +409,27 @@ public class SamEnvManager {
         passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTSAM WEIGHTS INSTALLED");
 	}
 	
-	public void downloadEfficientViTSAM() throws IOException, InterruptedException {
-		downloadEfficientViTSAM(DEFAULT_EVITSAM, false, null);
+	public void downloadEfficientViTSAMWeights() throws IOException, InterruptedException {
+		downloadEfficientViTSAMWeights(DEFAULT_EVITSAM, false, null);
 	}
 	
 	public void downloadEfficientViTSAM(boolean force) throws IOException, InterruptedException {
-		downloadEfficientViTSAM(DEFAULT_EVITSAM, force, null);
+		downloadEfficientViTSAMWeights(DEFAULT_EVITSAM, force, null);
 	}
 	
 	public void downloadEfficientViTSAM(String modelType) throws IOException, InterruptedException {
-		downloadEfficientViTSAM(modelType, false, null);
+		downloadEfficientViTSAMWeights(modelType, false, null);
 	}
 	
 	public void downloadEfficientViTSAM(String modelType, boolean force) throws IOException, InterruptedException {
-		downloadEfficientViTSAM(modelType, force, null);
+		downloadEfficientViTSAMWeights(modelType, force, null);
 	}
 
 	public void downloadEfficientViTSAM(String modelType, DownloadTracker.TwoParameterConsumer<String, Double> consumer) throws IOException, InterruptedException {
-		downloadEfficientViTSAM(modelType, false, consumer); 
+		downloadEfficientViTSAMWeights(modelType, false, consumer); 
 	}
 	
-	public void downloadEfficientViTSAM(String modelType, boolean force, 
+	public void downloadEfficientViTSAMWeights(String modelType, boolean force, 
 			DownloadTracker.TwoParameterConsumer<String, Double> consumer2) throws IOException, InterruptedException {
 		if (!EfficientViTSamJ.getListOfSupportedEfficientViTSAM().contains(modelType))
 			throw new IllegalArgumentException("The provided model is not one of the supported EfficientViT models: " 
@@ -422,6 +513,13 @@ public class SamEnvManager {
 		installEfficientViTSAMPython(false);
 	}
 	
+	/**
+	 * Download and install all the things needed to run SAM. It checks whether micromamba is installed or not,
+	 * and installs it if not, checks whether the environemnt to run SAM is installed or not and installs it if not,
+	 * and checks whether the weigths for SAM have been installed or not and installs them if not.
+	 * @param force
+	 * 	if there is a SAM environment already installed it overwrittes it
+	 */
 	public void installEfficientViTSAMPython(boolean force) throws IOException, InterruptedException, MambaInstallException {
 		if (!checkMambaInstalled())
 			throw new IllegalArgumentException("Unable to install Python without first installing Mamba. ");
@@ -649,7 +747,7 @@ public class SamEnvManager {
 		
 		if (!this.checkEfficientSAMPackageInstalled()) this.installSAMPackage();
 		
-		if (!this.checkEfficientSAMSmallWeightsDownloaded()) this.downloadSAM(false);
+		if (!this.checkEfficientSAMSmallWeightsDownloaded()) this.downloadSAMWeigths(false);
 	}
 	
 	public void installEfficientSAMSmall() throws IOException, InterruptedException, 
@@ -660,7 +758,7 @@ public class SamEnvManager {
 		
 		if (!this.checkEfficientSAMPackageInstalled()) this.installEfficientSAMPackage();
 		
-		if (!this.checkEfficientSAMSmallWeightsDownloaded()) this.downloadESAMSmall(false);
+		if (!this.checkEfficientSAMSmallWeightsDownloaded()) this.downloadESAMSmallWeights(false);
 	}
 	
 	public void installEfficientViTSAM() throws IOException, InterruptedException, 

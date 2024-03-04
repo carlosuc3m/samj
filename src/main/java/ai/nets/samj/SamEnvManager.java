@@ -40,7 +40,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import io.bioimage.modelrunner.bioimageio.download.DownloadModel;
-import io.bioimage.modelrunner.bioimageio.download.DownloadTracker;
 import io.bioimage.modelrunner.engine.installation.FileDownloader;
 import io.bioimage.modelrunner.system.PlatformDetection;
 
@@ -358,22 +357,36 @@ public class SamEnvManager {
 	}
 	
 	/**
-	 * Download and install all the things needed to run SAM. It checks whether micromamba is installed or not,
-	 * and installs it if not, checks whether the environemnt to run SAM is installed or not and installs it if not,
-	 * and checks whether the weigths for SAM have been installed or not and installs them if not.
+	 * Download and install all the weights of SAM Huge.
 	 */
 	public void downloadSAMWeigths() {
 		downloadSAMWeigths(false);
 	}
+	
+	/**
+	 * Download and install the weights of SAM Huge.
+	 * @param force
+	 * 	whether to overwrite the weights file if it already exists
+	 */
 	public void downloadSAMWeigths(boolean force) {
 		if (!force && checkSAMWeightsDownloaded())
 			return;
 	}
 	
+	/**
+	 * Install the weights of EfficientSAM Small.
+	 * @param force
+	 * 	whether to overwrite the weights file if it already exists
+	 */
 	public void downloadESAMSmallWeights() throws IOException, InterruptedException {
 		downloadESAMSmallWeights(false);
 	}
 	
+	/**
+	 * Install the weights of EfficientSAM Small.
+	 * @param force
+	 * 	whether to overwrite the weights file if it already exists
+	 */
 	public void downloadESAMSmallWeights(boolean force) throws IOException {
 		if (!force && checkEfficientSAMSmallWeightsDownloaded())
 			return;
@@ -409,28 +422,48 @@ public class SamEnvManager {
         passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTSAM WEIGHTS INSTALLED");
 	}
 	
+	/**
+	 * Download and install the weights of EfficientViTSAM. This method always downloads "l0" model,
+	 * to download another model please use {@link #downloadEfficientViTSAMWeights(String)}
+	 * @throws IOException if there is any issue downloading the weights file
+	 * @throws InterruptedException if the download of the weights is interrupted
+	 */
 	public void downloadEfficientViTSAMWeights() throws IOException, InterruptedException {
-		downloadEfficientViTSAMWeights(DEFAULT_EVITSAM, false, null);
+		downloadEfficientViTSAMWeights(DEFAULT_EVITSAM, false);
+	}
+	/**
+	 * Download and install the weights of EfficientViTSAM. This method always downloads "l0" model,
+	 * to download another model please use {@link #downloadEfficientViTSAMWeights(String, boolean)}
+	 * @param force
+	 * 	whether to overwrite the existing weights file or not
+	 * @throws IOException if there is any issue downloading the weights file
+	 * @throws InterruptedException if the download of the weights is interrupted
+	 */
+	public void downloadEfficientViTSAMWeights(boolean force) throws IOException, InterruptedException {
+		downloadEfficientViTSAMWeights(DEFAULT_EVITSAM, force);
 	}
 	
-	public void downloadEfficientViTSAM(boolean force) throws IOException, InterruptedException {
-		downloadEfficientViTSAMWeights(DEFAULT_EVITSAM, force, null);
+	/**
+	 * Download and install the weights of the wanted EfficientViTSAM model. 
+	 * @param modelType
+	 * 	the type of model to be downloaded. The available models are "l0", "l1", "l2", "xl0" and "xl1"
+	 * @throws IOException if there is any issue downloading the weights file
+	 * @throws InterruptedException if the download of the weights is interrupted
+	 */
+	public void downloadEfficientViTSAMWeights(String modelType) throws IOException, InterruptedException {
+		downloadEfficientViTSAMWeights(modelType, false);
 	}
 	
-	public void downloadEfficientViTSAM(String modelType) throws IOException, InterruptedException {
-		downloadEfficientViTSAMWeights(modelType, false, null);
-	}
-	
-	public void downloadEfficientViTSAM(String modelType, boolean force) throws IOException, InterruptedException {
-		downloadEfficientViTSAMWeights(modelType, force, null);
-	}
-
-	public void downloadEfficientViTSAM(String modelType, DownloadTracker.TwoParameterConsumer<String, Double> consumer) throws IOException, InterruptedException {
-		downloadEfficientViTSAMWeights(modelType, false, consumer); 
-	}
-	
-	public void downloadEfficientViTSAMWeights(String modelType, boolean force, 
-			DownloadTracker.TwoParameterConsumer<String, Double> consumer2) throws IOException, InterruptedException {
+	/**
+	 * Download and install the weights of the wanted EfficientViTSAM model. 
+	 * @param modelType
+	 * 	the type of model to be downloaded. The available models are "l0", "l1", "l2", "xl0" and "xl1"
+	 * @param force
+	 * 	whether to overwrite the existing weights file or not
+	 * @throws IOException if there is any issue downloading the weights file
+	 * @throws InterruptedException if the download of the weights is interrupted
+	 */
+	public void downloadEfficientViTSAMWeights(String modelType, boolean force) throws IOException, InterruptedException {
 		if (!EfficientViTSamJ.getListOfSupportedEfficientViTSAM().contains(modelType))
 			throw new IllegalArgumentException("The provided model is not one of the supported EfficientViT models: " 
 												+ EfficientViTSamJ.getListOfSupportedEfficientViTSAM());
@@ -469,10 +502,35 @@ public class SamEnvManager {
         passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- EFFICIENTVITSAM WEIGHTS INSTALLED");
 	}
 	
+	/**
+	 * Install the Python environment and dependencies required to run an EfficientSAM model.
+	 * If Micromamba is not installed in the path of the {@link SamEnvManager} instance, this method
+	 * installs it.
+	 * 
+	 * @throws IOException if there is any file error installing any of the requirements
+	 * @throws InterruptedException if the installation is interrupted
+	 * @throws ArchiveException if there is any error decompressing the micromamba installer files
+	 * @throws URISyntaxException if there is any error witht the URL to download micromamba
+	 * @throws MambaInstallException if there is any error installing micromamba
+	 */
 	public void installEfficientSAMPython() throws IOException, InterruptedException, ArchiveException, URISyntaxException, MambaInstallException {
 		installEfficientSAMPython(false);
 	}
 	
+	/**
+	 * Install the Python environment and dependencies required to run an EfficientSAM model.
+	 * If Micromamba is not installed in the path of the {@link SamEnvManager} instance, this method
+	 * installs it.
+	 * @param force
+	 * 	if the environment to be created already exists, whether to overwrite it or not
+	 * 
+	 * 
+	 * @throws IOException if there is any file error installing any of the requirements
+	 * @throws InterruptedException if the installation is interrupted
+	 * @throws ArchiveException if there is any downloading Micromamba
+	 * @throws URISyntaxException if there is any error witht the URL to download micromamba
+	 * @throws MambaInstallException if there is any error installing micromamba
+	 */
 	public void installEfficientSAMPython(boolean force) throws IOException, InterruptedException, MambaInstallException {
 		if (!checkMambaInstalled())
 			throw new IllegalArgumentException("Unable to install Python without first installing Mamba. ");
@@ -509,16 +567,33 @@ public class SamEnvManager {
         passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- PYTHON ENVIRONMENT CREATED");
 	}
 	
+	/**
+	 * Install the Python environment and dependencies required to run an EfficientViTSAM model.
+	 * If Micromamba is not installed in the path of the {@link SamEnvManager} instance, this method
+	 * installs it.
+	 * 
+	 * @throws IOException if there is any file error installing any of the requirements
+	 * @throws InterruptedException if the installation is interrupted
+	 * @throws ArchiveException if there is any downloading Micromamba
+	 * @throws URISyntaxException if there is any error witht the URL to download micromamba
+	 * @throws MambaInstallException if there is any error installing micromamba
+	 */
 	public void installEfficientViTSAMPython() throws IOException, InterruptedException, ArchiveException, URISyntaxException, MambaInstallException {
 		installEfficientViTSAMPython(false);
 	}
 	
 	/**
-	 * Download and install all the things needed to run SAM. It checks whether micromamba is installed or not,
-	 * and installs it if not, checks whether the environemnt to run SAM is installed or not and installs it if not,
-	 * and checks whether the weigths for SAM have been installed or not and installs them if not.
+	 * Install the Python environment and dependencies required to run an EfficientViTSAM model.
+	 * If Micromamba is not installed in the path of the {@link SamEnvManager} instance, this method
+	 * installs it.
 	 * @param force
-	 * 	if there is a SAM environment already installed it overwrittes it
+	 * 	if the environment to be created already exists, whether to overwrite it or not
+	 * 
+	 * @throws IOException if there is any file error installing any of the requirements
+	 * @throws InterruptedException if the installation is interrupted
+	 * @throws ArchiveException if there is any downloading Micromamba
+	 * @throws URISyntaxException if there is any error witht the URL to download micromamba
+	 * @throws MambaInstallException if there is any error installing micromamba
 	 */
 	public void installEfficientViTSAMPython(boolean force) throws IOException, InterruptedException, MambaInstallException {
 		if (!checkMambaInstalled())
@@ -583,10 +658,24 @@ public class SamEnvManager {
 			throw new RuntimeException();
 	}
 	
+	/**
+	 * Install the Python package to run SAM
+	 * @throws IOException if there is any file creation related issue
+	 * @throws InterruptedException if the package installation is interrupted
+	 * @throws MambaInstallException if there is any error with the Mamba installation
+	 */
 	public void installSAMPackage() throws IOException, InterruptedException, MambaInstallException {
 		installSAMPackage(false);
 	}
 	
+	/**
+	 * Install the Python package to run SAM
+	 * @param force
+	 * 	if the package already exists, whether to overwrite it or not
+	 * @throws IOException if there is any file creation related issue
+	 * @throws InterruptedException if the package installation is interrupted
+	 * @throws MambaInstallException if there is any error with the Mamba installation
+	 */
 	public void installSAMPackage(boolean force) throws IOException, InterruptedException, MambaInstallException {
 		if (checkSAMPackageInstalled() && !force)
 			return;
@@ -631,10 +720,26 @@ public class SamEnvManager {
 		passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- 'SAM' PYTHON PACKAGE INSATLLED");
 	}
 	
+	/**
+	 * Install the Python package to run EfficientSAM
+	 * @param force
+	 * 	if the package already exists, whether to overwrite it or not
+	 * @throws IOException if there is any file creation related issue
+	 * @throws InterruptedException if the package installation is interrupted
+	 * @throws MambaInstallException if there is any error with the Mamba installation
+	 */
 	public void installEfficientSAMPackage() throws IOException, InterruptedException, MambaInstallException {
 		installEfficientSAMPackage(false);
 	}
 	
+	/**
+	 * Install the Python package to run EfficientSAM
+	 * @param force
+	 * 	if the package already exists, whether to overwrite it or not
+	 * @throws IOException if there is any file creation related issue
+	 * @throws InterruptedException if the package installation is interrupted
+	 * @throws MambaInstallException if there is any error with the Mamba installation
+	 */
 	public void installEfficientSAMPackage(boolean force) throws IOException, InterruptedException, MambaInstallException {
 		if (checkEfficientSAMPackageInstalled() && !force)
 			return;
@@ -683,10 +788,27 @@ public class SamEnvManager {
 		passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- 'EFFICIENTSAM' PYTHON PACKAGE INSATLLED");
 	}
 	
+	/**
+	 * Install the Python package to run EfficientViTSAM
+	 * 
+	 * @throws IOException if there is any file creation related issue
+	 * @throws InterruptedException if the package installation is interrupted
+	 * @throws MambaInstallException if there is any error with the Mamba installation
+	 */
 	public void installEfficientViTSAMPackage() throws IOException, InterruptedException, MambaInstallException {
 		installEfficientViTSAMPackage(false);
 	}
 	
+	/**
+	 * Install the Python package to run EfficientViTSAM
+	 * 
+	 * @param force
+	 * 	if the package already exists, whether to overwrite it or not
+	 * 
+	 * @throws IOException if there is any file creation related issue
+	 * @throws InterruptedException if the package installation is interrupted
+	 * @throws MambaInstallException if there is any error with the Mamba installation
+	 */
 	public void installEfficientViTSAMPackage(boolean force) throws IOException, InterruptedException, MambaInstallException {
 		if (checkEfficientViTSAMPackageInstalled() && !force)
 			return;
@@ -724,6 +846,15 @@ public class SamEnvManager {
 		passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- 'EFFICIENTVITSAM' PYTHON PACKAGE INSATLLED");
 	}
 	
+	/**
+	 * Method to install automatically Micromamba in the path of the corresponding {@link SamEnvManager} instance.
+	 * 
+	 * @throws IOException if there is any file related error during the installation
+	 * @throws InterruptedException if the installation is interrupted
+	 * @throws ArchiveException if there is any error decompressing the micromamba installer files
+	 * @throws URISyntaxException if there is any error with the url that points to the micromamba instance to download
+	 * @throws MambaInstallException if there is any error installing micromamba
+	 */
 	public void installMambaPython() throws IOException, InterruptedException, 
 	ArchiveException, URISyntaxException, MambaInstallException{
 		if (checkMambaInstalled()) return;
@@ -739,6 +870,14 @@ public class SamEnvManager {
 		passToConsumer(LocalDateTime.now().format(DATE_FORMAT).toString() + " -- MICROMAMBA INSTALLED");
 	}
 	
+	/**
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws ArchiveException
+	 * @throws URISyntaxException
+	 * @throws MambaInstallException
+	 */
 	public void installSAM() throws IOException, InterruptedException, 
 									ArchiveException, URISyntaxException, MambaInstallException {
 		if (!this.checkMambaInstalled()) this.installMambaPython();
@@ -774,7 +913,7 @@ public class SamEnvManager {
 		
 		if (!this.checkEfficientViTSAMPackageInstalled()) this.installEfficientViTSAMPackage();
 		
-		if (!this.checkEfficientViTSAMWeightsDownloaded(modelType)) this.downloadEfficientViTSAM(modelType, false);
+		if (!this.checkEfficientViTSAMWeightsDownloaded(modelType)) this.downloadEfficientViTSAMWeights(modelType, false);
 	}
 	
 	public String getEfficientSAMSmallWeightsPath() {

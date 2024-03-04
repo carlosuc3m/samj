@@ -871,12 +871,16 @@ public class SamEnvManager {
 	}
 	
 	/**
+	 * Install all the requirements to run SAM. First, checks if micromamba is installed, if not installs it;
+	 * then checks if the Python environment and packages needed to run SAM are installed and if not installs it
+	 * and finally checks whether the weights are installed, and if not installs them too.
 	 * 
-	 * @throws IOException
-	 * @throws InterruptedException
-	 * @throws ArchiveException
-	 * @throws URISyntaxException
-	 * @throws MambaInstallException
+	 * 
+	 * @throws IOException if there is any file related error in the model installation
+	 * @throws InterruptedException if the model installation is interrupted
+	 * @throws ArchiveException if there is any error decompressing the micromamba installer
+	 * @throws URISyntaxException if there is any error with the URL to the micromamba installer download page
+	 * @throws MambaInstallException if there is any error installing micromamba
 	 */
 	public void installSAM() throws IOException, InterruptedException, 
 									ArchiveException, URISyntaxException, MambaInstallException {
@@ -889,6 +893,18 @@ public class SamEnvManager {
 		if (!this.checkEfficientSAMSmallWeightsDownloaded()) this.downloadSAMWeigths(false);
 	}
 	
+	/**
+	 * Install all the requirements to run EfficientSAM. First, checks if micromamba is installed, if not installs it;
+	 * then checks if the Python environment and packages needed to run EfficientSAM are installed and if not installs it
+	 * and finally checks whether the weights are installed, and if not installs them too.
+	 * 
+	 * 
+	 * @throws IOException if there is any file related error in the model installation
+	 * @throws InterruptedException if the model installation is interrupted
+	 * @throws ArchiveException if there is any error decompressing the micromamba installer
+	 * @throws URISyntaxException if there is any error with the URL to the micromamba installer download page
+	 * @throws MambaInstallException if there is any error installing micromamba
+	 */
 	public void installEfficientSAMSmall() throws IOException, InterruptedException, 
 													ArchiveException, URISyntaxException, MambaInstallException {
 		if (!this.checkMambaInstalled()) this.installMambaPython();
@@ -900,11 +916,38 @@ public class SamEnvManager {
 		if (!this.checkEfficientSAMSmallWeightsDownloaded()) this.downloadESAMSmallWeights(false);
 	}
 	
+	/**
+	 * Install all the requirements to run EfficientViTSAM. First, checks if micromamba is installed, if not installs it;
+	 * then checks if the Python environment and packages needed to run EfficientViTSAM are installed and if not installs it
+	 * and finally checks whether the weights are installed, and if not installs them too.
+	 * This method installs the default trained model {@value #DEFAULT_EVITSAM}, to install any other available model 
+	 * use {@link #installEfficientViTSAM(String)}
+	 * 
+	 * 
+	 * @throws IOException if there is any file related error in the model installation
+	 * @throws InterruptedException if the model installation is interrupted
+	 * @throws ArchiveException if there is any error decompressing the micromamba installer
+	 * @throws URISyntaxException if there is any error with the URL to the micromamba installer download page
+	 * @throws MambaInstallException if there is any error installing micromamba
+	 */
 	public void installEfficientViTSAM() throws IOException, InterruptedException, 
 													ArchiveException, URISyntaxException, MambaInstallException {
 		installEfficientViTSAM(DEFAULT_EVITSAM);
 	}
 	
+	/**
+	 * Install all the requirements to run EfficientViTSAM. First, checks if micromamba is installed, if not installs it;
+	 * then checks if the Python environment and packages needed to run EfficientViTSAM are installed and if not installs it
+	 * and finally checks whether the weights are installed, and if not installs them too.
+	 * The available model versions are defined at {@link EfficientViTSamJ#getListOfSupportedEfficientViTSAM}
+	 *
+	 * 
+	 * @throws IOException if there is any file related error in the model installation
+	 * @throws InterruptedException if the model installation is interrupted
+	 * @throws ArchiveException if there is any error decompressing the micromamba installer
+	 * @throws URISyntaxException if there is any error with the URL to the micromamba installer download page
+	 * @throws MambaInstallException if there is any error installing micromamba
+	 */
 	public void installEfficientViTSAM(String modelType) throws IOException, InterruptedException, 
 													ArchiveException, URISyntaxException, MambaInstallException {
 		if (!this.checkMambaInstalled()) this.installMambaPython();
@@ -916,54 +959,96 @@ public class SamEnvManager {
 		if (!this.checkEfficientViTSAMWeightsDownloaded(modelType)) this.downloadEfficientViTSAMWeights(modelType, false);
 	}
 	
+	/**
+	 * 
+	 * @return the path to the EfficientSAM Small weights file
+	 */
 	public String getEfficientSAMSmallWeightsPath() {
 		File file = Paths.get(path, "envs", ESAM_ENV_NAME, ESAM_NAME, "weights", ESAM_SMALL_WEIGHTS_NAME).toFile();
 		if (!file.isFile()) return null;
 		return file.getAbsolutePath();
 	}
 	
+	/**
+	 * 
+	 * @return the path to the EfficientViTSAM weights file for model {@value #DEFAULT_EVITSAM}
+	 */
 	public String getEfficientViTSAMWeightsPath() {
 		return getEfficientViTSAMWeightsPath(DEFAULT_EVITSAM);
 	}
 	
+	/**
+	 * 
+	 * @param modelType
+	 * 	the EfficientViTSAM version. The versions are defined at {@link EfficientViTSamJ#getListOfSupportedEfficientViTSAM}
+	 * @return the path to the EfficientViTSAM model of interest
+	 */
 	public String getEfficientViTSAMWeightsPath(String modelType) {
 		File file = Paths.get(path, "envs", EVITSAM_ENV_NAME, EVITSAM_NAME, "weights", modelType + ".pt").toFile();
 		if (!file.isFile()) return null;
 		return file.getAbsolutePath();
 	}
 	
+	/**
+	 * 
+	 * @return the path to the SAM Huge weights file
+	 */
 	public String getSAMWeightsPath() {
 		File file = Paths.get(path, "envs", SAM_ENV_NAME, SAM_NAME, "weights", SAM_WEIGHTS_NAME).toFile();
 		if (!file.isFile()) return null;
 		return file.getAbsolutePath();
 	}
 	
+	/**
+	 * 
+	 * @return the the path to the Python environment needed to run EfficientSAM
+	 */
 	public String getEfficientSAMPythonEnv() {
 		File file = Paths.get(path, "envs", COMMON_ENV_NAME).toFile();
 		if (!file.isDirectory()) return null;
 		return file.getAbsolutePath();
 	}
 	
+	/**
+	 * 
+	 * @return the the path to the Python environment where the EfficientSAM Python package is installed
+	 */
 	public String getEfficientSamEnv() {
 		File file = Paths.get(path, "envs", ESAM_ENV_NAME).toFile();
 		if (!file.isDirectory()) return null;
 		return file.getAbsolutePath();
 	}
 	
+	/**
+	 * 
+	 * @return the the path to the Python environment needed to run EfficientViTSAM
+	 */
 	public String getEfficientViTSamEnv() {
 		File file = Paths.get(path, "envs", EVITSAM_ENV_NAME).toFile();
 		if (!file.isDirectory()) return null;
 		return file.getAbsolutePath();
 	}
 	
+	/**
+	 * 
+	 * @return the path to the folder where all the SAMJ environments are created
+	 */
 	public String getEnvsPath() {
 		return Paths.get(path, "envs").toFile().getAbsolutePath();
 	}
 	
+	/**
+	 * 
+	 * @return the official name of the SAM Huge weights
+	 */
 	public static String getSAMWeightsName() {
 		return SAM_WEIGHTS_NAME;
 	}
 	
+	/**
+	 * 
+	 * @return the official name of the EfficientSAM Small weights
+	 */
 	public static String getEfficientSAMSmallWeightsName() {
 		return ESAM_SMALL_WEIGHTS_NAME;
 	}

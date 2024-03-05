@@ -42,26 +42,65 @@ public class HTMLPane extends JEditorPane {
 	private String		color		= "#222222";
 	private String		background	= "#f8f8f8";
 
+	/**
+	 * Create a default instance of the class
+	 */
 	public HTMLPane() {
 		create();
 	}
 
+	/**
+	 * Create an instance of the class in the specific font
+	 * @param font
+	 * 	the font that will be used on the panel
+	 */
 	public HTMLPane(String font) {
 		this.font = font;
 		create();
 	}
 
+	/**
+	 * Create an instance of the class with the specific width and height
+	 * 
+	 * @param width
+	 * 	width of the panel
+	 * @param height
+	 * 	height of the panel
+	 */
 	public HTMLPane(int width, int height) {
 		this.dim = new Dimension(width, height);
 		create();
 	}
 
+	/**
+	 * Create an instance of the class with an specific font, specific width and height
+	 * @param font
+	 * 	the font that will be used on the panel
+	 * @param width
+	 * 	width of the panel
+	 * @param height
+	 * 	height of the panel
+	 */
 	public HTMLPane(String font, int width, int height) {
 		this.font = font;
 		this.dim = new Dimension(width, height);
 		create();
 	}
 
+	/**
+	 * Create an instance of the class with an specific font, specific color of the letters,
+	 * specific color of the background of the panel, specific width and height
+	 * @param font
+	 * 	the font that will be used on the panel
+	 * @param color
+	 * 	color of the letters
+	 * @param background
+	 * 	color of the panel background
+	 * @param width
+	 * 	width of the panel
+	 * @param height
+	 * 	height of the panel
+	 */
 	public HTMLPane(String font, String color, String background, int width, int height) {
 		this.font = font;
 		this.dim = new Dimension(width, height);
@@ -71,6 +110,9 @@ public class HTMLPane extends JEditorPane {
 	}
 
 	@Override
+	/**
+	 * Retrieve the text written in the panel as a string
+	 */
 	public String getText() {
 		Document doc = this.getDocument();
 		try {
@@ -82,6 +124,9 @@ public class HTMLPane extends JEditorPane {
 		}
 	}
 	
+	/**
+	 * Clear the text of the panel and left nothing written on it.
+	 */
 	public void clear() {
 		html = "";
 		append("");
@@ -102,6 +147,11 @@ public class HTMLPane extends JEditorPane {
 		setContentType("text/html; charset=ISO-8859-1");
 	}
 
+	/**
+	 * Add some text to the end of hte text of the panel
+	 * @param content
+	 * 	text string to add at the end of the panel
+	 */
 	public void append(String content) {
 		html += content;
 		setText(header + html + footer);
@@ -111,6 +161,14 @@ public class HTMLPane extends JEditorPane {
 		setCaretPosition(0);
 	}
 
+	/**
+	 * Appends specific text String to the end of the panel in the format specified by the html tag
+	 *
+	 * @param tag
+	 *  the HTML tag to use for the content
+	 * @param content
+	 *  the String content to append
+	 */
 	public void append(String tag, String content) {
 		html += "<" + tag + ">" + content + "</" + tag + ">";
 		setText(header + html + footer);
@@ -120,7 +178,11 @@ public class HTMLPane extends JEditorPane {
 		setCaretPosition(0);
 	}
 
-	public JScrollPane getPane() {
+	/**
+	 * 
+	 * @return a {@link JScrollPane} witht he dimensions of the {@link HTMLPane} instance
+	 */
+	private JScrollPane getPane() {
 		JScrollPane scroll = new JScrollPane(this, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scroll.setPreferredSize(dim);
 		return scroll;

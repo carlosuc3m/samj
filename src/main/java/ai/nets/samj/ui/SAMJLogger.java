@@ -19,6 +19,10 @@
  */
 package ai.nets.samj.ui;
 
+/**
+ * Interface that lets the consumer software implement their own logging.
+ * @author Carlos Garcia
+ */
 public interface SAMJLogger {
 
 	/**

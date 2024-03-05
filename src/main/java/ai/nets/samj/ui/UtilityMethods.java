@@ -23,7 +23,20 @@ import java.util.List;
 
 import ai.nets.samj.gui.components.ComboBoxItem;
 
+/**
+ * Interface to be implemented by the imaging software that wants to use the default SAMJ UI.
+ * Provides a list of the images open to the SAMJ GUI
+ * @author Carlos Garcia
+ */
 public interface UtilityMethods {
 
+	/**
+	 * Method to be implemented in the softwar that wants to use the SAMJ default GUI.
+	 * This method should return a list of {@link ComboBoxItem} where each instance contains
+	 * a reference to an image object in the consumer software (ImagePlus in ImageJ or 
+	 * Sequence in Icy) with an unique identifier
+	 * 
+	 * @return a list of the open images in the consumer software
+	 */
 	public List<ComboBoxItem> getListOfOpenImages(); 
 }

@@ -27,6 +27,9 @@ package ai.nets.samj;
  */
 public class PythonMethods {
 
+	/**
+	 * String containing the Python methods needed to find the border of binary masks
+	 */
 	protected static String TRACE_EDGES = ""
 			+ "def is_edge_pixel(image, cx,cy):\n"
 			+ "    # assuming image[cy,cx] != 0\n"

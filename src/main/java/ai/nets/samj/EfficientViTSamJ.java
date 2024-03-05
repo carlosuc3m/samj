@@ -46,20 +46,38 @@ import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
+/**
+ * Class that provides the needed methods to run EfficientViTSAM models from Java
+ * 
+ * @author Carlos Javier Garcia Lopez de Haro
+ * @author Vladimir Ulman
+ */
 public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
-
+	/**
+	 * Instance of a Python environment {@link Environment}, it is used to initialize Python instances
+	 * from that environment
+	 */
 	private final Environment env;
-	
+	/**
+	 * Instance of a Python process
+	 */
 	private final Service python;
-	
+	/**
+	 * Python script that is going to be run on a Python process
+	 */
 	private String script = "";
-	
+	/**
+	 * Instance of a Shared Memory array used to share an object between Python and Java processes
+	 */
 	private SharedMemoryArray shma;
-	
+	/**
+	 * Target dimensions of the image that is going to be encoded. If a single-channel 2D image is provided, that image is
+	 * converted into a 3-channel image that EfficientViTSAM requires
+	 */
 	private long[] targetDims;
-	
-	private SamEnvManager manager;
-	
+	/**
+	 * Map that associates the key for each of the existing EfficientViTSAM models to its complete name
+	 */
 	private static final HashMap<String, String> MODELS_DICT = new HashMap<String, String>();
 	static {
 		MODELS_DICT.put("l0", "efficientvit_sam_l0");
@@ -68,7 +86,9 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		MODELS_DICT.put("xl0", "efficientvit_sam_xl0");
 		MODELS_DICT.put("xl1", "efficientvit_sam_xl1");
 	}
-	
+	/**
+	 * All the Python imports and configurations needed to start using EfficientViTSAM.
+	 */
 	public static final String IMPORTS = ""
 			+ "task.update('start')" + System.lineSeparator()
 			+ "from skimage import measure" + System.lineSeparator()
@@ -84,11 +104,6 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "task.update('imported')" + System.lineSeparator()
 			+ "" + System.lineSeparator()
 			+ "model = %s().cpu().eval()" + System.lineSeparator()
-			//+ "from efficientvit.models.nn.norm import set_norm_eps" + System.lineSeparator()
-			//+ "set_norm_eps(model, 1e-6)" + System.lineSeparator()
-			//+ "from efficientvit.models.utils import load_state_dict_from_file" + System.lineSeparator()
-			//+ "weight = load_state_dict_from_file('%s')" + System.lineSeparator()
-			//+ "model.load_state_dict(weight)" + System.lineSeparator()
 			+ "eps = 1e-6" + System.lineSeparator()
 			+ "for m in model.modules():" + System.lineSeparator()
 			+ "  if isinstance(m, (torch.nn.GroupNorm, torch.nn.LayerNorm, torch.nn.modules.batchnorm._BatchNorm)):" + System.lineSeparator()
@@ -106,12 +121,43 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "globals()['np'] = np" + System.lineSeparator()
 			+ "globals()['torch'] = torch" + System.lineSeparator()
 			+ "globals()['predictor'] = predictor" + System.lineSeparator();
+	/**
+	 * String containing the Python imports code after it has been formatted with the correct 
+	 * paths and names
+	 */
 	private String IMPORTS_FORMATED;
 
+	/**
+	 * Create an instance of the class to be able to run EfficientiTSAM in Java.
+	 * 
+	 * @param manager
+	 * 	environment manager that contians all the paths to the environments needed, Python executables and model weights
+	 * @param type
+	 * 	EfficientViTSAM model type that we want to use, it can be "l0", "l1", "l2", "xl1" or "xl2"
+	 * @throws IOException if any of the files to create a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
 	private EfficientViTSamJ(SamEnvManager manager, String type) throws IOException, RuntimeException, InterruptedException {
 		this(manager, type, (t) -> {}, false);
 	}
 
+	/**
+	 * Create an instance of the class to be able to run EfficientiTSAM in Java.
+	 * 
+	 * @param manager
+	 * 	environment manager that contians all the paths to the environments needed, Python executables and model weights
+	 * @param type
+	 * 	EfficientViTSAM model type that we want to use, it can be "l0", "l1", "l2", "xl1" or "xl2"
+	 * @param debugPrinter
+	 * 	functional interface to redirect the Python process Appose text log and ouptut to be redirected anywhere
+	 * @param printPythonCode
+	 * 	whether to print the Python code that is going to be executed on the Python process or not
+	 * @throws IOException if any of the files to create a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 * 
+	 */
 	private EfficientViTSamJ(SamEnvManager manager, String type,
 	                      final DebugTextPrinter debugPrinter,
 	                      final boolean printPythonCode) throws IOException, RuntimeException, InterruptedException {
@@ -144,6 +190,29 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 			throw new RuntimeException();
 	}
 
+	/**
+	 * Create an EfficientViTSAMJ instance that allows to use EfficientViTSAM on an image.
+	 * This method encodes the image provided, so depending on the computer and on the model
+	 * it might take some time
+	 * 
+	 * @param <T>
+	 * 	the ImgLib2 data type of the image provided
+	 * @param modelType
+	 * 	EfficientViTSAM model type that we want to use, it can be "l0", "l1", "l2", "xl1" or "xl2"
+	 * @param manager
+	 * 	environment manager that contians all the paths to the environments needed, Python executables and model weights
+	 * @param image
+	 * 	the image where SAM is going to be run on
+	 * @param debugPrinter
+	 * 	functional interface to redirect the Python process Appose text log and ouptut to be redirected anywhere
+	 * @param printPythonCode
+	 * 	whether to print the Python code that is going to be executed on the Python process or not
+	 * @return an instance of {@link EfficientViTSAMJ} that allows running EfficienTViTSAM on an image
+	 * 	with the image already encoded
+	 * @throws IOException if any of the files to create a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
 	public static <T extends RealType<T> & NativeType<T>> EfficientViTSamJ
 	initializeSam(String modelType, SamEnvManager manager,
 	              RandomAccessibleInterval<T> image,
@@ -160,6 +229,24 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		return sam;
 	}
 
+	/**
+	 * Create an EfficientViTSAMJ instance that allows to use EfficientViTSAM on an image.
+	 * This method encodes the image provided, so depending on the computer and on the model
+	 * it might take some time
+	 * 
+	 * @param <T>
+	 * 	the ImgLib2 data type of the image provided
+	 * @param modelType
+	 * 	EfficientViTSAM model type that we want to use, it can be "l0", "l1", "l2", "xl1" or "xl2"
+	 * @param manager
+	 * 	environment manager that contians all the paths to the environments needed, Python executables and model weights
+	 * @param image
+	 * 	the image where SAM is going to be run on
+	 * @return an instance of {@link EfficientViTSAMJ} that allows running EfficienTViTSAM on an image
+	 * @throws IOException if any of the files to create a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
 	public static <T extends RealType<T> & NativeType<T>> EfficientViTSamJ
 	initializeSam(String modelType, SamEnvManager manager, RandomAccessibleInterval<T> image) 
 				throws IOException, RuntimeException, InterruptedException {
@@ -174,6 +261,29 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		return sam;
 	}
 
+	/**
+	 * Create an EfficientViTSAMJ instance that allows to use EfficientViTSAM on an image.
+	 * This method encodes the image provided, so depending on the computer and on the model
+	 * it might take some time.
+	 * 
+	 * The model used is the default one {@value SamEnvManager#DEFAULT_EVITSAM}
+	 * 
+	 * @param <T>
+	 * 	the ImgLib2 data type of the image provided
+	 * @param manager
+	 * 	environment manager that contians all the paths to the environments needed, Python executables and model weights
+	 * @param image
+	 * 	the image where SAM is going to be run on
+	 * @param debugPrinter
+	 * 	functional interface to redirect the Python process Appose text log and ouptut to be redirected anywhere
+	 * @param printPythonCode
+	 * 	whether to print the Python code that is going to be executed on the Python process or not
+	 * @return an instance of {@link EfficientViTSAMJ} that allows running EfficienTViTSAM on an image
+	 * 	with the image already encoded
+	 * @throws IOException if any of the files to create a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
 	public static <T extends RealType<T> & NativeType<T>> EfficientViTSamJ
 	initializeSam(SamEnvManager manager,
 	              RandomAccessibleInterval<T> image,
@@ -182,16 +292,59 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		return initializeSam(SamEnvManager.DEFAULT_EVITSAM, manager, image, debugPrinter, printPythonCode);
 	}
 
+	/**
+	 * Create an EfficientViTSAMJ instance that allows to use EfficientViTSAM on an image.
+	 * This method encodes the image provided, so depending on the computer and on the model
+	 * it might take some time.
+	 * 
+	 * The model used is the default one {@value SamEnvManager#DEFAULT_EVITSAM}
+	 * 
+	 * @param <T>
+	 * 	the ImgLib2 data type of the image provided
+	 * @param manager
+	 * 	environment manager that contians all the paths to the environments needed, Python executables and model weights
+	 * @param image
+	 * 	the image where SAM is going to be run on
+	 * @param debugPrinter
+	 * 	functional interface to redirect the Python process Appose text log and ouptut to be redirected anywhere
+	 * @param printPythonCode
+	 * 	whether to print the Python code that is going to be executed on the Python process or not
+	 * @return an instance of {@link EfficientViTSAMJ} that allows running EfficienTViTSAM on an image
+	 * 	with the image already encoded
+	 * @throws IOException if any of the files to create a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
 	public static <T extends RealType<T> & NativeType<T>> EfficientViTSamJ
 	initializeSam(SamEnvManager manager, RandomAccessibleInterval<T> image) throws IOException, RuntimeException, InterruptedException {
 		return initializeSam(SamEnvManager.DEFAULT_EVITSAM, manager, image);
 	}
 	
+	/**
+	 * Change the image encoded by the EfficientViTSAM model
+	 * @param <T>
+	 * 	ImgLib2 data type of the image of interest
+	 * @param rai
+	 * 	image (n-dimensional array) that is going to be encoded as a {@link RandomAccessibleInterval}
+	 * @throws IOException if any of the files to run a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
 	public <T extends RealType<T> & NativeType<T>>
 	void updateImage(RandomAccessibleInterval<T> rai) throws IOException, RuntimeException, InterruptedException {
 		addImage(rai);
 	}
 	
+	/**
+	 * Encode an image (n-dimensional array) with an EfficientViTSAM model
+	 * @param <T>
+	 * 	ImgLib2 data type of the image of interest
+	 * @param rai
+	 * 	image (n-dimensional array) that is going to be encoded as a {@link RandomAccessibleInterval}
+	 * @throws IOException if any of the files to run a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
 	private <T extends RealType<T> & NativeType<T>>
 	void addImage(RandomAccessibleInterval<T> rai) 
 			throws IOException, RuntimeException, InterruptedException{
@@ -261,6 +414,15 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		return polys;
 	}
 	
+	/**
+	 * Method used to process a list of points as the prompt for EfficientViTSAM. It returns
+	 * a list of polygons that corresponds to the contours of the masks found by EfficientViTSAM
+	 * @param pointsList
+	 * @return
+	 * @throws IOException
+	 * @throws RuntimeException
+	 * @throws InterruptedException
+	 */
 	public List<Polygon> processPoints(List<int[]> pointsList)
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";

@@ -54,6 +54,13 @@ import ai.nets.samj.gui.components.HTMLPane;
 import io.bioimage.modelrunner.apposed.appose.Mamba;
 import ai.nets.samj.SamEnvManager;
 
+/**
+ * Class that creates a subpanel in the main panel of SAMJ default GUI.
+ * This panel handles model selection and installation.
+ * @author Carlos Garcia
+ * @author Daniel Sage
+ * @author Vladimir Ulman
+ */
 public class SAMModelPanel extends JPanel implements ActionListener {
 	
 	private static final long serialVersionUID = 7623385356575804931L;

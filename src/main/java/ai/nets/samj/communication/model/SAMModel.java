@@ -34,31 +34,86 @@ import net.imglib2.type.numeric.RealType;
  * the system that even this network may be available/installed.
  * It is, however, not creating/instancing any connection to any
  * (Python) network code or whatsoever, that happens only after the
- * {@link SAMModel#instantiate(Logger)} is called, and reference
+ * {@link SAMModel#instantiate(RandomAccessibleInterval, SAMJLogger)} is called, and reference
  * to such connection is returned.
+ * @author Vladimir Ulman
+ * @author Carlos Javier Garcia Lopez de Haro
  */
 public interface SAMModel {
-
+	
+	/**
+	 * 
+	 * @return the name of the model architecture
+	 */
 	String getName();
+	/**
+	 * 
+	 * @return the axes order required for the input image to the model
+	 */
 	String getInputImageAxes();
+	/**
+	 * 
+	 * @return a text describing the model.
+	 */
 	String getDescription();
+	/**
+	 * 
+	 * @return true or false whether all the things needed to run the model are already installed or not.
+	 * 	This includes the Python environment and requirements, the model weights or micrommaba
+	 */
 	boolean isInstalled();
+	/**
+	 * Set whether the model is installed or
+	 * @param installed
+	 */
 	void setInstalled(boolean installed);
 
-	/** Returns null if it is no installed. */
-	SAMModel instantiate(
-			final RandomAccessibleInterval<?> image,
-			final SAMJLogger useThisLoggerForIt);
+	/**
+	 * Instantiate a SAM based model. Provide also an image that will be encoded by the model encoder
+	 * @param image
+	 * 	the image of interest for segmentation or annotation
+	 * @param useThisLoggerForIt
+	 * 	a logger to provide info about the progress
+	 * @return an instance of a SAM-based model
+	 */
+	SAMModel instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt);
 
+	/**
+	 * Get a 2D segmentation/annotation using two lists of points as the prompts. 
+	 * @param listOfPoints2D
+	 * 	List of points that make reference to the instance of interest
+	 * @param listOfNegPoints2D
+	 * 	list of points that makes reference to something that is not the instance of interest. This
+	 * 	points make reference to the background
+	 * @return a list of polygons that represent the edges of each of the masks segmented by the model
+	 */
 	List<Polygon> fetch2dSegmentation(List<Localizable> listOfPoints2D, List<Localizable> listOfNegPoints2D);
 
-	List<Polygon> fetch2dSegmentation(Localizable lineStartPoint2D, Localizable lineEndPoint2D);
-
+	/**
+	 * Get a 2D segmentation/annotation using a bounding box as the prompt. 
+	 * @param boundingBox2D
+	 * 	a bounding box around the instance of interest
+	 * @return a list of polygons that represent the edges of each of the masks segmented by the model
+	 */
 	List<Polygon> fetch2dSegmentation(Interval boundingBox2D);
 
+	/**
+	 * Get a 2D segmentation/annotation using an existing mask as the prompt. 
+	 * @param <T>
+	 * 	the ImgLib2 data types allowed for the input mask
+	 * @param rai
+	 * 	the mask as a {@link RandomAccessibleInterval} 
+	 * @return a list of polygons that represent the edges of each of the masks segmented by the model
+	 */
 	public <T extends RealType<T> & NativeType<T>> List<Polygon> fetch2dSegmentationFromMask(RandomAccessibleInterval<T> rai);
 
+	/**
+	 * Close the Python process where the model is being executed
+	 */
 	void closeProcess();
 
+	/**
+	 * Notify the User Interface that the model has been closed
+	 */
 	void notifyUiHasBeenClosed();
 }

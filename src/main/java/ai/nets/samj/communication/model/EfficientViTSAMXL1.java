@@ -115,14 +115,6 @@ public class EfficientViTSAMXL1 implements SAMModel {
 	}
 
 	@Override
-	public List<Polygon> fetch2dSegmentation(Localizable lineStartPoint2D, Localizable lineEndPoint2D) {
-		log.info(FULL_NAME+": NOT SUPPORTED YET");
-		List<Polygon> retList = new ArrayList<>(1);
-		retList.add( EMPTY_POLYGON );
-		return retList;
-	}
-
-	@Override
 	public List<Polygon> fetch2dSegmentation(Interval boundingBox2D) {
 		try {
 			//order to processBox() should be: x0,y0, x1,y1

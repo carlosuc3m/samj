@@ -24,20 +24,43 @@ import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileSystemView;
 
+/**
+ * Class that contains helper methods to browse and get specific files in the {@link JFileChooser}
+ * graphical user interface
+ * @author Daniel Sage
+ */
 public class Files {
 
+	/**
+	 * 
+	 * @return a String with the full path of the directory from where the code is being executed
+	 */
 	public static String getWorkingDirectory() {
 		return System.getProperty("user.dir");
 	}
 
+	/**
+	 * 
+	 * @return the path to the home directory of the computer
+	 */
 	public static String getHomeDirectory() {
 		return FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath() + File.separator;	
 	}
 	
+	/**
+	 * 
+	 * @return String path to the desktop directory
+	 */
 	public static String getDesktopDirectory() {
 		return getHomeDirectory() + "Desktop" + File.separator;
 	}
 	
+	/**
+	 * Method that returns a {@link File} if the path provided is a File or false otherwise
+	 * @param path
+	 * 	String path to the file of interest
+	 * @return a {@link File} object for the file of interest or null if it does not exist
+	 */
 	public static File browseFile(String path) {
 		JFileChooser fc = new JFileChooser(); 
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -54,6 +77,12 @@ public class Files {
 		return null;
 	}
 	
+	/**
+	 * Method that returns a {@link File} if the path provided is a directory or false otherwise
+	 * @param path
+	 * 	String path to the directory of interest
+	 * @return a {@link File} object for the directory of interest or null if it does not exist
+	 */
 	public static File browseDirectory(String path) {
 		JFileChooser fc = new JFileChooser(); 
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);

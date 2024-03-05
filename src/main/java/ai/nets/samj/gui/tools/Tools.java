@@ -22,8 +22,17 @@ package ai.nets.samj.gui.tools;
 import java.awt.Desktop;
 import java.net.URL;
 
+/**
+ * Class that contains helper tools for SAMJ
+ * @author Daniel Sage
+ * @author Carlos Garcia
+ */
 public class Tools {
 
+	/**
+	 * Method that opens a website where there is some documentation about SAMJ
+	 * @return true if the method was able to access the website or false otherwise
+	 */
 	static public boolean help() {
 		String url = "https://segment-anything.com"; 
 		Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;

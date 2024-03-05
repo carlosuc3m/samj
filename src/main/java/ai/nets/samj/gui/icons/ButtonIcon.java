@@ -34,16 +34,39 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.SwingConstants;
-
+/**
+ * ButtonIcon class represents a custom JButton with icons for normal and pressed states.
+ * @author Carlos Garcia
+ * @author Daniel Sage
+ */
 public class ButtonIcon extends JButton {
 	
+	/**
+	 * Serial version unique identifier
+	 */
 	private static final long serialVersionUID = 7396676607184967666L;
-	
+	/**
+	 * Prefix used in the file name of the images that represent that the button is pressed.
+	 */
 	private static final String PRESSED_PREFIX = "pressed_";
-
+	/**
+	 * Icon for when the button is not pressed
+	 */
 	private ImageIcon normalIcon;
+	/**
+	 * Icon for when the button is pressed
+	 */
 	private ImageIcon pressedIcon;
 
+	/**
+	 * Constructor. Creates a button that has an icon inside. The icon changes when pressed.
+	 * @param text
+	 * 	the text inside the button
+	 * @param filePath
+	 * 	the path to the file that contains the image that is going to be used
+	 * @param filename
+	 * 	the name of the file that is going to be used
+	 */
 	public ButtonIcon(String text, String filePath, String filename) {
 		super();
 		try {
@@ -107,6 +130,11 @@ public class ButtonIcon extends JButton {
         return null;
     }
 	
+	/**
+	 * Set the button as pressed or not pressed, changing the image displayed
+	 * @param isPressed
+	 * 	whether the button is pressed or not
+	 */
 	public void setPressed(boolean isPressed) {
 		if (isPressed) this.setIcon(pressedIcon);
 		else this.setIcon(normalIcon);

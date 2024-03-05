@@ -62,6 +62,12 @@ import ai.nets.samj.ui.SAMJLogger;
 import ai.nets.samj.ui.UtilityMethods;
 import ai.nets.samj.SamEnvManager;
 
+/**
+ * Class that creates a default graphical user interface to interact with SAMJ models
+ * @author Carlos Garcia
+ * @author Daniel Sage
+ * @author Vladimir Ulman
+ */
 public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListener {
 
 	private static final long serialVersionUID = -4362794696325316195L;

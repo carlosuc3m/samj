@@ -34,27 +34,67 @@ import net.imglib2.view.Views;
 
 import java.time.LocalDateTime;
 
+/**
+ * Class that contains methods that can be sued by SAMJ models
+ * @author Vladimir Ulman
+ * @author Carlos Garcia
+ */
 public class AbstractSamJ {
 
-	/** Essentially, a syntactic-shortcut for Consumer<String> */
+	/** Essentially, a syntactic-shortcut for a String consumer */
 	public interface DebugTextPrinter { void printText(String text); }
-
+	/**
+	 * Default String consumer that just prints the Strings that are inputed with {@link System#out}
+	 */
 	protected DebugTextPrinter debugPrinter = System.out::println;
+	/**
+	 * Whether the SAMJ model instance is verbose or not
+	 */
+	protected boolean isDebugging = true;
+
+	/**
+	 * Set an empty consumer as {@link DebugTextPrinter} to avoid the SAMJ model instance
+	 * to communicate its process
+	 */
 	public void disableDebugPrinting() {
 		debugPrinter = (text) -> {};
 	}
+	
+	/**
+	 * Set the {@link DebugTextPrinter} that wants to be used in the model
+	 * @param lineComsumer
+	 * 	the {@link DebugTextPrinter} (which is basically a String consumer used to communicate the
+	 *  SAMJ model instance process) that wants to be used
+	 */
 	public void setDebugPrinter(final DebugTextPrinter lineComsumer) {
 		if (lineComsumer != null) debugPrinter = lineComsumer;
 	}
-
-	protected boolean isDebugging = true;
+	
+	/**
+	 * Set whether the SAMJ model instance has to be more verbose or not
+	 * @param newState
+	 * 	whether the new model is verbose or not
+	 */
 	public void setDebugging(boolean newState) {
 		isDebugging = newState;
 	}
+	
+	/**
+	 * 
+	 * @return true if the SAMJ model instance is verbose or not
+	 */
 	public boolean isDebugging() {
 		return isDebugging;
 	}
 
+	/**
+	 * Method that prints the String in the script parameter to the {@link DebugTextPrinter}
+	 * 
+	 * @param script
+	 * 	text that wants to be printed, usually a Python script
+	 * @param designationOfTheScript
+	 * 	the name (or some string to design) of the text that is going to be printed
+	 */
 	public void printScript(final String script, final String designationOfTheScript) {
 		if (!isDebugging) return;
 		debugPrinter.printText("START: =========== "+designationOfTheScript+" ===========");
@@ -63,11 +103,15 @@ public class AbstractSamJ {
 		debugPrinter.printText("END:   =========== "+designationOfTheScript+" ===========");
 	}
 
-	public <T extends RealType<T> & NativeType<T>>
-	RandomAccessibleInterval<T> adaptImageToModel(final RandomAccessibleInterval<T> inImg) {
-		return inImg;
-	}
-
+	/**
+	 * Get the maximum and minimum pixel values of an {@link IterableInterval}
+	 * @param <T>
+	 * 	the ImgLib2 data types that the {@link IterableInterval} can have
+	 * @param inImg
+	 * 	the {@link IterableInterval} from which the max and min values are going to be found
+	 * @param outMinMax
+	 * 	double array where the max and min values of the {@link IterableInterval} will be written
+	 */
 	public static <T extends RealType<T> & NativeType<T>>
 	void getMinMaxPixelValue(final IterableInterval<T> inImg, final double[] outMinMax) {
 		double min = inImg.firstElement().getRealDouble();
@@ -85,12 +129,30 @@ public class AbstractSamJ {
 		}
 	}
 
+	/**
+	 * Whether the values in the length 2 array are between 0 and 1
+	 * @param inMinMax
+	 * 	the interval to be evaluated
+	 * @return true if the values are between 0 and 1 and false otherwise
+	 */
 	public static boolean isNormalizedInterval(final double[] inMinMax) {
 		return (inMinMax[0] >= 0 && inMinMax[0] <= 1
 			&& inMinMax[1] >= 0 && inMinMax[1] <= 1);
 	}
 
-	public static <T extends RealType<T> & NativeType<T>>
+	/**
+	 * Normalize the {@link RandomAccessibleInterval} with the position 0 of the inMimMax array as the min
+	 * and the position 1 as the max
+	 * @param <T>
+	 * 	the ImgLib2 data types that the {@link RandomAccessibleInterval} can have
+	 * @param inImg
+	 *  {@link RandomAccessibleInterval} to be normalized
+	 * @param inMinMax
+	 * 	 the values to which the {@link RandomAccessibleInterval} will be normalized. Should be a double array of length
+	 *   2 with the smaller value at position 0
+	 * @return the normalized {@link RandomAccessibleInterval}
+	 */
+	private static <T extends RealType<T> & NativeType<T>>
 	RandomAccessibleInterval<FloatType> normalizedView(final RandomAccessibleInterval<T> inImg, final double[] inMinMax) {
 		final double min = inMinMax[0];
 		final double range = inMinMax[1] - min;
@@ -102,8 +164,11 @@ public class AbstractSamJ {
 	 * If they are not, the RAI will be subject to {@link Converters#convert(RandomAccessibleInterval, Converter, Type)}
 	 * with here-created Converter that knows how to bring the pixel values into the interval [0,1].
 	 *
-	 * @param inImg RAI to be potentially normalized.
-	 * @return The input image itself or a View of it.
+	 * @param <T>
+	 * 	the ImgLib2 data types that the {@link RandomAccessibleInterval} can have
+	 * @param inImg
+	 *  RAI to be potentially normalized.
+	 * @return The input image itself or a View of it with {@link FloatType} data type
 	 */
 	public <T extends RealType<T> & NativeType<T>>
 	RandomAccessibleInterval<FloatType> normalizedView(final RandomAccessibleInterval<T> inImg) {
@@ -123,7 +188,7 @@ public class AbstractSamJ {
 		}
 	}
 
-	public static <T extends RealType<T> & NativeType<T>>
+	private static <T extends RealType<T> & NativeType<T>>
 	RandomAccessibleInterval<UnsignedByteType> convertViewToRGB(final RandomAccessibleInterval<T> inImg, final double[] inMinMax) {
 		final double min = inMinMax[0];
 		final double range = inMinMax[1] - min;
@@ -131,12 +196,13 @@ public class AbstractSamJ {
 	}
 
 	/**
-	 * Checks the input RAI if its min and max pixel values are between [0,1].
+	 * Checks the input RAI if its min and max pixel values are between [0,255] and if it is of {@link UnsignedByteType} type.
 	 * If they are not, the RAI will be subject to {@link Converters#convert(RandomAccessibleInterval, Converter, Type)}
-	 * with here-created Converter that knows how to bring the pixel values into the interval [0,1].
+	 * with here-created Converter that knows how to bring the pixel values into the interval [0,255].
 	 *
-	 * @param inImg RAI to be potentially normalized.
-	 * @return The input image itself or a View of it.
+	 * @param inImg
+	 *  RAI to be potentially converted to RGB.
+	 * @return The input image itself or a View of it in {@link UnsignedByteType} data type
 	 */
 	public <T extends RealType<T> & NativeType<T>>
 	RandomAccessibleInterval<UnsignedByteType> convertViewToRGB(final RandomAccessibleInterval<T> inImg) {

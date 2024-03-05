@@ -70,51 +70,150 @@ import ai.nets.samj.SamEnvManager;
  */
 public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListener {
 
+	/**
+	 * Unique serial version identifier
+	 */
 	private static final long serialVersionUID = -4362794696325316195L;
-	
+	/**
+	 * Name of the folder where the icon images for the dialog buttons are within the resources folder
+	 */
 	private static final String RESOURCES_FOLDER = "icons/";
-	
+	/**
+	 * Button that closes the GUI
+	 */
 	private JButton bnClose = new JButton("Close");
+	/**
+	 * Button that opens the help button
+	 */
 	private JButton bnHelp = new JButton("Help");
+	/**
+	 * Button that when pressed runs the SAMJ model encoder on the image selected
+	 */
 	private JButton bnStart = new JButton("Start/Encode");
-	private JButton bnStop = new JButton("Stop");
 	// TODO private JButton bnComplete = new JButton("Auto-Complete (soon...)");
 	// TODO private JButton bnRoi2Mask = new JButton("Create Mask (soon...)");
+	/** TODO will this ever happen?
+	 * Button for the auto-complete function, it is not ready yet
+	 */
 	private JButton bnComplete = new JButton("Coming soon...");
+	/**
+	 * Button to export the rois of an image to a instance segmentation mask
+	 */
 	private JButton bnRoi2Mask = new JButton("Coming soon...");
+	/**
+	 * Text field containing copyrigth info
+	 */
 	private JTextField txtStatus = new JTextField("(c) SAMJ team 2024");
-	
+	/**
+	 * Button that activates the annotation with SAMJ models using bounding box prompts
+	 */
 	private ButtonIcon bnRect = new ButtonIcon("Rect", RESOURCES_FOLDER, "rect.png");
+	/**
+	 * Button that activates the annotation with SAMJ models using point or multiple points prompts
+	 */
 	private ButtonIcon bnPoints = new ButtonIcon("Points", RESOURCES_FOLDER, "edit.png");
+	/**
+	 * Button that activates the annotation with SAMJ models using freeline prompts drawn with a freeline
+	 */
 	private ButtonIcon bnBrush = new ButtonIcon("Brush", RESOURCES_FOLDER, "github.png");
+	/**
+	 * Button that allows selecting a mask as a prompt for the image
+	 */
 	private ButtonIcon bnMask = new ButtonIcon("Mask", RESOURCES_FOLDER, "help.png");
+	/**
+	 * Checkbox that defines whether to add the segmentations to the roi manager or not
+	 */
 	private JCheckBox chkROIManager = new JCheckBox("Add to ROI Manager", true);
-
+	/**
+	 * Combo box containing the images that are currently open
+	 */
 	private JComboBox<ComboBoxItem> cmbImage = new JComboBox<ComboBoxItem>();
-	
+	/**
+	 * Panel containing the model choice and HTML panel with info about the models or installation
+	 */
 	private final SAMModelPanel panelModel;
+	/**
+	 * Logger for the GUI actions
+	 */
 	private final SAMJLogger GUIsOwnLog;
+	/**
+	 * Logger for the SAMJ models
+	 */
 	private final SAMJLogger logForNetworks;
+	/**
+	 * Interface implementation that contains methods specific to each consumer software
+	 */
 	private final UtilityMethods consumerMethods;
-	
+	/**
+	 * Unique identifier of the selected image
+	 */
 	private Integer selectedID = null;
-	
+	/**
+	 * Functional interface that allows creating different instances of SAMJ models for different images
+	 */
 	public interface PromptsFunctionalInterface { PromptsResultsDisplay getPrompts(Object image); }
+	/**
+	 * Implementation of the {@link PromptsFunctionalInterface} in the consumer software that allows the consumer
+	 * software to provide prompts to the image of interest
+	 */
 	private PromptsFunctionalInterface displayInterface;
+	/**
+	 * Implementation of the {@link PromptsResultsDisplay} in the consumer software that allows the consumer
+	 * software to provide prompts to the image of interest
+	 */
 	private PromptsResultsDisplay display;
-	
+	/**
+	 * Whether the encodings for the current image are available or the image encoder needs to be
+	 * run to provide annotations
+	 */
 	private boolean encodingsDone = false;
-
+	
+	/**
+	 * Constructor that creates the default GUI for SAMJ. This GUI lets the user decide between
+	 * several SAM based models. It also lets the user install all the models with just one click.
+	 * Once installed the user can use any of the models to annotate providing the needed prompts
+	 * in the way of the consumer software.
+	 * @param availableModel
+	 * 	all SAM-based models available to be used
+	 * @param consumerMethods
+	 * 	interface implementing methods on the consumer software
+	 */
 	public SAMJDialog(final SAMModels availableModel, UtilityMethods consumerMethods) {
 		this(availableModel, consumerMethods, null, null);
 	}
 
+	/**
+	 * Constructor that creates the default GUI for SAMJ. This GUI lets the user decide between
+	 * several SAM based models. It also lets the user install all the models with just one click.
+	 * Once installed the user can use any of the models to annotate providing the needed prompts
+	 * in the way of the consumer software.
+	 * @param availableModel
+	 * 	all SAM-based models available to be used
+	 * @param consumerMethods
+	 * 	interface implementing methods on the consumer software
+	 * @param guilogger
+	 * 	interface implemented on the consumer software to log the events on the GUI
+	 */
 	public SAMJDialog(final SAMModels availableModel,
 						UtilityMethods consumerMethods,
 	                    final SAMJLogger guilogger) {
 		this(availableModel, consumerMethods, guilogger, null);
 	}
 
+	/**
+	 * Constructor that creates the default GUI for SAMJ. This GUI lets the user decide between
+	 * several SAM based models. It also lets the user install all the models with just one click.
+	 * Once installed the user can use any of the models to annotate providing the needed prompts
+	 * in the way of the consumer software.
+	 * @param availableModel
+	 * 	all SAM-based models available to be used
+	 * @param consumerMethods
+	 * 	interface implementing methods on the consumer software
+	 * @param guilogger
+	 * 	interface implemented on the consumer software to log the events on the GUI
+	 * @param networkLogger
+	 * 	interface implemented on the consumer software to log the SAMJ models events
+	 */
 	public SAMJDialog(final SAMModels availableModel, UtilityMethods consumerMethods,
 	                  final SAMJLogger guilogger,
 	                  final SAMJLogger networkLogger) {
@@ -210,7 +309,6 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		chkROIManager.addActionListener(this);
 		
 		bnStart.addActionListener(this);
-		bnStop.addActionListener(this);
 		bnRect.addActionListener(this);
 		bnPoints.addActionListener(this);
 		bnBrush.addActionListener(this);
@@ -221,15 +319,28 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		updateInterface();
 	}
 	
+	/**
+	 * Set the implementation of {@link PromptsFunctionalInterface} in the consumer software that allows working with
+	 * image objects native to the consumer software
+	 * @param pp
+	 * 	the implementation of {@link PromptsFunctionalInterface} in the consumer software 
+	 */
 	public void setPromptsProvider(PromptsFunctionalInterface pp) {
 		this.displayInterface = pp;
 	}
 	
+	/**
+	 * 
+	 * @return the {@link SamEnvManager} used to install and mange the models
+	 */
 	public SamEnvManager getModelInstallationManager() {
 		return this.panelModel.getInstallationManager();
 	}
 
 	@Override
+	/**
+	 * Method that controls that the logic of the buttons is correct
+	 */
 	public void actionPerformed(ActionEvent e) {
 
 		if (e.getSource() == bnRect && !bnRect.isSelected()) {
@@ -280,10 +391,18 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		updateInterface();
 	}
 
+	/**
+	 * Update the interface
+	 */
 	public void updateInterface() {
 		updateInterface(false);
 	}
 
+	/**
+	 * Update the interface deleting the encodings and current Python process if needed
+	 * @param deleteEncodings
+	 * 	whether to delete or not the current encodings and the current Python process
+	 */
 	public void updateInterface(boolean deleteEncodings) {
 		if (deleteEncodings) this.setEncodingsDone(false);
 		if (!this.panelModel.isSelectedModelInstalled()) {
@@ -321,6 +440,13 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		}
 	}
 	
+	/**
+	 * Set whether the encodings for the current image have been already calculated or not.
+	 * If true, the encodings for the selected image do not need to be calculated until the iuser
+	 * selects another image
+	 * @param isDone
+	 * 	whether the encodings for the current image have been calculated or not
+	 */
 	private void setEncodingsDone(boolean isDone) {
 		this.encodingsDone = isDone;
 		if (!isDone) {
@@ -335,11 +461,18 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		}
 	}
 
+	/**
+	 * Class that implements drag and drop for the mask prompt
+	 */
 	public class LocalDropTarget extends DropTarget {
 
 		private static final long serialVersionUID = 286813958463411816L;
 
 		@Override
+		/**
+		 * Enable drag and drop on the mask prompt button and calculate the annotation once the 
+		 * mask is dropped
+		 */
 		public void drop(DropTargetDropEvent e) {
 			e.acceptDrop(DnDConstants.ACTION_COPY);
 			e.getTransferable().getTransferDataFlavors();
@@ -367,6 +500,9 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		}
 	}
 	
+	/**
+	 * Close the panel and the plugin, deleting the python process if it exists
+	 */
 	public void close() {
 		if (display != null)
 			display.notifyNetToClose();
@@ -375,6 +511,9 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	}
 
 	@Override
+	/**
+	 * Update the list of images opened once the combobox pop up is open
+	 */
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 		Object item = this.cmbImage.getSelectedItem();
         List<ComboBoxItem> openSeqs = consumerMethods.getListOfOpenImages();
@@ -389,6 +528,9 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	}
 
 	@Override
+	/**
+	 * Check if the image selected has been changed once the combobox pop up is closed
+	 */
 	public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
 		ComboBoxItem item = (ComboBoxItem) this.cmbImage.getSelectedItem();
 		if ( item == null || (item != null && item.getId() == -1) ) {
@@ -402,6 +544,9 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	}
 
 	@Override
+	/**
+	 * Nothing
+	 */
 	public void popupMenuCanceled(PopupMenuEvent e) {
 	}
 }

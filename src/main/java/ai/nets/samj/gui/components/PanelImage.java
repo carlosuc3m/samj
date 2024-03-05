@@ -29,18 +29,43 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
-
+/**
+ * A custom JPanel that displays an image.
+ *
+ * @author Daniel Sage
+ */
 public class PanelImage extends JPanel {
 
+	/**
+	 * The serial version UID.
+	 */
 	private static final long serialVersionUID = -1274516935269808463L;
+	/**
+	 * The image to display.
+	 */
 	private Image	image;
+	/**
+	 * The width of the image.
+	 */
 	private int		w	= -1;
+	/**
+	 * The height of the image.
+	 */
 	private int		h	= -1;
 
+	/**
+	 * Creates an empty PanelImage object.
+	 */
 	public PanelImage() {
 		super();
 	}
 
+	/**
+	 * Creates a PanelImage object with the specified width and height.
+	 *
+	 * @param w the width of the image
+	 * @param h the height of the image
+	 */
 	public PanelImage(int w, int h) {
 		super();
 		image = null;
@@ -48,6 +73,16 @@ public class PanelImage extends JPanel {
 		this.h = h;
 	}
 
+	/**
+	 * Creates a PanelImage object with the specified image file and width and height.
+	 *
+	 * @param filename
+	 *  the name of the image file
+	 * @param w
+	 *  the width of the image
+	 * @param h
+	 *  the height of the image
+	 */
 	public PanelImage(String filename, int w, int h) {
 		super();
 		System.out.println("Working dir:  " + System.getProperty("user.dir"));
@@ -62,12 +97,24 @@ public class PanelImage extends JPanel {
 
 	}
 
+	/**
+	 * Sets the image to display.
+	 *
+	 * @param image
+	 *  the image to display
+	 */
 	public void setImage(BufferedImage image) {
 		this.image = image;
 		repaint();
 	}
 
 	@Override
+	/**
+	 * Paints the image on the panel.
+	 *
+	 * @param g
+	 *  the Graphics object used for painting
+	 */
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		if (image != null) {

@@ -28,6 +28,9 @@ public class SAMModels extends ArrayList<SAMModel> {
 
 	private static final long serialVersionUID = -6037502816438646853L;
 
+	/**
+	 * A list where each of the components is a {@link SAMModel}
+	 */
 	public  SAMModels() {
 		super();
 		add(new EfficientSAM());

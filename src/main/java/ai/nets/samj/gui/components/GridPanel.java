@@ -27,7 +27,13 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-
+/**
+ * The GridPanel class is a custom JPanel that uses the GridBagLayout to arrange components in a grid.
+ * It provides several constructors to customize the panel's border and spacing, as well as methods to place
+ * components in specific cells of the grid.
+ *
+ * @author Daniel Sage
+ */
 public class GridPanel extends JPanel {
 
 	private static final long	serialVersionUID	= 1L;
@@ -36,7 +42,7 @@ public class GridPanel extends JPanel {
 	private int					defaultSpace		= 3;
 
 	/**
-	 * Constructor.
+	 * Creates a new GridPanel with default spacing and a border.
 	 */
 	public GridPanel() {
 		super();
@@ -45,7 +51,10 @@ public class GridPanel extends JPanel {
 	}
 
 	/**
-	 * Constructor.
+	 * Creates a new GridPanel with the specified default spacing and a border.
+	 *
+	 * @param defaultSpace
+	 *  the default spacing between components
 	 */
 	public GridPanel(int defaultSpace) {
 		super();
@@ -55,7 +64,10 @@ public class GridPanel extends JPanel {
 	}
 
 	/**
-	 * Constructor.
+	 * Creates a new GridPanel with default spacing and the specified border.
+	 *
+	 * @param border
+	 *  true if the panel should have a border, false otherwise
 	 */
 	public GridPanel(boolean border) {
 		super();
@@ -66,7 +78,10 @@ public class GridPanel extends JPanel {
 	}
 
 	/**
-	 * Constructor.
+	 * Creates a new GridPanel with default spacing and a titled border.
+	 *
+	 * @param title
+	 *  the title of the border
 	 */
 	public GridPanel(String title) {
 		super();
@@ -75,7 +90,12 @@ public class GridPanel extends JPanel {
 	}
 
 	/**
-	 * Constructor.
+	 * Creates a new GridPanel with the specified default spacing and a border.
+	 *
+	 * @param border
+	 *  true if the panel should have a border, false otherwise
+	 * @param defaultSpace
+	 *  the default spacing between components
 	 */
 	public GridPanel(boolean border, int defaultSpace) {
 		super();
@@ -87,7 +107,12 @@ public class GridPanel extends JPanel {
 	}
 
 	/**
-	 * Constructor.
+	 * Creates a new GridPanel with the specified default spacing and a titled border.
+	 *
+	 * @param title
+	 *  the title of the border
+	 * @param defaultSpace
+	 *  the default spacing between components
 	 */
 	public GridPanel(String title, int defaultSpace) {
 		super();
@@ -97,56 +122,126 @@ public class GridPanel extends JPanel {
 	}
 
 	/**
-	 * Specify the defaultSpace.
+	 * Sets the default spacing between components in the GridPanel.
+	 *
+	 * @param defaultSpace
+	 *  the default spacing between components
 	 */
 	public void setSpace(int defaultSpace) {
 		this.defaultSpace = defaultSpace;
 	}
 
 	/**
-	 * Place a component in the northwest of the cell.
+	 * Adds a label to the GridPanel at the specified row and column with default spacing.
+	 *
+	 * @param row
+	 *  the row index of the label
+	 * @param col
+	 *  the column index of the label
+	 * @param label
+	 *  the text of the label
 	 */
 	public void place(int row, int col, String label) {
 		place(row, col, 1, 1, defaultSpace, new JLabel(label));
 	}
 
 	/**
-	 * Place a component in the northwest of the cell.
+	 * Adds a label to the GridPanel at the specified row and column with the specified spacing.
+	 *
+	 * @param row
+	 *  the row index of the label
+	 * @param col
+	 *  the column index of the label
+	 * @param space
+	 *  the spacing between components
+	 * @param label
+	 *  the text of the label
 	 */
 	public void place(int row, int col, int space, String label) {
 		place(row, col, 1, 1, space, new JLabel(label));
 	}
 
 	/**
-	 * Place a component in the northwest of the cell.
+	 * Adds a label to the GridPanel at the specified row and column with default spacing and the specified size.
+	 *
+	 * @param row
+	 *  the row index of the label
+	 * @param col
+	 *  the column index of the label
+	 * @param width
+	 *  the width of the label in number of columns
+	 * @param height
+	 *  the height of the label in number of rows
+	 * @param label
+	 *  the text of the label
 	 */
 	public void place(int row, int col, int width, int height, String label) {
 		place(row, col, width, height, defaultSpace, new JLabel(label));
 	}
 
 	/**
-	 * Place a component in the northwest of the cell.
+	 * Adds a component to the GridPanel at the specified row and column with default spacing.
+	 *
+	 * @param row
+	 *  the row index of the component
+	 * @param col
+	 *  the column index of the component
+	 * @param comp
+	 *  the component to add
 	 */
 	public void place(int row, int col, JComponent comp) {
 		place(row, col, 1, 1, defaultSpace, comp);
 	}
 
 	/**
-	 * Place a component in the northwest of the cell.
+	 * Adds a component to the GridPanel at the specified row and column with default spacing.
+	 *
+	 * @param row
+	 *  the row index of the component
+	 * @param col
+	 *  the column index of the component
+	 * @param space
+	 *  the spacing between components
+	 * @param comp
+	 *  the component to add
 	 */
 	public void place(int row, int col, int space, JComponent comp) {
 		place(row, col, 1, 1, space, comp);
 	}
 
 	/**
-	 * Place a component in the northwest of the cell.
+	 * Adds a component to the GridPanel at the specified row and column with the specified spacing.
+	 *
+	 * @param row
+	 *  the row index of the component
+	 * @param col
+	 *  the column index of the component
+	 * @param width
+	 *  the width of the component in number of columns
+	 * @param height
+	 *  the height of the component in number of rows
+	 * @param comp
+	 *  the component to add
 	 */
 	public void place(int row, int col, int width, int height, JComponent comp) {
 		place(row, col, width, height, defaultSpace, comp);
 	}
 
 	/**
-	 * Place a component in the northwest of the cell.
+	 * Adds a component to the GridPanel at the specified row and column with default spacing and the specified size.
+	 *
+	 * @param row
+	 *  the row index of the component
+	 * @param col
+	 *  the column index of the component
+	 * @param width
+	 *  the width of the component in number of columns
+	 * @param height
+	 *  the height of the component in number of rows
+	 * @param space
+	 *  the spacing between components
+	 * @param comp 
+	 * the component to add
 	 */
 	public void place(int row, int col, int width, int height, int space, JComponent comp) {
 		if (comp == null)
@@ -163,7 +258,22 @@ public class GridPanel extends JPanel {
 	}
 
 	/**
-	 * Place a component in the northwest of the cell.
+	 * Adds a component to the GridPanel at the specified row and column with default spacing and the specified size.
+	 *
+	 * @param row
+	 *  the row index of the component
+	 * @param col
+	 *  the column index of the component
+	 * @param width
+	 *  the width of the component in number of columns
+	 * @param height
+	 *  the height of the component in number of rows
+	 * @param spaceHorizontal
+	 *  the horizontal spacing between components
+	 * @param spaceVertical
+	 *  the vertical spacing between components
+	 * @param comp 
+	 * the component to add
 	 */
 	public void place(int row, int col, int width, int height, int spaceHorizontal, int spaceVertical, JComponent comp) {
 		if (comp == null)

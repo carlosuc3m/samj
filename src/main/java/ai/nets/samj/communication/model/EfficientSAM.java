@@ -37,6 +37,11 @@ import ai.nets.samj.EfficientSamJ;
 import ai.nets.samj.SamEnvManager;
 import ai.nets.samj.ui.SAMJLogger;
 
+/**
+ * Instance to communicate with EfficientSAM
+ * @author Carlos Garcia Lopez de Haro
+ * @author Vladimir Ulman
+ */
 public class EfficientSAM implements SAMModel {
 
 	private static final Polygon EMPTY_POLYGON = new Polygon(new int[0], new int[0], 0);
@@ -44,45 +49,29 @@ public class EfficientSAM implements SAMModel {
 	private EfficientSamJ efficientSamJ;
 	private SAMJLogger log;
 	private Boolean installed = false;
+	/**
+	 * Name of the model
+	 */
 	public static final String FULL_NAME = "EfficientSAM";
+	/**
+	 * Axes order required for the input image by the model
+	 */
 	public static final String INPUT_IMAGE_AXES = "yxc";
 	
 	public EfficientSAM() {}
 
-	@Override
-	public String getName() {
-		return FULL_NAME;
-	}
-
-	@Override
-	public String getDescription() {
-		return "Bla bla Efficient SAM";
-	}
-
-	@Override
-	public boolean isInstalled() {
-		return installed;
-	}
-
-	@Override
-	public SAMModel instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt) {
-		try {
-			return new EfficientSAM(image,useThisLoggerForIt);
-		} catch (IOException | InterruptedException | RuntimeException e) {
-			useThisLoggerForIt.error(FULL_NAME + " experienced an error: " + e.getMessage());
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	@Override
-	public void setInstalled(boolean installed) {
-		this.installed = installed;		
-	}
-
-	public EfficientSAM(final RandomAccessibleInterval<?> image,
-	                              final SAMJLogger log)
-	throws IOException, RuntimeException, InterruptedException {
+	/**
+	 * Create an instance of the model that loads the model and encodes an image
+	 * @param image
+	 * 	the image to be encoded
+	 * @param log
+	 * 	a logging functional interface to be able to keep track of what the model is doing
+	 * @throws IOException if any of the files to run a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
+	public EfficientSAM(final RandomAccessibleInterval<?> image, final SAMJLogger log)
+						throws IOException, RuntimeException, InterruptedException {
 		this.log = log;
 		AbstractSamJ.DebugTextPrinter filteringLogger = text -> {
 			int idx = text.indexOf("contours_x");
@@ -95,6 +84,55 @@ public class EfficientSAM implements SAMModel {
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
+	public String getName() {
+		return FULL_NAME;
+	}
+
+	@Override
+	/**
+	 * {@inheritDoc}
+	 */
+	public String getDescription() {
+		return "Bla bla Efficient SAM";
+	}
+
+	@Override
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean isInstalled() {
+		return installed;
+	}
+
+	@Override
+	/**
+	 * {@inheritDoc}
+	 */
+	public SAMModel instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt) {
+		try {
+			return new EfficientSAM(image,useThisLoggerForIt);
+		} catch (IOException | InterruptedException | RuntimeException e) {
+			useThisLoggerForIt.error(FULL_NAME + " experienced an error: " + e.getMessage());
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	/**
+	 * {@inheritDoc}
+	 */
+	public void setInstalled(boolean installed) {
+		this.installed = installed;		
+	}
+
+	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public List<Polygon> fetch2dSegmentation(List<Localizable> listOfPoints2D, List<Localizable> listOfNegPoints2D) {
 		try {
 			List<int[]> list = listOfPoints2D.stream()
@@ -113,6 +151,9 @@ public class EfficientSAM implements SAMModel {
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public List<Polygon> fetch2dSegmentation(Interval boundingBox2D) {
 		try {
 			//order to processBox() should be: x0,y0, x1,y1
@@ -133,6 +174,9 @@ public class EfficientSAM implements SAMModel {
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public <T extends RealType<T> & NativeType<T>> List<Polygon> fetch2dSegmentationFromMask(RandomAccessibleInterval<T> rai) {
 		try {
 			return efficientSamJ.processMask(rai);
@@ -146,17 +190,26 @@ public class EfficientSAM implements SAMModel {
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public void notifyUiHasBeenClosed() {
 		log.info(FULL_NAME+": OKAY, I'm closing myself...");
 		closeProcess();
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public void closeProcess() {
 		efficientSamJ.close();
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public String getInputImageAxes() {
 		return INPUT_IMAGE_AXES;
 	}

@@ -28,36 +28,87 @@ import ai.nets.samj.communication.model.SAMModel;
 import java.awt.Polygon;
 import java.io.File;
 
+/**
+ * Interface to be implemented by in the consumer software that contains all the methods 
+ * necessary to communicate with and run SAMJ models and retrieve segmentation/annotations.
+ * @author Carlos Garcia
+ * @author Vladimir Ulman
+ */
 public interface PromptsResultsDisplay {
 
 	/**
-	 * Give the display an image on which it shall operate. It is, however,
-	 * not expected that the display will operate on the full image. To
-	 * get the potential portion of the image on which the display eventually
-	 * operates, use {@link PromptsResultsDisplay#giveProcessedSubImage()}.
-	 */
-	void switchToThisImg(final RandomAccessibleInterval<?> newImage);
-
-	/**
-	 * Returns the actual image on which the display operates, which may
-	 * very well be only a portion of the originaly provided image, see
-	 * {@link PromptsResultsDisplay#switchToThisImg(RandomAccessibleInterval)}.
+	 * Get the image on which the wanted model will act.
+	 * @param selectedModel
+	 * 	the wanted model to be used to process the image
+	 * @return the image that wants to be processed as a {@link RandomAccessibleInterval} in the format required by the
+	 * 	SAMJ model
 	 */
 	RandomAccessibleInterval<?> giveProcessedSubImage(SAMModel selectedModel);
 
+	/**
+	 * Change the model that is going to be sued to process the image to another model.
+	 * @param promptsToNetAdapter
+	 * 	the {@link SAMModel} that wants to be used on the image
+	 */
 	void switchToThisNet(final SAMModel promptsToNetAdapter);
+	
+	/**
+	 * Close the SAMJ network and the Python process where it was running
+	 */
 	void notifyNetToClose();
 
+	/**
+	 * 
+	 * @return all the polygons created by SAMJ models for a give image
+	 */
 	List<Polygon> getPolygonsFromRoiManager();
+	
+	/**
+	 * Use a mask as a prompt for SAMJ models
+	 * @param mask
+	 * 	the file where the mask is located. MAsks should be single channel 2D images of the same
+	 * 	dimensions as the image that is being processed
+	 */
 	void improveExistingMask(File mask);
 
+	/**
+	 * Whether to add the ROIs being created to the ROI manager of the consumer software
+	 * @param shouldBeAdding
+	 * 	true to add the rois or false otherwise
+	 */
 	void enableAddingToRoiManager(boolean shouldBeAdding);
+	
+	/**
+	 * Check if the ROIs are being added to the ROI manager or not
+	 * @return true if rois are being added to the consumer software ROI manager or false otherwise
+	 */
 	boolean isAddingToRoiManager();
 
+	/**
+	 * Select bounding boxes as the way to send prompts to SAMJ models
+	 */
 	void switchToUsingRectangles();
-	void switchToUsingLines();
+
+	/**
+	 * Select a the brush tool to create free lines that can be used as the prompts for 
+	 * SAMJ models. The way to use free lines as prompts is to either convert thme into a list of points
+	 * or to use the freeline as a mask prompt.
+	 */
+	void switchToUsingBrush();
+
+	/**
+	 * Select multiple points as the prompts used to annotate objects in SAMJ
+	 */
 	void switchToUsingPoints();
+	
+	/**
+	 * Stop sneding prompts to SAMJ and thus stop finding ROIs
+	 */
 	void switchToNone();
 	
+	/**
+	 * Return the image that is being processed/annotated
+	 * @return
+	 */
 	Object getFocusedImage();
 }

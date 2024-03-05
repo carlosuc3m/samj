@@ -233,7 +233,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			display.switchToUsingPoints();
 			bnRect.setPressed(false); bnPoints.setPressed(true); bnBrush.setPressed(false);
 		} else if (e.getSource() == bnBrush && !bnBrush.isSelected()) {
-			display.switchToUsingLines();
+			display.switchToUsingBrush();
 			bnRect.setPressed(false); bnPoints.setPressed(false); bnBrush.setPressed(true);
 		} else if (e.getSource() == bnRect || e.getSource() == bnPoints || e.getSource() == bnBrush) {
 			display.switchToNone();

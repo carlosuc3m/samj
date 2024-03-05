@@ -24,6 +24,7 @@ import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.util.Cast;
 
 import java.awt.Polygon;
 import java.io.IOException;
@@ -36,6 +37,11 @@ import ai.nets.samj.EfficientViTSamJ;
 import ai.nets.samj.SamEnvManager;
 import ai.nets.samj.ui.SAMJLogger;
 
+/**
+ * Instance to communicate with EfficientViTSAM l0
+ * @author Carlos Garcia Lopez de Haro
+ * @author Vladimir Ulman
+ */
 public class EfficientViTSAML0 implements SAMModel {
 
 	private static final Polygon EMPTY_POLYGON = new Polygon(new int[0], new int[0], 0);
@@ -43,27 +49,48 @@ public class EfficientViTSAML0 implements SAMModel {
 	private EfficientViTSamJ efficientSamJ;
 	private SAMJLogger log;
 	private Boolean installed = false;
+	/**
+	 * Official name of the model
+	 */
 	public static final String FULL_NAME = "EfficientViTSAM-l0";
+	/**
+	 * Axes order required for the input image by the model
+	 */
 	public static final String INPUT_IMAGE_AXES = "xyc";
 
+	/**
+	 * Create an empty instance of the model
+	 */
 	public EfficientViTSAML0() {}
 	
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public String getName() {
 		return FULL_NAME;
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public String getDescription() {
 		return "Bla bla Efficient SAM";
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public boolean isInstalled() {
 		return installed;
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public SAMModel instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt) {
 		try {
 			return new EfficientViTSAML0(image,useThisLoggerForIt);
@@ -75,13 +102,25 @@ public class EfficientViTSAML0 implements SAMModel {
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public void setInstalled(boolean installed) {
 		this.installed = installed;		
 	}
 
-	public EfficientViTSAML0(final RandomAccessibleInterval<?> image,
-	                              final SAMJLogger log)
-	throws IOException, RuntimeException, InterruptedException {
+	/**
+	 * Create an instance of the model that loads the model and encodes an image
+	 * @param image
+	 * 	the image to be encoded
+	 * @param log
+	 * 	a logging functional interface to be able to keep track of what the model is doing
+	 * @throws IOException if any of the files to run a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
+	public EfficientViTSAML0(final RandomAccessibleInterval<?> image, final SAMJLogger log)
+	                            		  throws IOException, RuntimeException, InterruptedException {
 		this.log = log;
 		AbstractSamJ.DebugTextPrinter filteringLogger = text -> {
 			int idx = text.indexOf("contours_x");
@@ -89,11 +128,14 @@ public class EfficientViTSAML0 implements SAMModel {
 			else this.log.info( text );
 		};
 		efficientSamJ = EfficientViTSamJ.initializeSam("l0",
-				SamEnvManager.create(), (RandomAccessibleInterval)image,
+				SamEnvManager.create(), Cast.unchecked(image),
 				filteringLogger, false);
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public List<Polygon> fetch2dSegmentation(List<Localizable> listOfPoints2D, List<Localizable> listOfNegPoints2D) {
 		try {
 			List<int[]> list = listOfPoints2D.stream()
@@ -112,6 +154,9 @@ public class EfficientViTSAML0 implements SAMModel {
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public List<Polygon> fetch2dSegmentation(Interval boundingBox2D) {
 		try {
 			//order to processBox() should be: x0,y0, x1,y1
@@ -132,6 +177,9 @@ public class EfficientViTSAML0 implements SAMModel {
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public <T extends RealType<T> & NativeType<T>> List<Polygon> fetch2dSegmentationFromMask(RandomAccessibleInterval<T> rai) {
 		try {
 			return efficientSamJ.processMask(rai);
@@ -145,17 +193,26 @@ public class EfficientViTSAML0 implements SAMModel {
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public void notifyUiHasBeenClosed() {
 		log.info(FULL_NAME+": OKAY, I'm closing myself...");
 		closeProcess();
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public void closeProcess() {
 		efficientSamJ.close();
 	}
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 */
 	public String getInputImageAxes() {
 		return INPUT_IMAGE_AXES;
 	}

@@ -24,6 +24,7 @@ import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.util.Cast;
 
 import java.awt.Polygon;
 import java.io.IOException;
@@ -89,7 +90,7 @@ public class EfficientSAM implements SAMModel {
 			else this.log.info( text );
 		};
 		efficientSamJ = EfficientSamJ.initializeSam(
-				SamEnvManager.create(), (RandomAccessibleInterval)image,
+				SamEnvManager.create(), Cast.unchecked(image),
 				filteringLogger, false);
 	}
 

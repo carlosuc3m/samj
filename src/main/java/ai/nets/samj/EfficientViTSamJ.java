@@ -415,13 +415,17 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 	}
 	
 	/**
-	 * Method used to process a list of points as the prompt for EfficientViTSAM. It returns
-	 * a list of polygons that corresponds to the contours of the masks found by EfficientViTSAM
+	 * Method used that runs EfficientViTSAM using a list of points as the prompt. This method runs
+	 * the prompt encoder and the EfficientViTSAM decoder only, the image encoder was run when the model
+	 * was initialized with the image, thus it is quite fast.
+	 * It returns a list of polygons that corresponds to the contours of the masks found by EfficientViTSAM
 	 * @param pointsList
-	 * @return
-	 * @throws IOException
-	 * @throws RuntimeException
-	 * @throws InterruptedException
+	 * 	the list of points that serve as a prompt for EfficientViTSAM. Each point is an int array
+	 * 	of length 2, first position is x-axis, second y-axis
+	 * @return a list of polygons where each polygon is the contour of a mask that has been found by EfficientViTSAM
+	 * @throws IOException if any of the files needed to run the Python script is missing 
+	 * @throws RuntimeException if there is any error running the Python process
+	 * @throws InterruptedException if the process in interrupted
 	 */
 	public List<Polygon> processPoints(List<int[]> pointsList)
 			throws IOException, RuntimeException, InterruptedException{
@@ -435,6 +439,22 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		return polys;
 	}
 	
+	/**
+	 * Method used that runs EfficientViTSAM using a list of points as the prompt. This method also accepts another
+	 * list of points as the negative prompt, the points that represent the background class wrt the object of interest. This method runs
+	 * the prompt encoder and the EfficientViTSAM decoder only, the image encoder was run when the model
+	 * was initialized with the image, thus it is quite fast.
+	 * It returns a list of polygons that corresponds to the contours of the masks found by EfficientViTSAM
+	 * @param pointsList
+	 * 	the list of points that serve as a prompt for EfficientViTSAM. Each point is an int array
+	 * 	of length 2, first position is x-axis, second y-axis
+	 * @param pointsNegList
+	 * 	the list of points that does not point to the instance of interest, but the background
+	 * @return a list of polygons where each polygon is the contour of a mask that has been found by EfficientViTSAM
+	 * @throws IOException if any of the files needed to run the Python script is missing 
+	 * @throws RuntimeException if there is any error running the Python process
+	 * @throws InterruptedException if the process in interrupted
+	 */
 	public List<Polygon> processPoints(List<int[]> pointsList, List<int[]> pointsNegList)
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";
@@ -448,6 +468,19 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		return polys;
 	}
 	
+	/**
+	 * Method used that runs EfficientViTSAM using a bounding box as the prompt. The bounding box should
+	 * be a int array of length 4 of the form [x0, y0, x1, y1].
+	 * This method runs the prompt encoder and the EfficientViTSAM decoder only, the image encoder was run when the model
+	 * was initialized with the image, thus it is quite fast.
+	 * 
+	 * @param boundingBox
+	 * 	the bounding box that serves as the prompt for EfficientViTSAM
+	 * @return a list of polygons where each polygon is the contour of a mask that has been found by EfficientViTSAM
+	 * @throws IOException if any of the files needed to run the Python script is missing 
+	 * @throws RuntimeException if there is any error running the Python process
+	 * @throws InterruptedException if the process in interrupted
+	 */
 	public List<Polygon> processBox(int[] boundingBox)
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";
@@ -462,6 +495,10 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 * Close the Python process and clean the memory
+	 */
 	public void close() {
 		if (python != null) python.close();
 	}
@@ -490,6 +527,21 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		this.script += code;
 	}
 	
+	/**
+	 * Method used that runs EfficientViTSAM using a mask as the prompt. The mask should be a 2D single-channel
+	 * image {@link RandomAccessibleInterval} of the same x and y sizes as the image of interest, the image 
+	 * where the model is finding the segmentations.
+	 * Note that the quality of this prompting method is not good, it is still experimental as it barely works
+	 * 
+	 * @param <T>
+	 * 	ImgLib2 datatype of the mask
+	 * @param img
+	 * 	mask used as the prompt
+	 * @return a list of polygons where each polygon is the contour of a mask that has been found by EfficientViTSAM
+	 * @throws IOException if any of the files needed to run the Python script is missing 
+	 * @throws RuntimeException if there is any error running the Python process
+	 * @throws InterruptedException if the process in interrupted
+	 */
 	public <T extends RealType<T> & NativeType<T>>
 	List<Polygon> processMask(RandomAccessibleInterval<T> img) throws IOException, RuntimeException, InterruptedException {
 		long[] dims = img.dimensionsAsLongArray();
@@ -508,7 +560,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		}
 	}
 	
-	public List<Polygon> processMask(SharedMemoryArray shmArr) throws IOException, RuntimeException, InterruptedException {
+	private List<Polygon> processMask(SharedMemoryArray shmArr) throws IOException, RuntimeException, InterruptedException {
 		this.script = "";
 		processMasksWithSam(shmArr);
 		printScript(script, "Pre-computed mask inference");
@@ -638,6 +690,14 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		this.targetDims = targetImg.dimensionsAsLongArray();
 	}
 	
+	/**
+	 * Tests during development
+	 * @param args
+	 * 	nothing
+	 * @throws IOException nothing
+	 * @throws RuntimeException nothing
+	 * @throws InterruptedException nothing
+	 */
 	public static void main(String[] args) throws IOException, RuntimeException, InterruptedException {
 		RandomAccessibleInterval<UnsignedByteType> img = ArrayImgs.unsignedBytes(new long[] {50, 50, 3});
 		img = Views.addDimension(img, 1, 2);
@@ -646,6 +706,10 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 		}
 	}
 	
+	/**
+	 * 
+	 * @return the list of EfficientViTSAM models that are supported
+	 */
 	public static List<String> getListOfSupportedEfficientViTSAM(){
 		return MODELS_DICT.keySet().stream().collect(Collectors.toList());
 	}

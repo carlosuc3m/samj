@@ -62,33 +62,81 @@ import ai.nets.samj.SamEnvManager;
  * @author Vladimir Ulman
  */
 public class SAMModelPanel extends JPanel implements ActionListener {
-	
+	/**
+	 * Unique serial identifier
+	 */
 	private static final long serialVersionUID = 7623385356575804931L;
-
+	/**
+	 * HTML panel where all the info about models and installation is going to be shown
+	 */
 	private HTMLPane info = new HTMLPane(450, 135);
+	/**
+	 * Parameter used in the HTML panel during installation to know when to update
+	 */
     private int waitingIter = 0;
-	
+	/**
+	 * Button that when clicked installs the model selected
+	 */
 	private JButton bnInstall = new JButton("Install");
+	/**
+	 * Button that when clicked uninstalls the model selected
+	 */
 	private JButton bnUninstall = new JButton("Uninstall");
-	
+	/**
+	 * Progress bar used during the model installation. If the model is already installed it
+	 * is full, if it is not it is empty
+	 */
 	private JProgressBar progressInstallation = new JProgressBar();
-
+	/**
+	 * List of radio buttons that point to the models available
+	 */
 	private ArrayList<JRadioButton> rbModels = new ArrayList<JRadioButton>();
+	/**
+	 * Object contianing a list of the models available, and whether they are selected, installed...
+	 */
 	private SAMModels models;
+	/**
+	 * Object that manages the models and their installation
+	 */
 	private final SamEnvManager manager;
-	
+	/**
+	 * Index of hte selected model in the list of available models
+	 */
 	private int selectedModel = 0;
-	
-	private boolean modelChanged= false;
-	
+	/**
+	 * Whether the model selected has changed or not
+	 */
+	private boolean modelChanged = false;
+	/**
+	 * Time format using to update the installation information
+	 */
 	private static DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
-	
+	/**
+	 * Interface implemented at {@link SAMJDialog} to tell the parent JPanel to update the
+	 * interface
+	 */
 	interface CallParent {
+		/**
+		 * The implemented task to be done at {@link SAMJDialog}
+		 * @param bool
+		 * 	some helper parameter
+		 */
 		public void task(boolean bool);
 	}
-	
+	/**
+	 * Implementation of the interface {@link CallParent}
+	 */
 	private CallParent updateParent;
 	
+	/**
+	 * Constructor of the class. Creates a panel that contains the selection of available models
+	 * and an html panel with info about the models that also displays the installation progress
+	 * when the model is being installed
+	 * @param models
+	 * 	list of models that are available
+	 * @param updateParent
+	 * 	interface implementation on {@link SAMJDialog} that allows making modifications in the parent GUI
+	 */
 	public SAMModelPanel(SAMModels models, CallParent updateParent) {
 		super();
 		this.updateParent = updateParent;
@@ -165,7 +213,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	
 	/**
 	 * 
-	 * @return whether the selected mdoel is installed or not
+	 * @return whether the selected model is installed or not
 	 */
 	public boolean isSelectedModelInstalled() {
 		for(int i=0; i<rbModels.size(); i++) {
@@ -175,6 +223,10 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		return false;
 	}
 	
+	/**
+	 * 
+	 * @return the selected model
+	 */
 	public SAMModel getSelectedModel() {
 		for(int i=0; i<rbModels.size(); i++) {
 			if (rbModels.get(i).isSelected())
@@ -183,14 +235,26 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		return null;
 	}
 	
+	/**
+	 * 
+	 * @return the installation manager
+	 */
 	public SamEnvManager getInstallationManager() {
 		return this.manager;
 	}
 	
+	/**
+	 * 
+	 * @return true if the current model allows installation, thus it is not installed and false otherwise
+	 */
 	public boolean isInstallationEnabled() {
 		return this.bnInstall.isEnabled();
 	}
 	
+	/**
+	 * Create the Thread that is used to install the selected model using {@link SamEnvManager}
+	 * @return the thread where the models will be installed
+	 */
 	private Thread createInstallationThread() {
 		Thread installThread = new Thread(() -> {
 			try {
@@ -221,6 +285,12 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		return installThread;
 	}
 	
+	/**
+	 * Create a thread that is used to monitor the installation and provide some feedback to the user
+	 * @param installThread
+	 * 	the thread where the installation is being done
+	 * @return the thread used to control the installation thread
+	 */
 	private Thread createControlThread(Thread installThread) {
 		Thread currentThread = Thread.currentThread();
 		Thread controlThread = new Thread(() -> {
@@ -233,6 +303,9 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	}
 	
 	@Override
+	/**
+	 * Mange the interface actions and logic
+	 */
 	public void actionPerformed(ActionEvent e) {
 		
 		if (e.getSource() == bnInstall) {
@@ -249,6 +322,11 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		modelChanged = false;
 	}
 	
+	/**
+	 * Update the interface accordingly once the installation starts or finishes
+	 * @param inProcess
+	 * 	whether the installation is happening or it has finished already
+	 */
 	private void installationInProcess(boolean inProcess) {
 		this.bnUninstall.setEnabled(inProcess ? false : getSelectedModel().isInstalled());
 		this.bnInstall.setEnabled(inProcess ? false : !getSelectedModel().isInstalled());
@@ -303,6 +381,11 @@ public class SAMModelPanel extends JPanel implements ActionListener {
         return info.getText();
     }
 
+    /**
+     * Add a String to the html pane in the correct format
+     * @param html
+     * 	the String to be converted into HTML and added to the HTML panel
+     */
     public void addHtml(String html) {
         if (html == null) return;
         if (html.trim().isEmpty()) {
@@ -324,7 +407,13 @@ public class SAMModelPanel extends JPanel implements ActionListener {
         });
     }
     
-    public static String formatHTML(String html) {
+    /**
+     * Convert the input String into the correct HTML string for the HTML panel
+     * @param html
+     * 	the input Stirng to be formatted
+     * @return the String formatted into the correct HTML string
+     */
+    private static String formatHTML(String html) {
 	    html = html.replace(System.lineSeparator(), "<br>")
 	            .replace("    ", "&emsp;")
 	            .replace("  ", "&ensp;")
@@ -338,6 +427,13 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 	    return html;
     }
     
+    /**
+     * Check if a message is empty, thus no information is comming. If the message is not empty, nothing is done.
+     * If it is, the html panel is updated so a changing installation in progress message appears
+     * @param html
+     * 	the message sent by the installation thread
+     * @return the message to be print in the html panel
+     */
     private String manageEmptyMessage(String html) {
     	if (html.trim().isEmpty() && waitingIter == 0) {
         	html = LocalDateTime.now().format(DATE_FORMAT).toString() + " -- Working, this migh take several minutes .";

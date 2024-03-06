@@ -98,4 +98,21 @@ public class Files {
 		}
 		return null;
 	}
+	/**
+	 * Delete all the contents of  a directory
+	 * @param folder
+	 * 	the File which is going to be deleted
+	 */
+	public static void deleteFolder(File folder) {
+	    File[] files = folder.listFiles();
+	    if (files == null) {
+	    	folder.delete();
+	    	return;
+	    }
+        for(File f: files) {
+            if(f.isDirectory()) deleteFolder(f);
+            else f.delete();
+        }
+	    folder.delete();
+	}
 }

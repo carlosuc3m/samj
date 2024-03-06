@@ -128,7 +128,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 	private String IMPORTS_FORMATED;
 
 	/**
-	 * Create an instance of the class to be able to run EfficientiTSAM in Java.
+	 * Create an instance of the class to be able to run EfficientViTSAM in Java.
 	 * 
 	 * @param manager
 	 * 	environment manager that contians all the paths to the environments needed, Python executables and model weights
@@ -143,7 +143,7 @@ public class EfficientViTSamJ extends AbstractSamJ implements AutoCloseable {
 	}
 
 	/**
-	 * Create an instance of the class to be able to run EfficientiTSAM in Java.
+	 * Create an instance of the class to be able to run EfficientViTSAM in Java.
 	 * 
 	 * @param manager
 	 * 	environment manager that contians all the paths to the environments needed, Python executables and model weights

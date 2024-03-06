@@ -46,18 +46,37 @@ import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
+/**
+ * Class that enables the use of EfficientSAM from Java.
+ * @author Carlos Garcia
+ * @author vladimir Ulman
+ */
 public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
-
+	/**
+	 * Instance referencing the Python environment that is going to be used to run EfficientSAM
+	 */
 	private final Environment env;
-	
+	/**
+	 * Instance of {@link Service} that is in charge of opening a Python process and running the
+	 * scripts provided in that Python process in order to be able to use EfficientSAM
+	 */
 	private final Service python;
-	
+	/**
+	 * The scripts that want to be run in Python
+	 */
 	private String script = "";
-	
+	/**
+	 * Shared memory array used to share between Java and Python the image that wants to be processed by EfficientSAM 
+	 */
 	private SharedMemoryArray shma;
-	
+	/**
+	 * Target dimensions of the image that is going to be encoded. If a single-channel 2D image is provided, that image is
+	 * converted into a 3-channel image that EfficientSAM requires
+	 */
 	private long[] targetDims;
-	
+	/**
+	 * All the Python imports and configurations needed to start using EfficientSAM.
+	 */
 	public static final String IMPORTS = ""
 			+ "task.update('start')" + System.lineSeparator()
 			+ "from skimage import measure" + System.lineSeparator()
@@ -77,12 +96,39 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 			+ "globals()['np'] = np" + System.lineSeparator()
 			+ "globals()['torch'] = torch" + System.lineSeparator()
 			+ "globals()['predictor'] = predictor" + System.lineSeparator();
+	/**
+	 * String containing the Python imports code after it has been formatted with the correct 
+	 * paths and names
+	 */
 	private String IMPORTS_FORMATED;
 
+	/**
+	 * Create an instance of the class to be able to run EfficientSAM in Java.
+	 * 
+	 * @param manager
+	 * 	environment manager that contians all the paths to the environments needed, Python executables and model weights
+	 * @throws IOException if any of the files to create a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
 	private EfficientSamJ(SamEnvManager manager) throws IOException, RuntimeException, InterruptedException {
 		this(manager, (t) -> {}, false);
 	}
 
+	/**
+	 * Create an instance of the class to be able to run EfficientSAM in Java.
+	 * 
+	 * @param manager
+	 * 	environment manager that contians all the paths to the environments needed, Python executables and model weights
+	 * @param debugPrinter
+	 * 	functional interface to redirect the Python process Appose text log and ouptut to be redirected anywhere
+	 * @param printPythonCode
+	 * 	whether to print the Python code that is going to be executed on the Python process or not
+	 * @throws IOException if any of the files to create a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 * 
+	 */
 	private EfficientSamJ(SamEnvManager manager,
 	                      final DebugTextPrinter debugPrinter,
 	                      final boolean printPythonCode) throws IOException, RuntimeException, InterruptedException {
@@ -111,6 +157,26 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 			throw new RuntimeException();
 	}
 
+	/**
+	 * Create an EfficientSAMJ instance that allows to use EfficientSAM on an image.
+	 * This method encodes the image provided, so depending on the computer
+	 * it might take some time
+	 * 
+	 * @param <T>
+	 * 	the ImgLib2 data type of the image provided
+	 * @param manager
+	 * 	environment manager that contians all the paths to the environments needed, Python executables and model weights
+	 * @param image
+	 * 	the image where SAM is going to be run on
+	 * @return an instance of {@link EfficientSAMJ} that allows running EfficientSAM on an image
+	 * @param debugPrinter
+	 * 	functional interface to redirect the Python process Appose text log and ouptut to be redirected anywhere
+	 * @param printPythonCode
+	 * 	whether to print the Python code that is going to be executed on the Python process or not
+	 * @throws IOException if any of the files to create a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
 	public static <T extends RealType<T> & NativeType<T>> EfficientSamJ
 	initializeSam(SamEnvManager manager,
 	              RandomAccessibleInterval<T> image,
@@ -127,6 +193,24 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		return sam;
 	}
 
+	/**
+	 * Create an EfficientSAMJ instance that allows to use EfficientSAM on an image.
+	 * This method encodes the image provided, so depending on the computer and on the model
+	 * it might take some time.
+	 * 
+	 * 
+	 * @param <T>
+	 * 	the ImgLib2 data type of the image provided
+	 * @param manager
+	 * 	environment manager that contians all the paths to the environments needed, Python executables and model weights
+	 * @param image
+	 * 	the image where SAM is going to be run on
+	 * @return an instance of {@link EfficientSAMJ} that allows running EfficientSAM on an image
+	 * 	with the image already encoded
+	 * @throws IOException if any of the files to create a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
 	public static <T extends RealType<T> & NativeType<T>> EfficientSamJ
 	initializeSam(SamEnvManager manager, RandomAccessibleInterval<T> image) throws IOException, RuntimeException, InterruptedException {
 		EfficientSamJ sam = null;
@@ -140,11 +224,31 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		return sam;
 	}
 	
+	/**
+	 * Change the image encoded by the EfficientSAM model
+	 * @param <T>
+	 * 	ImgLib2 data type of the image of interest
+	 * @param rai
+	 * 	image (n-dimensional array) that is going to be encoded as a {@link RandomAccessibleInterval}
+	 * @throws IOException if any of the files to run a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
 	public <T extends RealType<T> & NativeType<T>>
 	void updateImage(RandomAccessibleInterval<T> rai) throws IOException, RuntimeException, InterruptedException {
 		addImage(rai);
 	}
 	
+	/**
+	 * Encode an image (n-dimensional array) with an EfficientSAM model
+	 * @param <T>
+	 * 	ImgLib2 data type of the image of interest
+	 * @param rai
+	 * 	image (n-dimensional array) that is going to be encoded as a {@link RandomAccessibleInterval}
+	 * @throws IOException if any of the files to run a Python process is missing
+	 * @throws RuntimeException if there is any error running the Python code
+	 * @throws InterruptedException if the process is interrupted
+	 */
 	private <T extends RealType<T> & NativeType<T>>
 	void addImage(RandomAccessibleInterval<T> rai) 
 			throws IOException, RuntimeException, InterruptedException{
@@ -214,6 +318,21 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		return polys;
 	}
 	
+	/**
+	 * Method used that runs EfficientSAM using a mask as the prompt. The mask should be a 2D single-channel
+	 * image {@link RandomAccessibleInterval} of the same x and y sizes as the image of interest, the image 
+	 * where the model is finding the segmentations.
+	 * Note that the quality of this prompting method is not good, it is still experimental as it barely works
+	 * 
+	 * @param <T>
+	 * 	ImgLib2 datatype of the mask
+	 * @param img
+	 * 	mask used as the prompt
+	 * @return a list of polygons where each polygon is the contour of a mask that has been found by EfficientSAM
+	 * @throws IOException if any of the files needed to run the Python script is missing 
+	 * @throws RuntimeException if there is any error running the Python process
+	 * @throws InterruptedException if the process in interrupted
+	 */
 	public <T extends RealType<T> & NativeType<T>>
 	List<Polygon> processMask(RandomAccessibleInterval<T> img) throws IOException, RuntimeException, InterruptedException {
 		long[] dims = img.dimensionsAsLongArray();
@@ -232,7 +351,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		}
 	}
 	
-	public List<Polygon> processMask(SharedMemoryArray shmArr) throws IOException, RuntimeException, InterruptedException {
+	private List<Polygon> processMask(SharedMemoryArray shmArr) throws IOException, RuntimeException, InterruptedException {
 		this.script = "";
 		processMasksWithSam(shmArr);
 		printScript(script, "Pre-computed mask inference");
@@ -294,6 +413,19 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		this.script = code;
 	}
 	
+	/**
+	 * Method used that runs EfficientSAM using a list of points as the prompt. This method runs
+	 * the prompt encoder and the EfficientSAM decoder only, the image encoder was run when the model
+	 * was initialized with the image, thus it is quite fast.
+	 * It returns a list of polygons that corresponds to the contours of the masks found by EfficientSAM
+	 * @param pointsList
+	 * 	the list of points that serve as a prompt for EfficientSAM. Each point is an int array
+	 * 	of length 2, first position is x-axis, second y-axis
+	 * @return a list of polygons where each polygon is the contour of a mask that has been found by EfficientSAM
+	 * @throws IOException if any of the files needed to run the Python script is missing 
+	 * @throws RuntimeException if there is any error running the Python process
+	 * @throws InterruptedException if the process in interrupted
+	 */
 	public List<Polygon> processPoints(List<int[]> pointsList)
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";
@@ -306,6 +438,22 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		return polys;
 	}
 	
+	/**
+	 * Method used that runs EfficientSAM using a list of points as the prompt. This method also accepts another
+	 * list of points as the negative prompt, the points that represent the background class wrt the object of interest. This method runs
+	 * the prompt encoder and the EfficientSAM decoder only, the image encoder was run when the model
+	 * was initialized with the image, thus it is quite fast.
+	 * It returns a list of polygons that corresponds to the contours of the masks found by EfficientSAM
+	 * @param pointsList
+	 * 	the list of points that serve as a prompt for EfficientSAM. Each point is an int array
+	 * 	of length 2, first position is x-axis, second y-axis
+	 * @param pointsNegList
+	 * 	the list of points that does not point to the instance of interest, but the background
+	 * @return a list of polygons where each polygon is the contour of a mask that has been found by EfficientSAM
+	 * @throws IOException if any of the files needed to run the Python script is missing 
+	 * @throws RuntimeException if there is any error running the Python process
+	 * @throws InterruptedException if the process in interrupted
+	 */
 	public List<Polygon> processPoints(List<int[]> pointsList, List<int[]> pointsNegList)
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";
@@ -319,6 +467,19 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		return polys;
 	}
 	
+	/**
+	 * Method used that runs EfficientSAM using a bounding box as the prompt. The bounding box should
+	 * be a int array of length 4 of the form [x0, y0, x1, y1].
+	 * This method runs the prompt encoder and the EfficientSAM decoder only, the image encoder was run when the model
+	 * was initialized with the image, thus it is quite fast.
+	 * 
+	 * @param boundingBox
+	 * 	the bounding box that serves as the prompt for EfficientSAM
+	 * @return a list of polygons where each polygon is the contour of a mask that has been found by EfficientSAM
+	 * @throws IOException if any of the files needed to run the Python script is missing 
+	 * @throws RuntimeException if there is any error running the Python process
+	 * @throws InterruptedException if the process in interrupted
+	 */
 	public List<Polygon> processBox(int[] boundingBox)
 			throws IOException, RuntimeException, InterruptedException{
 		this.script = "";
@@ -333,6 +494,10 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 
 
 	@Override
+	/**
+	 * {@inheritDoc}
+	 * Close the Python process and clean the memory
+	 */
 	public void close() {
 		if (python != null) python.close();
 	}
@@ -462,6 +627,14 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 		this.targetDims = targetImg.dimensionsAsLongArray();
 	}
 	
+	/**
+	 * MEthod used during development to test features
+	 * @param args
+	 * 	nothing
+	 * @throws IOException nothing
+	 * @throws RuntimeException nothing
+	 * @throws InterruptedException nothing
+	 */
 	public static void main(String[] args) throws IOException, RuntimeException, InterruptedException {
 		RandomAccessibleInterval<UnsignedByteType> img = ArrayImgs.unsignedBytes(new long[] {50, 50, 3});
 		img = Views.addDimension(img, 1, 2);

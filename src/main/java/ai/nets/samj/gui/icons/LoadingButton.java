@@ -19,10 +19,7 @@
  */
 package ai.nets.samj.gui.icons;
 
-import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -67,14 +64,16 @@ public class LoadingButton extends JButton {
 	 * 	the path to the file that contains the image that is going to be used
 	 * @param filename
 	 * 	the name of the file that is going to be used
+	 * @param animationSize
+	 * 	size of the side of the squared animation inside the button
 	 */
-	public LoadingButton(String text, String filePath, String filename) {
+	public LoadingButton(String text, String filePath, String filename, double animationSize) {
 		super();
         textLabel = new JLabel(text);
         textLabel.setHorizontalAlignment(SwingConstants.CENTER);
         textLabel.setVerticalAlignment(SwingConstants.CENTER);
         add(textLabel);
-        gifIcon = getIcon(filePath + "/" + filename, 30, 30);
+        gifIcon = getIcon(filePath + "/" + filename, (int) animationSize, (int) animationSize);
         // Create JLabel to display GIF animation
         gifLabel = new JLabel(gifIcon);
         gifLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -82,21 +81,12 @@ public class LoadingButton extends JButton {
         gifLabel.setVisible(false); // Initially hide GIF animation
         add(gifLabel);
 	}
-
-    // Override paintComponent to customize button appearance
-    @Override
-    protected void paintComponent(Graphics g) {
-        // Draw the background
-        if (getModel().isPressed()) {
-            g.setColor(getBackground());
-        } else {
-            g.setColor(getBackground().darker());
-        }
-        g.fillRect(0, 0, getWidth(), getHeight());
-
-        // Draw the text
-        super.paintComponent(g);
-    }
+	
+	@Override
+	public void setEnabled(boolean isEnabled) {
+		gifLabel.setEnabled(isEnabled);
+		super.setEnabled(isEnabled);
+	}
 	
 	private ImageIcon getIcon(String path, int width, int height) {
 		while (path.indexOf("//") != -1) path = path.replace("//", "/");
@@ -143,9 +133,7 @@ public class LoadingButton extends JButton {
 	 */
 	public void setPressed(boolean isPressed) {
         textLabel.setVisible(!isPressed);
-
         gifLabel.setVisible(isPressed);
-		
 		this.setSelected(isPressed);
 	}
 }

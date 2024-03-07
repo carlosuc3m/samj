@@ -51,7 +51,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-import ai.nets.samj.communication.model.EfficientSAM;
 import ai.nets.samj.communication.model.SAMModel;
 import ai.nets.samj.communication.model.SAMModels;
 import ai.nets.samj.gui.components.ComboBoxItem;
@@ -91,7 +90,8 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	/**
 	 * Button that when pressed runs the SAMJ model encoder on the image selected
 	 */
-	private LoadingButton bnStart = new LoadingButton("Start/Encode", RESOURCES_FOLDER, "loading_animation.gif");
+	
+	private LoadingButton bnStart;
 	// TODO private JButton bnComplete = new JButton("Auto-Complete (soon...)");
 	// TODO private JButton bnRoi2Mask = new JButton("Create Mask (soon...)");
 	/** TODO will this ever happen?
@@ -284,6 +284,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		gbc0.fill = GridBagConstraints.HORIZONTAL;
 		gbc0.gridx = 0;
 		gbc0.insets = new Insets(5, 5, 5, 0);
+		bnStart = new LoadingButton("Start/Encode", RESOURCES_FOLDER, "loading_animation.gif", 20);
 		panelImage.add(bnStart, gbc0);
 		GridBagConstraints gbc1 = new GridBagConstraints();
 		gbc1.fill = GridBagConstraints.HORIZONTAL;

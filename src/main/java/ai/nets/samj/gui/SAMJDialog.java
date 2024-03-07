@@ -56,6 +56,7 @@ import ai.nets.samj.communication.model.SAMModels;
 import ai.nets.samj.gui.components.ComboBoxItem;
 import ai.nets.samj.gui.components.GridPanel;
 import ai.nets.samj.gui.icons.ButtonIcon;
+import ai.nets.samj.gui.icons.LoadingButton;
 import ai.nets.samj.gui.tools.Tools;
 import ai.nets.samj.ui.PromptsResultsDisplay;
 import ai.nets.samj.ui.SAMJLogger;
@@ -89,7 +90,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	/**
 	 * Button that when pressed runs the SAMJ model encoder on the image selected
 	 */
-	private JButton bnStart = new JButton("Start/Encode");
+	private LoadingButton bnStart = new LoadingButton("Start/Encode", RESOURCES_FOLDER, "loading_animation.svg");
 	// TODO private JButton bnComplete = new JButton("Auto-Complete (soon...)");
 	// TODO private JButton bnRoi2Mask = new JButton("Create Mask (soon...)");
 	/** TODO will this ever happen?
@@ -369,9 +370,11 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			if (display == null || !display.getFocusedImage().equals(((ComboBoxItem) this.cmbImage.getSelectedItem()).getValue()))
 				display = displayInterface.getPrompts(((ComboBoxItem) this.cmbImage.getSelectedItem()).getValue());
 			SAMModel selecetdSAMModel = this.panelModel.getSelectedModel();
+			this.bnStart.setPressed(true);
 			SAMModel netAdapter = panelModel
 					.getSelectedModel()
 					.instantiate(display.giveProcessedSubImage(selecetdSAMModel), logForNetworks);
+			this.bnStart.setPressed(false);
 			if (netAdapter == null) return;
 			display.switchToThisNet(netAdapter);
 			GUIsOwnLog.warn("Finished the encoding");

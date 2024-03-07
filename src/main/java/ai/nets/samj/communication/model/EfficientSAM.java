@@ -55,6 +55,14 @@ public class EfficientSAM implements SAMModel {
 	 */
 	public static final String INPUT_IMAGE_AXES = "yxc";
 	
+	private static final String HTML_DESCRIPTION = "EfficientSAM: Leveraged Masked Image Pretraining for Efficient Segment Anything <br>"
+	        + "<strong>Weights size:</strong> 105.7 MB <br>"
+	        + "<strong>Speed:</strong> 1 out of 5 <br>"
+	        + "<strong>Performance:</strong> 5 out of 5 <br>"
+	        + "<strong>GitHub Repository:</strong> <a href=\"https://github.com/yformer/EfficientSAM\">https://github.com/yformer/EfficientSAM</a> <br>"
+	        + "<strong>Paper:</strong> <a href=\"https://arxiv.org/pdf/2312.00863.pdf\">EfficientSAM: Leveraged Masked Image Pretraining for Efficient Segment\n"
+	        + "Anything</a>";
+	
 	public EfficientSAM() {}
 
 	/**
@@ -93,7 +101,7 @@ public class EfficientSAM implements SAMModel {
 	 * {@inheritDoc}
 	 */
 	public String getDescription() {
-		return "Bla bla Efficient SAM";
+		return HTML_DESCRIPTION;
 	}
 
 	@Override

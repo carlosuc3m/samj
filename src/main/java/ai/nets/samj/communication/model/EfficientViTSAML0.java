@@ -91,14 +91,13 @@ public class EfficientViTSAML0 implements SAMModel {
 	/**
 	 * {@inheritDoc}
 	 */
-	public SAMModel instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt) {
+	public SAMModel instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt) throws Exception {
 		try {
 			return new EfficientViTSAML0(image,useThisLoggerForIt);
 		} catch (IOException | InterruptedException | RuntimeException e) {
 			useThisLoggerForIt.error(FULL_NAME + " experienced an error: " + e.getMessage());
-			e.printStackTrace();
+			throw e;
 		}
-		return null;
 	}
 
 	@Override

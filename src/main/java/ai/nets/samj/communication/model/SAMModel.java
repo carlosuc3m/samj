@@ -75,8 +75,9 @@ public interface SAMModel {
 	 * @param useThisLoggerForIt
 	 * 	a logger to provide info about the progress
 	 * @return an instance of a SAM-based model
+	 * @throws Exception if something wrong happens starting the model or encoding the image
 	 */
-	SAMModel instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt);
+	SAMModel instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt) throws Exception;
 
 	/**
 	 * Get a 2D segmentation/annotation using two lists of points as the prompts. 

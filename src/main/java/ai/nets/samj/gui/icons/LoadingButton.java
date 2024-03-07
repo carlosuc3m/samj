@@ -94,8 +94,6 @@ public class LoadingButton extends JButton {
         gifIcon = getIcon(filePath + "/" + filename, (int) animationSize);
         // Create JLabel to display GIF animation
         gifLabel = new JLabel(gifIcon);
-        gifLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        gifLabel.setVerticalAlignment(SwingConstants.CENTER);
         gifLabel.setVisible(false); // Initially hide GIF animation
         add(gifLabel);
 	}
@@ -154,7 +152,7 @@ public class LoadingButton extends JButton {
 	 * 	whether the button is pressed or not
 	 */
 	public void setPressed(boolean isPressed) {
-        textLabel.setVisible(!isPressed);
+        //textLabel.setVisible(!isPressed);
 		super.setEnabled(!isPressed);
         gifLabel.setVisible(isPressed);
 		this.setSelected(isPressed);

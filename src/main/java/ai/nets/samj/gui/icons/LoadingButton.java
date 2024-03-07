@@ -91,7 +91,7 @@ public class LoadingButton extends JButton {
         textLabel.setHorizontalAlignment(SwingConstants.CENTER);
         textLabel.setVerticalAlignment(SwingConstants.CENTER);
         add(textLabel);
-        gifIcon = getIcon(filePath + "/" + filename, (int) animationSize, (int) animationSize);
+        gifIcon = getIcon(filePath + "/" + filename, (int) animationSize);
         // Create JLabel to display GIF animation
         gifLabel = new JLabel(gifIcon);
         gifLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -106,7 +106,7 @@ public class LoadingButton extends JButton {
 		super.setEnabled(isEnabled);
 	}
 	
-	private ImageIcon getIcon(String path, int width, int height) {
+	private ImageIcon getIcon(String path, int smallestSide) {
 		while (path.indexOf("//") != -1) path = path.replace("//", "/");
 		URL url = LoadingButton.class.getClassLoader().getResource(path);
 		if (url == null) {
@@ -119,9 +119,13 @@ public class LoadingButton extends JButton {
 			}
 		}
 		if (url != null) {
-			ImageIcon img = new ImageIcon(url) ; 
-			img.setImage(img.getImage().getScaledInstance(width, height, Image.SCALE_DEFAULT));
-			return img;
+			ImageIcon icon = new ImageIcon(url);
+			int width = icon.getIconWidth();
+			int height = icon.getIconHeight();
+			int min = Math.min(width, height);
+			double scale = (double) smallestSide / (double) min;
+			icon.setImage(icon.getImage().getScaledInstance((int) (width * scale), (int) (height * scale), Image.SCALE_DEFAULT));
+			return icon;
 		}
 		return null;
 	}

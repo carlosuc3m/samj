@@ -69,7 +69,7 @@ public class LoadingButton extends JButton {
 	 */
 	public LoadingButton(String text, String filePath, String filename, double animationSize) {
 		super();
-        textLabel = new JLabel(text);
+        textLabel = new JLabel("<html><font color='gray'>Start/Encode </font></html>");
         textLabel.setHorizontalAlignment(SwingConstants.CENTER);
         textLabel.setVerticalAlignment(SwingConstants.CENTER);
         add(textLabel);
@@ -84,7 +84,10 @@ public class LoadingButton extends JButton {
 	
 	@Override
 	public void setEnabled(boolean isEnabled) {
-		gifLabel.setEnabled(isEnabled);
+		if (isEnabled)
+			textLabel.setText("<html><font color='black'>Start/Encode</font></html>");
+		else
+			textLabel.setText("<html><font color='gray'>Start/Encode </font></html>");
 		super.setEnabled(isEnabled);
 	}
 	
@@ -133,6 +136,7 @@ public class LoadingButton extends JButton {
 	 */
 	public void setPressed(boolean isPressed) {
         textLabel.setVisible(!isPressed);
+		super.setEnabled(!isPressed);
         gifLabel.setVisible(isPressed);
 		this.setSelected(isPressed);
 	}

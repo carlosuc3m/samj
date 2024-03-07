@@ -17,10 +17,15 @@
  */
 package ai.nets.samj.gui.components;
 
+import java.awt.Desktop;
 import java.awt.Dimension;
+import java.io.IOException;
+import java.net.URISyntaxException;
 
 import javax.swing.JEditorPane;
 import javax.swing.JScrollPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
@@ -145,6 +150,19 @@ public class HTMLPane extends JEditorPane {
 		footer += "</body></html>\n";
 		setEditable(false);
 		setContentType("text/html; charset=ISO-8859-1");
+		
+		addHyperlinkListener(new HyperlinkListener() {
+            @Override
+            public void hyperlinkUpdate(HyperlinkEvent e) {
+                if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                    try {
+                        Desktop.getDesktop().browse(e.getURL().toURI());
+                    } catch (IOException | URISyntaxException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        });
 	}
 
 	/**

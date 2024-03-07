@@ -35,6 +35,17 @@ import java.io.File;
  * @author Vladimir Ulman
  */
 public interface PromptsResultsDisplay {
+	
+	/**
+	 * Enum that is used to identify from where the exception is being thrown by SAMJ.
+	 * It can be thrown whne encoding the image of interest {@link #ENCODING}, when producing an annotation after
+	 * getting a prompt {@link #DECODING} or in other situation {@link #OTHER}
+	 */
+	public enum SAMJException {
+	    ENCODING,
+	    DECODING, 
+	    OTHER; 
+	}
 
 	/**
 	 * Get the image on which the wanted model will act.
@@ -111,4 +122,13 @@ public interface PromptsResultsDisplay {
 	 * @return
 	 */
 	Object getFocusedImage();
+	
+	/**
+	 * This method uses the exception launched by SAMJ to display an understandable error message in the consumer software
+	 * @param type
+	 * 	which kind of exception is being throw from the possibilities of {@link SAMJException}
+	 * @param ex
+	 * 	the exception thrown by SAMJ
+	 */
+	void notifyException(SAMJException type, Exception ex);
 }

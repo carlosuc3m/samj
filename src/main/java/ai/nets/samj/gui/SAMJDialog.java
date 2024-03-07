@@ -59,6 +59,7 @@ import ai.nets.samj.gui.icons.ButtonIcon;
 import ai.nets.samj.gui.icons.LoadingButton;
 import ai.nets.samj.gui.tools.Tools;
 import ai.nets.samj.ui.PromptsResultsDisplay;
+import ai.nets.samj.ui.PromptsResultsDisplay.SAMJException;
 import ai.nets.samj.ui.SAMJLogger;
 import ai.nets.samj.ui.UtilityMethods;
 import ai.nets.samj.SamEnvManager;
@@ -374,9 +375,14 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 			SAMModel selecetdSAMModel = this.panelModel.getSelectedModel();
 			this.bnStart.setPressed(true);
 			new Thread(() -> {
-				SAMModel netAdapter = panelModel
+				SAMModel netAdapter = null;
+				try {
+					netAdapter = panelModel
 						.getSelectedModel()
 						.instantiate(display.giveProcessedSubImage(selecetdSAMModel), logForNetworks);
+				} catch (Exception ex) {
+					display.notifyException(SAMJException.ENCODING, ex);
+				}
 				SwingUtilities.invokeLater(() -> {
 					this.bnStart.setPressed(false);
 				});

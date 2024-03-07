@@ -74,31 +74,13 @@ public class LoadingButton extends JButton {
         textLabel.setHorizontalAlignment(SwingConstants.CENTER);
         textLabel.setVerticalAlignment(SwingConstants.CENTER);
         add(textLabel);
-        gifIcon = getIcon(filePath + "/" + filename);
+        gifIcon = getIcon(filePath + "/" + filename, 30, 30);
         // Create JLabel to display GIF animation
         gifLabel = new JLabel(gifIcon);
         gifLabel.setHorizontalAlignment(SwingConstants.CENTER);
         gifLabel.setVerticalAlignment(SwingConstants.CENTER);
         gifLabel.setVisible(false); // Initially hide GIF animation
         add(gifLabel);
-        
-        this.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                // Hide text label
-                gifLabel.setVisible(true);
-                textLabel.setVisible(false);
-
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                // Show text label
-                textLabel.setVisible(true);
-
-                gifLabel.setVisible(false);
-            }
-        });
 	}
 
     // Override paintComponent to customize button appearance
@@ -116,7 +98,7 @@ public class LoadingButton extends JButton {
         super.paintComponent(g);
     }
 	
-	private ImageIcon getIcon(String path) {
+	private ImageIcon getIcon(String path, int width, int height) {
 		while (path.indexOf("//") != -1) path = path.replace("//", "/");
 		URL url = LoadingButton.class.getClassLoader().getResource(path);
 		if (url == null) {
@@ -129,10 +111,9 @@ public class LoadingButton extends JButton {
 			}
 		}
 		if (url != null) {
-			ImageIcon img = new ImageIcon(url, "") ;  
-			Image image = img.getImage();
-			Image scaled = image.getScaledInstance(32, 32, Image.SCALE_SMOOTH);
-			return new ImageIcon(scaled);
+			ImageIcon img = new ImageIcon(url) ; 
+			img.setImage(img.getImage().getScaledInstance(width, height, Image.SCALE_DEFAULT));
+			return img;
 		}
 		return null;
 	}
@@ -161,8 +142,9 @@ public class LoadingButton extends JButton {
 	 * 	whether the button is pressed or not
 	 */
 	public void setPressed(boolean isPressed) {
-		this.textLabel.setVisible(!isPressed);
-		if (isPressed) this.setIcon(gifIcon);
+        textLabel.setVisible(!isPressed);
+
+        gifLabel.setVisible(isPressed);
 		
 		this.setSelected(isPressed);
 	}

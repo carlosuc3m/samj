@@ -51,6 +51,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
+import ai.nets.samj.communication.model.EfficientSAM;
 import ai.nets.samj.communication.model.SAMModel;
 import ai.nets.samj.communication.model.SAMModels;
 import ai.nets.samj.gui.components.ComboBoxItem;
@@ -90,7 +91,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 	/**
 	 * Button that when pressed runs the SAMJ model encoder on the image selected
 	 */
-	private LoadingButton bnStart = new LoadingButton("Start/Encode", RESOURCES_FOLDER, "loading_animation.svg");
+	private LoadingButton bnStart = new LoadingButton("Start/Encode", RESOURCES_FOLDER, "loading_animation.gif");
 	// TODO private JButton bnComplete = new JButton("Auto-Complete (soon...)");
 	// TODO private JButton bnRoi2Mask = new JButton("Create Mask (soon...)");
 	/** TODO will this ever happen?
@@ -371,10 +372,24 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 				display = displayInterface.getPrompts(((ComboBoxItem) this.cmbImage.getSelectedItem()).getValue());
 			SAMModel selecetdSAMModel = this.panelModel.getSelectedModel();
 			this.bnStart.setPressed(true);
+			SAMModel netAdapter = new EfficientSAM();
+			/*
 			SAMModel netAdapter = panelModel
 					.getSelectedModel()
 					.instantiate(display.giveProcessedSubImage(selecetdSAMModel), logForNetworks);
-			this.bnStart.setPressed(false);
+					*/
+			new Thread(() -> {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				SwingUtilities.invokeLater(() -> {
+					this.bnStart.setPressed(false);
+				});
+				
+			}).start();;
 			if (netAdapter == null) return;
 			display.switchToThisNet(netAdapter);
 			GUIsOwnLog.warn("Finished the encoding");

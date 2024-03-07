@@ -252,7 +252,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		pnButtons.add(bnRect);
 		pnButtons.add(bnPoints);
 		pnButtons.add(bnBrush);
-		pnButtons.add(bnMask);
+		// TODO decide what to do pnButtons.add(bnMask);
 		
 		// Status
 		JToolBar pnStatus = new JToolBar();
@@ -315,8 +315,8 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 		bnRect.addActionListener(this);
 		bnPoints.addActionListener(this);
 		bnBrush.addActionListener(this);
-		bnMask.addActionListener(this);
-		bnMask.setDropTarget(new LocalDropTarget());
+		// TODO decide what to do bnMask.addActionListener(this);
+		// TODO decide what to do bnMask.setDropTarget(new LocalDropTarget());
 		
 		add(pn);
 		updateInterface();
@@ -381,6 +381,7 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 					this.bnStart.setPressed(false);
 				});
 				if (netAdapter == null) return;
+				display.switchToThisNet(netAdapter);
 				GUIsOwnLog.warn("Finished the encoding");
 				SwingUtilities.invokeLater(() -> {
 					//TODO: encoding should be a property of a model

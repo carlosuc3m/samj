@@ -152,7 +152,6 @@ public class LoadingButton extends JButton {
 	 * 	whether the button is pressed or not
 	 */
 	public void setPressed(boolean isPressed) {
-        //textLabel.setVisible(!isPressed);
 		super.setEnabled(!isPressed);
         gifLabel.setVisible(isPressed);
 		this.setSelected(isPressed);

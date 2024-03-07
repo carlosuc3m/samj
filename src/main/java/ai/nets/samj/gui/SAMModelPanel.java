@@ -188,7 +188,7 @@ public class SAMModelPanel extends JPanel implements ActionListener {
 		for(JRadioButton rb : rbModels)
 			pnModel.place(1, col++, 1, 1, rb);
 		
-		pnModel.place(2, 1, 5, 2, pnManageModel);
+		pnModel.place(2, 1, 6, 2, pnManageModel);
 		
 		add(pnModel);
 		info.append("p", "Description of the model");

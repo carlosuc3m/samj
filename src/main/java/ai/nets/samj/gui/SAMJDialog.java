@@ -372,29 +372,22 @@ public class SAMJDialog extends JPanel implements ActionListener, PopupMenuListe
 				display = displayInterface.getPrompts(((ComboBoxItem) this.cmbImage.getSelectedItem()).getValue());
 			SAMModel selecetdSAMModel = this.panelModel.getSelectedModel();
 			this.bnStart.setPressed(true);
-			SAMModel netAdapter = new EfficientSAM();
-			/*
-			SAMModel netAdapter = panelModel
-					.getSelectedModel()
-					.instantiate(display.giveProcessedSubImage(selecetdSAMModel), logForNetworks);
-					*/
 			new Thread(() -> {
-				try {
-					Thread.sleep(3000);
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				SAMModel netAdapter = panelModel
+						.getSelectedModel()
+						.instantiate(display.giveProcessedSubImage(selecetdSAMModel), logForNetworks);
 				SwingUtilities.invokeLater(() -> {
 					this.bnStart.setPressed(false);
 				});
-				
-			}).start();;
-			if (netAdapter == null) return;
-			display.switchToThisNet(netAdapter);
-			GUIsOwnLog.warn("Finished the encoding");
-			//TODO: encoding should be a property of a model
-			this.setEncodingsDone(true);
+				if (netAdapter == null) return;
+				GUIsOwnLog.warn("Finished the encoding");
+				SwingUtilities.invokeLater(() -> {
+					//TODO: encoding should be a property of a model
+					this.setEncodingsDone(true);
+					updateInterface();
+				});
+			}).start();
+			return;
 		} else if (e.getSource() == chkROIManager) {
 			if (display != null)
 				display.enableAddingToRoiManager(chkROIManager.isSelected());

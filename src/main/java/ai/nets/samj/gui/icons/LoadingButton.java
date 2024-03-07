@@ -52,9 +52,26 @@ public class LoadingButton extends JButton {
 	 */
 	private JLabel textLabel;
 	/**
+	 * String that is displayed inside the button
+	 */
+	private String text;
+	/**
 	 * Label containing the loading animation to be displayed while the button is pressed
 	 */
 	private JLabel gifLabel;
+	/**
+	 * HTML used to format the button label text. First the color needs to be specified, then the 
+	 * text that wants to be in the button
+	 */
+	private static final String BTN_TEXT_HTML = "<html><font color='%s'>%s</font></html>";
+	/**
+	 * Color code for the HTML String of the button for when the button is enabled
+	 */
+	private static final String ENABLED_COLOR = "black";
+	/**
+	 * Color code for the HTML String of the button for when the button is disabled
+	 */
+	private static final String DISABLED_COLOR = "gray";
 
 	/**
 	 * Constructor. Creates a button that has an icon inside. The icon changes when pressed.
@@ -69,7 +86,8 @@ public class LoadingButton extends JButton {
 	 */
 	public LoadingButton(String text, String filePath, String filename, double animationSize) {
 		super();
-        textLabel = new JLabel("<html><font color='gray'>Start/Encode </font></html>");
+		this.text = text;
+        textLabel = new JLabel(String.format(BTN_TEXT_HTML, DISABLED_COLOR, text));
         textLabel.setHorizontalAlignment(SwingConstants.CENTER);
         textLabel.setVerticalAlignment(SwingConstants.CENTER);
         add(textLabel);
@@ -84,10 +102,7 @@ public class LoadingButton extends JButton {
 	
 	@Override
 	public void setEnabled(boolean isEnabled) {
-		if (isEnabled)
-			textLabel.setText("<html><font color='black'>Start/Encode</font></html>");
-		else
-			textLabel.setText("<html><font color='gray'>Start/Encode </font></html>");
+		textLabel.setText(String.format(BTN_TEXT_HTML, isEnabled ? ENABLED_COLOR : DISABLED_COLOR, text));
 		super.setEnabled(isEnabled);
 	}
 	

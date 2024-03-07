@@ -93,7 +93,8 @@ public class EfficientViTSAML2 implements SAMModel {
 	/**
 	 * {@inheritDoc}
 	 */
-	public SAMModel instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt) throws Exception {
+	public SAMModel instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt) 
+			throws IOException, InterruptedException, RuntimeException {
 		try {
 			return new EfficientViTSAML2(image,useThisLoggerForIt);
 		} catch (IOException | InterruptedException | RuntimeException e) {
@@ -137,7 +138,8 @@ public class EfficientViTSAML2 implements SAMModel {
 	/**
 	 * {@inheritDoc}
 	 */
-	public List<Polygon> fetch2dSegmentation(List<Localizable> listOfPoints2D, List<Localizable> listOfNegPoints2D) {
+	public List<Polygon> fetch2dSegmentation(List<Localizable> listOfPoints2D, List<Localizable> listOfNegPoints2D) 
+			throws IOException, InterruptedException, RuntimeException {
 		try {
 			List<int[]> list = listOfPoints2D.stream()
 					.map(i -> new int[] {(int) i.positionAsDoubleArray()[0], (int) i.positionAsDoubleArray()[1]}).collect(Collectors.toList());
@@ -158,7 +160,8 @@ public class EfficientViTSAML2 implements SAMModel {
 	/**
 	 * {@inheritDoc}
 	 */
-	public List<Polygon> fetch2dSegmentation(Interval boundingBox2D) {
+	public List<Polygon> fetch2dSegmentation(Interval boundingBox2D) 
+			throws IOException, InterruptedException, RuntimeException {
 		try {
 			//order to processBox() should be: x0,y0, x1,y1
 			final int bbox[] = {
@@ -181,7 +184,8 @@ public class EfficientViTSAML2 implements SAMModel {
 	/**
 	 * {@inheritDoc}
 	 */
-	public <T extends RealType<T> & NativeType<T>> List<Polygon> fetch2dSegmentationFromMask(RandomAccessibleInterval<T> rai) {
+	public <T extends RealType<T> & NativeType<T>> List<Polygon> fetch2dSegmentationFromMask(RandomAccessibleInterval<T> rai) 
+			throws IOException, InterruptedException, RuntimeException {
 		try {
 			return efficientSamJ.processMask(rai);
 		} catch (IOException | InterruptedException | RuntimeException e) {

@@ -20,6 +20,7 @@
 package ai.nets.samj.communication.model;
 
 import java.awt.Polygon;
+import java.io.IOException;
 import java.util.List;
 
 import ai.nets.samj.ui.SAMJLogger;
@@ -75,9 +76,11 @@ public interface SAMModel {
 	 * @param useThisLoggerForIt
 	 * 	a logger to provide info about the progress
 	 * @return an instance of a SAM-based model
-	 * @throws Exception if something wrong happens starting the model or encoding the image
+	 * @throws IOException if any of the files needed to run the Python script is missing 
+	 * @throws RuntimeException if there is any error running the Python process
+	 * @throws InterruptedException if the process in interrupted
 	 */
-	SAMModel instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt) throws Exception;
+	SAMModel instantiate(final RandomAccessibleInterval<?> image, final SAMJLogger useThisLoggerForIt) throws IOException, RuntimeException, InterruptedException;
 
 	/**
 	 * Get a 2D segmentation/annotation using two lists of points as the prompts. 
@@ -87,16 +90,22 @@ public interface SAMModel {
 	 * 	list of points that makes reference to something that is not the instance of interest. This
 	 * 	points make reference to the background
 	 * @return a list of polygons that represent the edges of each of the masks segmented by the model
+	 * @throws IOException if any of the files needed to run the Python script is missing 
+	 * @throws RuntimeException if there is any error running the Python process
+	 * @throws InterruptedException if the process in interrupted
 	 */
-	List<Polygon> fetch2dSegmentation(List<Localizable> listOfPoints2D, List<Localizable> listOfNegPoints2D);
+	List<Polygon> fetch2dSegmentation(List<Localizable> listOfPoints2D, List<Localizable> listOfNegPoints2D) throws IOException, RuntimeException, InterruptedException;
 
 	/**
 	 * Get a 2D segmentation/annotation using a bounding box as the prompt. 
 	 * @param boundingBox2D
 	 * 	a bounding box around the instance of interest
 	 * @return a list of polygons that represent the edges of each of the masks segmented by the model
+	 * @throws IOException if any of the files needed to run the Python script is missing 
+	 * @throws RuntimeException if there is any error running the Python process
+	 * @throws InterruptedException if the process in interrupted
 	 */
-	List<Polygon> fetch2dSegmentation(Interval boundingBox2D);
+	List<Polygon> fetch2dSegmentation(Interval boundingBox2D) throws IOException, RuntimeException, InterruptedException;
 
 	/**
 	 * Get a 2D segmentation/annotation using an existing mask as the prompt. 
@@ -105,8 +114,11 @@ public interface SAMModel {
 	 * @param rai
 	 * 	the mask as a {@link RandomAccessibleInterval} 
 	 * @return a list of polygons that represent the edges of each of the masks segmented by the model
+	 * @throws IOException if any of the files needed to run the Python script is missing 
+	 * @throws RuntimeException if there is any error running the Python process
+	 * @throws InterruptedException if the process in interrupted
 	 */
-	public <T extends RealType<T> & NativeType<T>> List<Polygon> fetch2dSegmentationFromMask(RandomAccessibleInterval<T> rai);
+	public <T extends RealType<T> & NativeType<T>> List<Polygon> fetch2dSegmentationFromMask(RandomAccessibleInterval<T> rai) throws IOException, RuntimeException, InterruptedException;
 
 	/**
 	 * Close the Python process where the model is being executed

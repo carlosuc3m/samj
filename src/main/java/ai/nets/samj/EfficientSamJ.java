@@ -481,7 +481,7 @@ public class EfficientSamJ extends AbstractSamJ implements AutoCloseable {
 	 * @throws InterruptedException if the process in interrupted
 	 */
 	public List<Polygon> processBox(int[] boundingBox)
-			throws IOException, RuntimeException, InterruptedException{
+			throws IOException, RuntimeException, InterruptedException {
 		this.script = "";
 		processBoxWithSAM();
 		HashMap<String, Object> inputs = new HashMap<String, Object>();

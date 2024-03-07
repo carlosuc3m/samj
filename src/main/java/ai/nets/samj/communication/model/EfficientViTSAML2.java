@@ -54,6 +54,15 @@ public class EfficientViTSAML2 implements SAMModel {
 	 * Axes order required for the input image by the model
 	 */
 	public static final String INPUT_IMAGE_AXES = "xyc";
+	
+	private static final String HTML_DESCRIPTION = "EfficientViT-SAM, third biggest version (L2) <br>"
+	        + "<strong>Weights size:</strong> 245.7 MB <br>"
+	        + "<strong>Speed:</strong> 3rd out of 6 <br>"
+	        + "<strong>Performance:</strong> 4th out of 6 <br>"
+	        + "<strong>GitHub Repository:</strong> <a href=\"https://github.com/mit-han-lab/efficientvit\">"
+	        + "https://github.com/mit-han-lab/efficientvit</a> <br>"
+	        + "<strong>Paper:</strong> <a href=\"https://arxiv.org/pdf/2402.05008.pdf\">EfficientViT-SAM: Accelerated "
+	        + "Segment Anything Model Without Performance Loss</a>";
 
 	/**
 	 * Create an empty instance of the model
@@ -75,7 +84,7 @@ public class EfficientViTSAML2 implements SAMModel {
 	 * {@inheritDoc}
 	 */
 	public String getDescription() {
-		return "Bla bla Efficient SAM";
+		return HTML_DESCRIPTION;
 	}
 
 	@Override

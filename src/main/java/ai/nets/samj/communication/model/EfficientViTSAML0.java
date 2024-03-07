@@ -28,7 +28,6 @@ import net.imglib2.util.Cast;
 
 import java.awt.Polygon;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,8 +42,6 @@ import ai.nets.samj.ui.SAMJLogger;
  * @author Vladimir Ulman
  */
 public class EfficientViTSAML0 implements SAMModel {
-
-	private static final Polygon EMPTY_POLYGON = new Polygon(new int[0], new int[0], 0);
 
 	private EfficientViTSamJ efficientSamJ;
 	private SAMJLogger log;
@@ -147,10 +144,7 @@ public class EfficientViTSAML0 implements SAMModel {
 			else return efficientSamJ.processPoints(list, negList);
 		} catch (IOException | RuntimeException | InterruptedException e) {
 			log.error(FULL_NAME+", providing empty result because of some trouble: "+e.getMessage());
-			e.printStackTrace();
-			List<Polygon> retList = new ArrayList<>(1);
-			retList.add( EMPTY_POLYGON );
-			return retList;
+			throw e;
 		}
 	}
 
@@ -171,10 +165,7 @@ public class EfficientViTSAML0 implements SAMModel {
 			return efficientSamJ.processBox(bbox);
 		} catch (IOException | InterruptedException | RuntimeException e) {
 			log.error(FULL_NAME+", providing empty result because of some trouble: "+e.getMessage());
-			e.printStackTrace();
-			List<Polygon> retList = new ArrayList<>(1);
-			retList.add( EMPTY_POLYGON );
-			return retList;
+			throw e;
 		}
 	}
 
@@ -188,10 +179,7 @@ public class EfficientViTSAML0 implements SAMModel {
 			return efficientSamJ.processMask(rai);
 		} catch (IOException | InterruptedException | RuntimeException e) {
 			log.error(FULL_NAME+", providing empty result because of some trouble: "+e.getMessage());
-			e.printStackTrace();
-			List<Polygon> retList = new ArrayList<>(1);
-			retList.add( EMPTY_POLYGON );
-			return retList;
+			throw e;
 		}
 	}
 
